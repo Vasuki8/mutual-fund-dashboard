@@ -558,4 +558,45 @@ if (module) {
     assert.equal(refreshed._fundscope.stale, false);
     assert.equal(refreshed.data.at(-1).date, '01-01-2005');
   });
+
+  test('provider transport archives history through Workers-compatible manual redirect mode', async () => {
+    const h = harness();
+    let redirectMode: RequestRedirect | undefined;
+    h.setFetch(async (_url, init) => {
+      redirectMode = init?.redirect;
+      // workerd rejects error mode while constructing Request, before contacting the origin.
+      if (redirectMode === 'error') throw new TypeError('Invalid redirect value, must be one of "follow" or "manual"');
+      return Response.json(history());
+    });
+    const response = await h.request(`/api/mf/${CODE}`);
+    assert.equal(response.status, 200);
+    assert.equal(redirectMode, 'manual');
+    const result = await response.json();
+    assert.equal(result._fundscope.observationCount, 2);
+    assert.equal(result.data[1].nav, '10.0000001');
+    assert.equal((await (await h.request('/api/data/status')).json()).archivedCount, 1);
+  });
+
+  test('upstream redirects to another host are never followed or archived', async () => {
+    for (const status of [300, 301, 302, 303, 307, 308, 399]) {
+      const h = harness();
+      const visited: string[] = [];
+      const target = 'https://unexpected.example/history';
+      h.setFetch(async (url, init) => {
+        visited.push(url);
+        // Model fetch's follow behavior so a regression to follow would accept the other host.
+        if (init?.redirect === 'follow') {
+          visited.push(target);
+          return Response.json(history());
+        }
+        return new Response(null, { status, headers: { Location: target } });
+      });
+      const response = await h.request(`/api/mf/${CODE}`);
+      assert.equal(response.status, 502);
+      assert.match((await response.json()).error, /redirect/i);
+      assert.deepEqual(visited, [`https://api.mfapi.in/mf/${CODE}`]);
+      assert.equal(h.BUCKET.values.size, 0);
+      assert.equal((await (await h.request('/api/data/status')).json()).archivedCount, 0);
+    }
+  });
 }
