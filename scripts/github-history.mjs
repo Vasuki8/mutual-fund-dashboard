@@ -49,7 +49,8 @@ export function parseAssets(assets, count) {
     const [, left, right, pass, ok, gap] = match;
     const start = Number(left), end = Number(right), attempt = Number(pass);
     requireValue(start % CHUNK === 0 && end === Math.min(start + CHUNK, count) - 1
-      && end >= start && Number(ok) + Number(gap) <= end - start + 1, 'asset_name_invalid');
+      && end >= start && (attempt === 0 ? Number(ok) + Number(gap) === end - start + 1
+        : Number(ok) + Number(gap) <= end - start + 1), 'asset_name_invalid');
     requireValue(asset.state === 'uploaded' && Number.isSafeInteger(asset.id)
       && asset.size > 0 && typeof asset.browser_download_url === 'string', 'asset_unverified');
     const key = start + ':' + attempt;
@@ -60,6 +61,12 @@ export function parseAssets(assets, count) {
 }
 export function chooseWork(count, found) {
   for (let start = 0; start < count; start += CHUNK) {
+    for (let pass = 1; pass <= 2; pass++) {
+      const current = found.get(start + ':' + pass);
+      if (!current) continue;
+      const previous = found.get(start + ':' + (pass - 1));
+      requireValue(!!previous && previous.gap === current.ok + current.gap, 'retry_asset_inconsistent');
+    }
     if (!found.has(start + ':0')) return { start, attempt: 0, previous: null };
   }
   for (let start = 0; start < count; start += CHUNK) {
