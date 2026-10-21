@@ -82,7 +82,7 @@ test('uses both auth headers, fixed same-slot identity, bounded batches and dura
     assert.equal(request.redirect, 'error');
     assert.equal(new URL(request.url).origin, SITE);
   }
-  assert.deepEqual(api.requests[0].body, { idempotencyKey: 'fundscope:2026-10-21:00' });
+  assert.deepEqual(api.requests[0].body, { idempotencyKey: 'fundscope:2026-10-21:0537' });
   assert.deepEqual(api.requests[1].body, { runId: RUN, limit: 20 });
   assert.equal(result.status, 'partial');
   assert.equal(result.stopReason, 'batch_limit');
@@ -97,12 +97,12 @@ test('uses both auth headers, fixed same-slot identity, bounded batches and dura
   assert.equal(JSON.stringify(result).includes(APP_SECRET), false);
 });
 
-test('omitted app credential defaults to the service credential and noon changes the UTC slot', async () => {
+test('omitted app credential defaults to the service credential in the evening scheduled occurrence', async () => {
   const { runCloudSync } = await runner();
   const api = hosted([progress(), progress({ status: 'partial' }), status()], NOW + 12 * 3600_000);
   const result = await runCloudSync(options({ maxBatches: 0 }), api);
   assert.equal(result.status, 'partial');
-  assert.equal(api.requests[0].body.idempotencyKey, 'fundscope:2026-10-21:12');
+  assert.equal(api.requests[0].body.idempotencyKey, 'fundscope:2026-10-21:1737');
   assert.equal(api.requests[0].headers.get('x-fundscope-sync-token'), SECRET);
   assert.equal(api.requests.filter(request => request.url.endsWith('/step')).length, 0);
 });
@@ -460,3 +460,97 @@ test('a history-step retry also needs a full forty-second request allowance afte
   assert.equal(api.requests.filter(request => request.url.endsWith('/step')).length, 1);
   assert.deepEqual(api.sleeps, []);
 });
+
+async function startKeyAt(instant: string) {
+  const { runCloudSync } = await runner();
+  const api = hosted([progress(), progress({ status: 'partial' }), status()], Date.parse(instant));
+  const result = await runCloudSync(options({ maxBatches: 0 }), api);
+  assert.equal(result.status, 'partial');
+  assert.equal(result.readbackVerified, true);
+  return api.requests[0].body.idempotencyKey as string;
+}
+
+test('a closed 04:02 manual run does not consume the 05:37 scheduled import', async () => {
+  const { runCloudSync } = await runner();
+  let clock = Date.parse('2026-10-21T04:02:00.000Z');
+  let archived = 0;
+  let current: SyncProgress | undefined;
+  const savedRuns = new Map<string, SyncProgress>();
+  const startKeys: string[] = [];
+  const fetch = async (input: string | URL | Request, init?: RequestInit) => {
+    const path = new URL(String(input)).pathname;
+    const body = init?.body ? JSON.parse(String(init.body)) : null;
+    if (path === '/api/sync/start') {
+      startKeys.push(body.idempotencyKey);
+      current = savedRuns.get(body.idempotencyKey);
+      if (!current) {
+        current = progress({ runId: `run-${savedRuns.size + 1}`, archivedCount: archived, pending: 3 - archived });
+        savedRuns.set(body.idempotencyKey, current);
+      }
+    } else if (path === '/api/sync/step') {
+      assert.equal(current?.status, 'running');
+      archived += 1;
+      current!.processed += 1;
+      current!.archivedCount = archived;
+      current!.pending = 3 - archived;
+    } else if (path === '/api/sync/finish') {
+      current!.status = 'partial';
+    } else {
+      assert.equal(path, '/api/data/status');
+      return Response.json(status({ archivedCount: archived, historyBacklog: 3 - archived,
+        lastRun: { ...status().lastRun!, id: current!.runId, status: current!.status, processed: current!.processed } }));
+    }
+    return Response.json(current);
+  };
+  const runtime = { fetch, now: () => clock, sleep: async () => {} };
+  const manual = await runCloudSync(options(), runtime);
+  assert.equal(manual.status, 'partial');
+  assert.equal(manual.archivedCount, 1);
+  clock = Date.parse('2026-10-21T05:37:00.000Z');
+  const morning = await runCloudSync(options(), runtime);
+  assert.equal(morning.batches, 1, 'The scheduled invocation must start new work after the manual run was closed.');
+  assert.equal(morning.archivedCount, 2);
+  assert.equal(savedRuns.size, 2);
+  assert.deepEqual(startKeys, ['fundscope:2026-10-20:1737', 'fundscope:2026-10-21:0537']);
+});
+
+for (const [boundary, beforeKey, atKey] of [
+  ['2026-10-21T05:37:00.000Z', 'fundscope:2026-10-20:1737', 'fundscope:2026-10-21:0537'],
+  ['2026-10-21T17:37:00.000Z', 'fundscope:2026-10-21:0537', 'fundscope:2026-10-21:1737'],
+]) {
+  test(`scheduled occurrence changes exactly at ${boundary}`, async () => {
+    assert.equal(await startKeyAt(new Date(Date.parse(boundary) - 1).toISOString()), beforeKey);
+    assert.equal(await startKeyAt(boundary), atKey);
+  });
+
+  test(`a transport retry crossing ${boundary} retains its invocation's original key`, async () => {
+    const { runCloudSync } = await runner();
+    const api = hosted([new Response('', { status: 503, headers: { 'Retry-After': '1' } }), progress(),
+      progress({ status: 'partial' }), status()], Date.parse(boundary) - 500);
+    const result = await runCloudSync(options({ maxBatches: 0 }), api);
+    assert.equal(result.status, 'partial');
+    assert.equal(result.retries, 1);
+    assert.ok(api.now() > Date.parse(boundary));
+    assert.deepEqual(api.requests.filter(request => request.url.endsWith('/start')).map(request => request.body.idempotencyKey),
+      [beforeKey, beforeKey]);
+    assert.equal(await startKeyAt(new Date(api.now()).toISOString()), atKey);
+  });
+}
+
+test('separate retries throughout the same scheduled occurrence retain one key, including across noon', async () => {
+  const instants = ['2026-10-21T05:37:00.000Z', '2026-10-21T06:00:00.000Z',
+    '2026-10-21T11:59:59.999Z', '2026-10-21T12:00:00.000Z', '2026-10-21T17:36:59.999Z'];
+  const keys = await Promise.all(instants.map(startKeyAt));
+  assert.deepEqual(keys, instants.map(() => 'fundscope:2026-10-21:0537'));
+});
+
+for (const [label, instant, expected] of [
+  ['UTC date', '2026-10-22T00:00:00.000Z', 'fundscope:2026-10-21:1737'],
+  ['month', '2026-11-01T00:00:00.000Z', 'fundscope:2026-10-31:1737'],
+  ['year', '2027-01-01T00:00:00.000Z', 'fundscope:2026-12-31:1737'],
+  ['leap day', '2028-03-01T04:02:00.000Z', 'fundscope:2028-02-29:1737'],
+]) {
+  test(`${label} rollover before 05:37 retains the previous day's 17:37 occurrence`, async () => {
+    assert.equal(await startKeyAt(instant), expected);
+  });
+}

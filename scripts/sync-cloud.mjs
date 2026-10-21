@@ -319,8 +319,13 @@ export async function runCloudSync(options = {}, runtime = {}) {
     fail('internal_error');
   };
 
-  const utc = new Date(began);
-  const idempotencyKey = `fundscope:${utc.toISOString().slice(0, 10)}:${utc.getUTCHours() < 12 ? '00' : '12'}`;
+  // Anchor to the most recent 05:37/17:37 UTC occurrence, so an earlier manual
+  // run cannot consume the next scheduled run. Keep this key fixed for retries.
+  const periodMs = 12 * 3600_000;
+  const morningOffsetMs = (5 * 60 + 37) * 60_000;
+  const occurrenceMs = Math.floor((began - morningOffsetMs) / periodMs) * periodMs + morningOffsetMs;
+  const occurrence = new Date(occurrenceMs).toISOString();
+  const idempotencyKey = `fundscope:${occurrence.slice(0, 10)}:${occurrence.slice(11, 16).replace(':', '')}`;
   const workDeadline = beganTick + settings.maxSeconds * 1000;
   let current = null;
   let workError = null;

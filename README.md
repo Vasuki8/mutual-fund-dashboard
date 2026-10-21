@@ -28,6 +28,8 @@ The cloud updater is enabled at **05:37 and 17:37 UTC every day** — **11:07 AM
 
 **Archive coverage is explicit.** A successful catalogue refresh is not a claim that every historical NAV has been imported. The **Data status & backups** page shows schemes catalogued, histories archived, stored observation count, backlog, source dates, and run results. Opening a scheme fetches and archives its full available history on demand; the scheduled importer resumes the remaining universe in batches. A scheme that has never supplied usable NAVs cannot be represented as a complete history.
 
+The coverage bar measures schemes with saved histories. It does not indicate that an import is currently running. Each import stops after its work budget and retains its progress. Between runs the page shows a waiting state and the next planned update. Checking the status refreshes the displayed counts; opening a fund or running a scheduled import can add saved history.
+
 The source determines the earliest available observation. FundScope does not claim that MFAPI covers every observation since the legal inception of every Indian scheme.
 
 ## Development
