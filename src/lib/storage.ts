@@ -151,9 +151,57 @@ export function validateCachedFund(value: unknown): FundData {
   if (typeof item.fromCache !== 'boolean' || typeof item.stale !== 'boolean') throw new Error('Invalid cache status fields.');
   const normalized = normalizeNavRecords(item.points, 'iso', true);
   const archive = validateArchiveProvenance(item.archive);
+  if (archive && (archive.observationCount !== normalized.points.length
+    || archive.coverageStart !== normalized.points[0].date || archive.coverageEnd !== normalized.points.at(-1)!.date)) {
+    throw new Error('Archived history provenance does not match its observation count or coverage.');
+  }
   return { meta: validateMeta(item.meta), points: normalized.points, fetchedAt: timestamp(item.fetchedAt, 'fetchedAt'),
     source: 'mfapi.in', fromCache: item.fromCache, stale: item.stale,
     warnings: [...new Set([...warningStrings(item.warnings), ...normalized.warnings])], ...(archive ? { archive } : {}) };
+}
+
+/** Merge source observations without allowing a shortened refresh to erase history. */
+export function mergeCachedFund(incoming: FundData, previous: FundData | null): FundData {
+  if (!previous) return incoming;
+  if (incoming.meta.schemeCode !== previous.meta.schemeCode) throw new Error('Cannot merge different scheme identities.');
+  const older = incoming.points.at(-1)!.date < previous.points.at(-1)!.date;
+  const late = Date.parse(incoming.fetchedAt) < Date.parse(previous.fetchedAt);
+  const questionable = incoming.warnings.some(warning => /^(Invalid NAV|Conflicting NAV)/.test(warning));
+  const preferPrevious = older || late || questionable;
+  const preferred = preferPrevious ? previous : incoming;
+  const first = preferPrevious ? incoming : previous;
+  const pointsByDate = new Map([...first.points, ...preferred.points].map(point => [point.date, point]));
+  const normalized = normalizeNavRecords([...pointsByDate.values()], 'iso', true);
+  const incomingDates = new Set(incoming.points.map(point => point.date));
+  const retained = previous.points.filter(point => !incomingDates.has(point.date)).length;
+  const previousPoints = new Map(previous.points.map(point => [point.date, point.nav]));
+  const corrections = preferPrevious ? 0 : incoming.points.filter(point => previousPoints.has(point.date)
+    && previousPoints.get(point.date) !== point.nav).length;
+  const warnings = [...(late ? previous.warnings : incoming.warnings)].filter(warning => !/^Unresolved discontinuity:/.test(warning));
+  if (late && incoming.points.some(point => !previousPoints.has(point.date))) {
+    // A newer short response can take precedence on overlapping dates while
+    // older archive-only dates still enter the union. Their unresolved source
+    // quality must travel with those observations, not with the preferred clock.
+    warnings.push(...incoming.warnings.filter(warning => /^(Invalid NAV|Conflicting NAV)/.test(warning)));
+  }
+  if (retained) {
+    warnings.push(...previous.warnings.filter(warning => /^(Invalid NAV|Conflicting NAV)/.test(warning)));
+    warnings.push(`A shorter or changed source history omitted ${retained} saved observation(s); those older observations were retained.`);
+  }
+  if (corrections) warnings.push(`Applied source corrections to ${corrections} saved observation(s).`);
+  if (older) warnings.push('The source returned an older latest observation; newer saved values and their retrieval time were retained.');
+  if (late) warnings.push('A later saved history took precedence over an earlier source retrieval.');
+  if (questionable) warnings.push('Saved values were retained where the incoming response had unresolved data-quality issues.');
+  const merged: FundData = { ...preferred, points: normalized.points,
+    stale: preferred.stale || older || questionable,
+    warnings: [...new Set([...warnings, ...normalized.warnings])] };
+  // Archive provenance describes an exact published payload. Locally unioned or
+  // corrected observations must not inherit its count/range/retrieval claim.
+  if (merged.archive && (preferred.points.length !== merged.points.length
+    || preferred.points.some((point, index) => point.date !== merged.points[index]?.date || point.nav !== merged.points[index]?.nav))) {
+    delete merged.archive;
+  }
+  return merged;
 }
 
 function schemeList(value: unknown, limit: number, label: string): Scheme[] {
@@ -298,14 +346,14 @@ export async function getCachedFund(code: number, generation = getStorageGenerat
 }
 
 export async function putCachedFund(value: FundData, generation = getStorageGeneration()): Promise<FundData> {
-  const fund = validateCachedFund(value);
+  const incoming = validateCachedFund(value);
   await storageReady(generation);
   assertStorageGeneration(generation);
   return mutate(async () => {
     assertStorageGeneration(generation);
-    const previous = await getCachedFund(fund.meta.schemeCode, generation);
+    const previous = await getCachedFund(incoming.meta.schemeCode, generation);
     assertStorageGeneration(generation);
-    if (previous && previous.points.at(-1)!.date > fund.points.at(-1)!.date) return previous;
+    const fund = validateCachedFund(mergeCachedFund(incoming, previous));
     const database = await openDatabase();
     assertStorageGeneration(generation);
     if (database) {

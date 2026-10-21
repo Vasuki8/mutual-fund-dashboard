@@ -4,12 +4,18 @@ An Indian mutual fund research dashboard with the approved Graphite interface an
 
 - **Canonical development repository:** [Vasuki8/mutual-fund-dashboard](https://github.com/Vasuki8/mutual-fund-dashboard)
 - **Development direction:** GitHub only, as requested by the owner on 21 October 2026.
-- **GitHub website deployment:** standalone Pages build and deployment workflow prepared; repository configuration and a successful live deployment still require verification.
+- **Live website:** [FundScope on GitHub Pages](https://vasuki8.github.io/mutual-fund-dashboard/) · [verified deployment on 21 October 2026](https://github.com/Vasuki8/mutual-fund-dashboard/actions/runs/39652812557).
 - **Source:** [MFAPI](https://www.mfapi.in/) · [API documentation](https://www.mfapi.in/docs/)
 
 Development and scheduled imports for the former ChatGPT-hosted website have stopped. Its existing data has not been deleted or migrated. The linked import task is paused. Do not publish further releases to that host or restart its task without a later explicit request from the owner.
 
-The standalone GitHub Pages build reuses the Graphite interface and fetches MFAPI directly with credentials omitted. Its status view describes the histories cached in this browser and source availability. It has no shared historical archive or unattended refresh jobs. The retained Worker application and optional GitHub archive importer remain separate. See [deployment configuration and verification](docs/DEPLOYMENT.md) before treating a workflow or commit as a live website.
+The standalone GitHub Pages build reuses the Graphite interface. It can read a verified shared history snapshot and refresh individual funds directly from MFAPI, with credentials omitted and older cached observations retained. The GitHub-only archive is opt-in: its [activation and public-data conditions](docs/GITHUB_ARCHIVE.md) remain in force. A deployed interface or passing workflow does not establish saved bulk history; Data status shows the actual published checkpoint, gaps and browser-local cache separately.
+
+## Shared GitHub history
+
+The v2 collector imports full available per-scheme histories in bounded tranches, saves verified immutable Release assets, and resumes from a durable checkpoint. It discovers new schemes from the all-latest catalogue twice daily, retains disappeared schemes and older NAV observations, and continues source/quality retries and historical reconciliation. Each changed checkpoint requests publication to the same live website.
+
+Pages builds verify the complete snapshot and its size before publishing it. Turning off collection preserves previously saved histories. With no shared checkpoint, the dashboard reports that state explicitly and continues direct MFAPI access and browser caching. See the [archive runbook](docs/GITHUB_ARCHIVE.md) for counter definitions, limits, activation, and first-tranche verification. The old hosted archive remains separate and paused.
 
 ## What the application does
 
@@ -50,7 +56,7 @@ pnpm run build:pages
 pnpm run dev:pages
 ```
 
-The standalone Vite app starts at `static-pages/index.html`, uses `/mutual-fund-dashboard/` as its base, and retains the existing hash routes. The source entry stays outside the repository root so existing branch-based Pages publishing keeps its landing page. Its directory name also avoids activating the retained framework's `pages/` router convention. `pnpm run preview:pages` serves the compiled `dist/pages` locally. Its requests go directly to MFAPI; it requires no former-host credentials or Worker bindings.
+The standalone Vite app starts at `static-pages/index.html`, uses `/mutual-fund-dashboard/` as its base, and retains the existing hash routes. The source entry stays outside the repository root so existing branch-based Pages publishing keeps its landing page. Its directory name also avoids activating the retained framework's `pages/` router convention. `pnpm run preview:pages` serves the compiled `dist/pages` locally. Local builds without a materialized shared snapshot use direct MFAPI and the browser cache; no former-host credentials or Worker bindings are needed.
 
 To validate the retained Worker implementation locally:
 
@@ -93,7 +99,7 @@ All sync writes require `FUNDSCOPE_SYNC_TOKEN`. Credentials belong in the runtim
 ## Operations and releases
 
 - [Deployment status and next steps](docs/DEPLOYMENT.md): active GitHub development direction and standalone deployment requirements.
-- [Independent GitHub-only archive](docs/GITHUB_ARCHIVE.md): a separate opt-in GitHub Actions and Releases full-history collector, without Site authentication. Public redistribution permission must be checked before activation.
+- [GitHub archive operations](docs/GITHUB_ARCHIVE.md): opt-in Actions/Release history collection, verified Pages delivery, twice-daily catalogue discovery and visible source gaps. Public redistribution permission must be checked before activation.
 - [Archived hosted update runbook](docs/SYNC_OPERATIONS.md): historical import and recovery details; the linked task is paused.
 - [Archived Site deployment notes](docs/LEGACY_SITE_DEPLOYMENT.md): retained for reference, not an active release procedure.
 - [Capability roadmap](docs/ROADMAP.md): implemented features and future data-dependent work.

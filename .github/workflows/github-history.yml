@@ -5,25 +5,39 @@ on:
     - cron: '7,22,37,52 * * * *'
   workflow_dispatch:
 
-permissions:
-  contents: write
+permissions: {}
 
 concurrency:
-  group: fundscope-github-history-v1
+  group: fundscope-github-history-v2
   cancel-in-progress: false
 
 jobs:
   archive:
     # Public repository => Release assets are public. Enable only after data-use review.
-    if: github.repository == 'Vasuki8/mutual-fund-dashboard' && vars.FUNDSCOPE_GITHUB_ARCHIVE_ENABLED == 'true'
+    if: github.repository == 'Vasuki8/mutual-fund-dashboard' && github.ref == 'refs/heads/main' && vars.FUNDSCOPE_GITHUB_ARCHIVE_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 14
+    permissions:
+      contents: write
+    outputs:
+      changed: ${{ steps.collect.outputs.changed }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version: '24'
       - name: Archive one bounded tranche using public MFAPI and GitHub Releases
+        id: collect
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: node --experimental-strip-types scripts/github-history.mjs
+          FUNDSCOPE_GITHUB_ARCHIVE_ENABLED: ${{ vars.FUNDSCOPE_GITHUB_ARCHIVE_ENABLED }}
+        run: node --experimental-strip-types scripts/github-history-v2.ts
+
+  publish:
+    needs: archive
+    if: needs.archive.outputs.changed == 'true'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/pages.yml

@@ -4,6 +4,10 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  workflow_call:
+  schedule:
+    # Additional publication opportunities, in UTC. The collector also publishes changed checkpoints.
+    - cron: '17 7,19 * * *'
 
 permissions:
   contents: read
@@ -33,6 +37,9 @@ jobs:
             exit 1
           fi
       - uses: actions/checkout@v7
+        with:
+          # A delayed archive publication must build the current main, not an older caller commit.
+          ref: ${{ github.ref == 'refs/heads/main' && 'main' || github.ref }}
       - uses: actions/setup-node@v7
         with:
           node-version: '24'
@@ -46,6 +53,11 @@ jobs:
         run: pnpm test
       - name: Build standalone application
         run: pnpm run build:pages
+      - name: Verify and materialize the current shared archive
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          FUNDSCOPE_GITHUB_ARCHIVE_ENABLED: ${{ vars.FUNDSCOPE_GITHUB_ARCHIVE_ENABLED }}
+        run: node --experimental-strip-types scripts/publish-archive.ts
       - name: Configure Pages
         uses: actions/configure-pages@v6
       - name: Upload Pages artifact
