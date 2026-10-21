@@ -41,8 +41,10 @@ export function scheme(value: unknown): Scheme {
   if (!validCode(item.schemeCode)) throw new ApiError('Invalid MFAPI scheme code.');
   const result: Scheme = { schemeCode: item.schemeCode, schemeName: text(item.schemeName, 'scheme name') };
   for (const field of ['isinGrowth', 'isinDivReinvestment'] as const) {
-    if (item[field] === null) result[field] = null;
-    else if (item[field] !== undefined) result[field] = text(item[field], 'ISIN', 64);
+    const value = item[field];
+    // MFAPI uses empty strings as well as null for optional, unavailable ISINs.
+    if (value === null || (typeof value === 'string' && value.length <= 64 && !value.trim())) result[field] = null;
+    else if (value !== undefined) result[field] = text(value, 'ISIN', 64);
   }
   return result;
 }
