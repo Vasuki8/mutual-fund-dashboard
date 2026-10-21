@@ -43,4 +43,4 @@ jobs:
             --site-url https://fundscope-research.patelvasuki.chatgpt.site \
             --mode backfill --backfill-interval-minutes 15 \
             --max-seconds 720 --max-batches 80 \
-            < <(node -e 'process.stdout.write(JSON.stringify({serviceToken:process.env.FUNDSCOPE_ACTIONS_SERVICE_TOKEN})+"\\n")')
+            < <(node -e 'console.log(JSON.stringify({serviceToken:process.env.FUNDSCOPE_ACTIONS_SERVICE_TOKEN}))')
