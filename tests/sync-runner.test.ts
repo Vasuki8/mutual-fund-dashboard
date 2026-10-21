@@ -617,6 +617,28 @@ for (const [instant, expected] of [
   });
 }
 
+test('quarter-hour backfill keys are separate and cannot change normal refresh identity', async () => {
+  const { parseArgs, runCloudSync } = await runner();
+  assert.equal(parseArgs(['--mode', 'backfill', '--backfill-interval-minutes', '15']).backfillIntervalMinutes, 15);
+  for (const invalid of [
+    ['--backfill-interval-minutes', '15'],
+    ['--mode', 'refresh', '--backfill-interval-minutes', '15'],
+    ['--mode', 'backfill', '--backfill-interval-minutes', '5'],
+  ]) assert.throws(() => parseArgs(invalid));
+  for (const [instant, expected] of [
+    ['2026-10-21T05:21:59.999Z', 'fundscope:backfill:2026-10-21:0507'],
+    ['2026-10-21T05:22:00.000Z', 'fundscope:backfill:2026-10-21:0522'],
+    ['2026-10-21T05:37:00.000Z', 'fundscope:backfill:2026-10-21:0537'],
+    ['2026-10-21T05:52:00.000Z', 'fundscope:backfill:2026-10-21:0552'],
+    ['2026-10-22T00:06:59.999Z', 'fundscope:backfill:2026-10-21:2352'],
+  ] as const) {
+    const api = hosted([progress(), progress({ status: 'partial' }), backfillStatus()], Date.parse(instant));
+    const result = await runCloudSync(options({ mode: 'backfill', backfillIntervalMinutes: 15, maxBatches: 0 }), api);
+    assert.equal(api.requests[0].body.idempotencyKey, expected);
+    assert.equal(result.readbackVerified, true);
+  }
+});
+
 test('a backfill transport retry crossing :37 retains its original invocation identity', async () => {
   const { runCloudSync } = await runner();
   const boundary = Date.parse('2026-10-21T06:37:00.000Z');
