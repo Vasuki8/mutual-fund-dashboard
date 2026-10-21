@@ -54,11 +54,17 @@ export class Provider {
         let response: Response;
         try {
           response = await this.runtime.fetch(`${BASE}${path}`, {
-            signal: controller.signal, credentials: 'omit', cache: 'no-store', redirect: 'error',
+            signal: controller.signal, credentials: 'omit', cache: 'no-store', redirect: 'manual',
             headers: { Accept: 'application/json' },
           });
         } catch {
           throw new ProviderError(controller.signal.aborted ? 'MFAPI request timed out.' : 'MFAPI could not be reached.', true);
+        }
+        // Workers rejects redirect: 'error' before any network I/O. Manual mode keeps
+        // the fixed-origin policy, and every 3xx is rejected without following Location.
+        if (response.status >= 300 && response.status < 400) {
+          await response.body?.cancel().catch(() => undefined);
+          throw new ProviderError(`MFAPI returned an unexpected redirect (HTTP ${response.status}); no redirect was followed.`, false);
         }
         if (!response.ok) {
           const retryAfter = retryDelay(response.headers.get('Retry-After'), this.runtime.now().getTime());
