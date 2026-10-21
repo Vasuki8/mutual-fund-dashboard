@@ -1,11 +1,12 @@
 import type { ArchiveProvenance, SyncProgress, SyncStatus } from '../src/lib/sync-types.ts';
 import type { Scheme } from '../src/lib/types.ts';
 import { ApiError } from './types.ts';
-import type { ArchiveBindings, ArchiveIndex, Catalogue, CatalogueState, FailureRow, HistoryDocument,
-  QueueItem, RunRow, Runtime, RuntimeOptions, WorkQueue } from './types.ts';
+import type { ArchiveBindings, ArchiveIndex, BackfillState, Catalogue, CatalogueState, FailureRow, HistoryDocument,
+  QueueItem, RunRow, Runtime, RuntimeOptions, SyncMode, WorkQueue } from './types.ts';
 import { buildCatalogue, searchResults, validCode, validateHistory } from './validation.ts';
 import { Provider } from './provider.ts';
 import { ArchiveStore } from './store.ts';
+import { BACKFILL_MAX_ATTEMPTS, buildBackfillQueue, measureBackfill } from './backfill.ts';
 
 const HISTORY_TTL = 6 * 60 * 60 * 1000;
 
@@ -160,32 +161,28 @@ class Service {
   }
 
   async status(): Promise<SyncStatus> {
-    const [{ state, catalogue }, indexes, failures, lastRun] = await Promise.all([
+    const [{ state, catalogue }, indexes, failures, lastRun, backfillState] = await Promise.all([
       this.store.catalogue(), this.store.indexes(), this.store.failures(),
       this.store.first<RunRow>('SELECT * FROM fundscope_runs ORDER BY started_at DESC, rowid DESC LIMIT 1'),
+      this.store.state<BackfillState>('backfill'),
     ]);
-    const archived = new Map(indexes.map(index => [index.scheme_code, index]));
-    const known = new Map((catalogue?.entries ?? []).map(entry => [entry.schemeCode, entry.latestDate]));
-    for (const index of indexes) if (!known.has(index.scheme_code)) known.set(index.scheme_code, index.coverage_end);
-    const failed = new Set(failures.map(failure => failure.scheme_code));
-    let backlog = 0;
-    for (const [code, latest] of known) {
-      const index = archived.get(code);
-      if (!index || index.unresolved || failed.has(code) || (latest !== null && latest > index.coverage_end)) backlog += 1;
-    }
+    const coverage = measureBackfill(catalogue, indexes, failures, backfillState);
+    const backlog = coverage.historyBacklog;
     const successful = indexes.filter(index => !index.unresolved).map(index => index.fetched_at).sort();
     const warnings = [...(catalogue?.warnings ?? []),
       ...(!state ? ['The initial catalogue synchronization has not completed; full-universe coverage is not yet known.'] : []),
       ...(backlog ? [`${backlog} known scheme(s) still require history backfill, refresh, or source-quality resolution.`] : []),
       ...(lastRun?.status === 'failed' && lastRun.error ? [`Last synchronization failed: ${lastRun.error}`] : []),
     ];
-    return { source: 'mfapi.in', catalogueCount: known.size, archivedCount: indexes.length,
+    return { source: 'mfapi.in', catalogueCount: coverage.catalogueCount, archivedCount: indexes.length,
       observationCount: indexes.reduce((total, index) => total + index.observation_count, 0), historyBacklog: backlog,
       lastCatalogueSyncAt: state?.fetchedAt ?? null, latestNavDate: state?.latestNavDate ?? null,
       lastHistorySyncAt: successful.at(-1) ?? null,
       lastRun: lastRun ? { id: lastRun.id, status: lastRun.status, startedAt: lastRun.started_at,
         finishedAt: lastRun.finished_at, processed: lastRun.processed, failed: lastRun.failed, error: lastRun.error } : null,
-      schedule: { timezone: 'UTC', times: ['05:37', '17:37'] }, warnings };
+      schedule: { timezone: 'UTC', times: coverage.backfill.active
+        ? Array.from({ length: 24 }, (_, hour) => `${String(hour).padStart(2, '0')}:37`) : ['05:37', '17:37'] },
+      backfill: coverage.backfill, warnings };
   }
 
   private async progress(run: RunRow): Promise<SyncProgress> {
@@ -198,7 +195,7 @@ class Service {
       archivedCount: archived?.count ?? 0 };
   }
 
-  async start(key: string): Promise<SyncProgress> {
+  async start(key: string, mode: SyncMode = 'refresh'): Promise<SyncProgress> {
     const owner = await this.store.acquireLease();
     let runId: string | null = null;
     try {
@@ -207,11 +204,19 @@ class Service {
       runId = crypto.randomUUID();
       const startedAt = this.runtime.now().toISOString();
       const payload = await this.provider.json('/mf/latest', true);
-      const [{ catalogue: previous }, indexes, failures] = await Promise.all([
+      const [{ catalogue: previous }, indexes, failures, backfillState] = await Promise.all([
         this.store.catalogue(), this.store.indexes(), this.store.failures(),
+        this.store.state<BackfillState>('backfill'),
       ]);
       const catalogue = buildCatalogue(payload, previous, indexes, startedAt);
-      const queue: WorkQueue = { version: 1, runId, items: buildQueue(catalogue, indexes, failures, this.runtime.now().getTime()) };
+      const queue: WorkQueue = { version: 1, runId, mode,
+        items: (mode === 'backfill' ? buildBackfillQueue : buildQueue)(catalogue, indexes, failures, this.runtime.now().getTime()) };
+      const needsBackfill = measureBackfill(catalogue, indexes, failures).backfill.remainingCount > 0;
+      const nextBackfill: BackfillState | null = mode === 'backfill'
+        ? { version: 1, active: !!backfillState?.active || needsBackfill,
+          startedAt: backfillState?.active || !needsBackfill ? backfillState?.startedAt ?? startedAt : startedAt,
+          completedAt: needsBackfill ? null : backfillState?.completedAt ?? null, latestRunId: runId }
+        : backfillState?.active ? { ...backfillState, latestRunId: runId } : null;
       const catalogueKey = `catalogues/${runId}.json`;
       const latestKey = `latest/${runId}.json`;
       const queueKey = `queues/${runId}.json`;
@@ -236,6 +241,10 @@ class Service {
         this.store.db.prepare(`INSERT INTO fundscope_state (key, value, updated_at) SELECT 'catalogue', ?, ? WHERE ${fence}
           ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`).bind(JSON.stringify(state), startedAt, owner),
       ];
+      if (nextBackfill) statements.push(this.store.db.prepare(`INSERT INTO fundscope_state
+        (key, value, updated_at) SELECT 'backfill', ?, ? WHERE ${fence}
+        ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`)
+        .bind(JSON.stringify(nextBackfill), startedAt, owner));
       const writes = await this.store.db.batch(statements);
       if (writes.some(write => !write.success)) throw new ApiError('Catalogue checkpoint could not be published.', 503);
       if (writes.slice(1).some(write => write.meta.changes !== 1)) throw new ApiError('The synchronization lease changed before catalogue publication.', 409, 1000);
@@ -269,10 +278,16 @@ class Service {
         const batch = queue.items.slice(run.cursor, Math.min(run.cursor + 2, stop));
         const results = await Promise.all(batch.map(async item => {
           const index = await this.store.index(item.code);
+          if (queue.mode === 'backfill' && index) {
+            const unresolved = !!index.unresolved || (item.latestDate !== null && index.coverage_end < item.latestDate);
+            if (unresolved) await this.store.run('UPDATE fundscope_failures SET run_id = ? WHERE scheme_code = ?', runId, item.code);
+            return !unresolved;
+          }
           if (index && !index.unresolved && index.fetched_at >= run.started_at
             && (!item.latestDate || index.coverage_end >= item.latestDate)) return true;
           const failure = await this.store.first<FailureRow>('SELECT * FROM fundscope_failures WHERE scheme_code = ?', item.code);
-          if (failure && failure.next_retry_at > this.runtime.now().getTime()) {
+          if (failure && (failure.next_retry_at > this.runtime.now().getTime()
+            || (queue.mode === 'backfill' && failure.attempts >= BACKFILL_MAX_ATTEMPTS))) {
             await this.store.run('UPDATE fundscope_failures SET run_id = ? WHERE scheme_code = ?', runId, item.code);
             return false;
           }
@@ -306,13 +321,29 @@ class Service {
     try {
       const run = await this.store.runRow(runId);
       if (run.status !== 'running') return this.progress(run);
-      const progress = await this.progress(run);
-      const status = progress.pending === 0 ? 'completed' : 'partial';
+      const [progress, queue, { catalogue }, indexes, failures, backfillState] = await Promise.all([
+        this.progress(run), this.store.queue(run), this.store.catalogue(), this.store.indexes(), this.store.failures(),
+        this.store.state<BackfillState>('backfill'),
+      ]);
+      const coverage = measureBackfill(catalogue, indexes, failures, backfillState);
+      const partial = progress.pending > 0 || (queue.mode === 'backfill' && coverage.historyBacklog > 0);
+      const status = partial ? 'partial' : 'completed';
+      const finishedAt = this.runtime.now().toISOString();
+      const completesBackfill = backfillState?.latestRunId === run.id
+        && coverage.catalogueCount > 0 && coverage.backfill.remainingCount === 0;
       await this.store.renewLease(owner);
-      const changed = await this.store.run(`UPDATE fundscope_runs SET status = ?, finished_at = ?, error = ? WHERE id = ? AND status = 'running'
-        AND EXISTS (SELECT 1 FROM fundscope_leases WHERE key = 'sync' AND owner = ?)`,
-        status, this.runtime.now().toISOString(), status === 'partial' ? `${progress.pending} scheme(s) remain pending or unresolved; future runs will continue the archive.` : null, runId, owner);
-      if (!changed) throw new ApiError('The synchronization lease changed before finishing.', 409, 1000);
+      const fence = "EXISTS (SELECT 1 FROM fundscope_leases WHERE key = 'sync' AND owner = ?)";
+      const pending = queue.mode === 'backfill' ? Math.max(progress.pending, coverage.historyBacklog) : progress.pending;
+      const statements = [this.store.db.prepare(`UPDATE fundscope_runs SET status = ?, finished_at = ?, error = ?
+        WHERE id = ? AND status = 'running' AND ${fence}`)
+        .bind(status, finishedAt, partial ? `${pending} scheme(s) remain pending or unresolved; future runs will continue the archive.` : null, runId, owner)];
+      if (completesBackfill && backfillState) statements.push(this.store.db.prepare(`UPDATE fundscope_state
+        SET value = ?, updated_at = ? WHERE key = 'backfill' AND value = ? AND ${fence}`)
+        .bind(JSON.stringify({ ...backfillState, active: false, completedAt: backfillState.completedAt ?? finishedAt }),
+          finishedAt, JSON.stringify(backfillState), owner));
+      const writes = await this.store.db.batch(statements);
+      if (writes.some(write => !write.success)) throw new ApiError('The synchronization checkpoint could not be finished.', 503);
+      if (writes.some(write => write.meta.changes !== 1)) throw new ApiError('The synchronization lease changed before finishing.', 409, 1000);
       return this.progress(await this.store.runRow(runId));
     } finally { await this.store.releaseLease(owner).catch(() => undefined); }
   }
@@ -331,7 +362,10 @@ export async function handleRequest(request: Request, env: ArchiveBindings, opti
     let result: unknown;
     if (sync) {
       const body = await bodyObject(request);
-      if (sync[1] === 'start') result = await service.start(identifier(body.idempotencyKey, 'idempotency key'));
+      if (sync[1] === 'start') {
+        if (body.mode !== undefined && body.mode !== 'refresh' && body.mode !== 'backfill') throw new ApiError('Invalid import mode.', 400);
+        result = await service.start(identifier(body.idempotencyKey, 'idempotency key'), body.mode as SyncMode | undefined);
+      }
       else {
         const runId = identifier(body.runId, 'run ID');
         if (sync[1] === 'finish') result = await service.finish(runId);

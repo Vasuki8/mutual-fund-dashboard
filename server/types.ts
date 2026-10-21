@@ -74,7 +74,15 @@ export interface CatalogueState {
 }
 
 export interface QueueItem { code: number; latestDate: string | null }
-export interface WorkQueue { version: 1; runId: string; items: QueueItem[] }
+export type SyncMode = 'refresh' | 'backfill';
+export interface WorkQueue { version: 1; runId: string; mode?: SyncMode; items: QueueItem[] }
+export interface BackfillState {
+  version: 1;
+  active: boolean;
+  startedAt: string;
+  completedAt: string | null;
+  latestRunId: string;
+}
 
 export interface RunRow {
   id: string;

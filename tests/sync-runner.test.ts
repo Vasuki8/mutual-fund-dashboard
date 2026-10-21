@@ -287,7 +287,7 @@ test('localhost is available only as an explicit programmatic test opt-in', asyn
 test('bounded CLI flags reject token options, duplicate values and out-of-range budgets', async () => {
   const { parseArgs } = await runner();
   assert.deepEqual(parseArgs(['--site-url', SITE, '--max-seconds', '2', '--max-batches', '0']),
-    { siteUrl: SITE, maxSeconds: 2, maxBatches: 0 });
+    { siteUrl: SITE, mode: 'refresh', maxSeconds: 2, maxBatches: 0 });
   for (const args of [['--token', SECRET], ['--max-seconds', '0'], ['--max-seconds', '901'],
     ['--max-batches', '101'], ['--max-seconds', 'NaN'], ['--max-seconds', '1.5'],
     ['--max-batches', '1', '--max-batches', '2'], ['--site-url']]) {
@@ -554,3 +554,208 @@ for (const [label, instant, expected] of [
     assert.equal(await startKeyAt(instant), expected);
   });
 }
+
+const hourlyTimes = Array.from({ length: 24 }, (_, hour) => `${String(hour).padStart(2, '0')}:37`);
+function backfill(overrides: Record<string, unknown> = {}) {
+  return { active: true, attemptedCount: 2, unattemptedCount: 1, retryPendingCount: 0,
+    exhaustedCount: 0, unresolvedSavedCount: 0, remainingCount: 1, maxAttempts: 3,
+    startedAt: new Date(NOW).toISOString(), completedAt: null, ...overrides };
+}
+function backfillStatus(overrides: Record<string, unknown> = {}) {
+  return { ...status(), schedule: { timezone: 'UTC', times: hourlyTimes }, backfill: backfill(), ...overrides };
+}
+
+test('CLI selects backfill explicitly and rejects invalid or repeated modes', async () => {
+  const { parseArgs, runCloudSync } = await runner();
+  assert.equal(parseArgs([]).mode, 'refresh');
+  assert.equal(parseArgs(['--mode', 'backfill']).mode, 'backfill');
+  assert.equal(parseArgs(['--mode', 'refresh']).mode, 'refresh');
+  for (const args of [['--mode', 'all'], ['--mode', ''], ['--mode'], ['--mode', 'backfill', '--mode', 'refresh']]) {
+    assert.throws(() => parseArgs(args));
+  }
+  for (const mode of ['', 'all', null, false]) {
+    const api = hosted([]);
+    const result = await runCloudSync(options({ mode }), api);
+    assert.equal(result.stopReason, 'invalid_options');
+    assert.equal(api.requests.length, 0);
+  }
+});
+
+test('a backfill tranche uses its own mode and returns only verified safe bulk counters', async () => {
+  const { runCloudSync } = await runner();
+  const payload = backfillStatus({ backfill: backfill({ untrustedExtra: SECRET }) });
+  const api = hosted([progress(), progress({ status: 'partial' }), payload]);
+  const result = await runCloudSync(options({ mode: 'backfill', maxBatches: 0 }), api);
+  assert.deepEqual(api.requests[0].body, { idempotencyKey: 'fundscope:backfill:2026-10-21:0537', mode: 'backfill' });
+  assert.equal(result.mode, 'backfill');
+  assert.equal(result.status, 'partial');
+  assert.equal(result.readbackVerified, true);
+  assert.equal(result.backfillComplete, false);
+  assert.deepEqual(result.backfill, backfill());
+  assert.equal(JSON.stringify(result).includes(SECRET), false);
+});
+
+async function backfillKeyAt(instant: string) {
+  const { runCloudSync } = await runner();
+  const api = hosted([progress(), progress({ status: 'partial' }), backfillStatus()], Date.parse(instant));
+  const result = await runCloudSync(options({ mode: 'backfill', maxBatches: 0 }), api);
+  assert.equal(result.readbackVerified, true);
+  return api.requests[0].body.idempotencyKey as string;
+}
+
+for (const [instant, expected] of [
+  ['2026-10-21T05:36:59.999Z', 'fundscope:backfill:2026-10-21:0437'],
+  ['2026-10-21T05:37:00.000Z', 'fundscope:backfill:2026-10-21:0537'],
+  ['2026-10-21T06:36:59.999Z', 'fundscope:backfill:2026-10-21:0537'],
+  ['2026-10-21T06:37:00.000Z', 'fundscope:backfill:2026-10-21:0637'],
+  ['2027-01-01T00:36:59.999Z', 'fundscope:backfill:2026-12-31:2337'],
+  ['2027-01-01T00:37:00.000Z', 'fundscope:backfill:2027-01-01:0037'],
+  ['2028-03-01T00:00:00.000Z', 'fundscope:backfill:2028-02-29:2337'],
+]) {
+  test(`hourly backfill identity is anchored to the last :37 occurrence at ${instant}`, async () => {
+    assert.equal(await backfillKeyAt(instant), expected);
+  });
+}
+
+test('a backfill transport retry crossing :37 retains its original invocation identity', async () => {
+  const { runCloudSync } = await runner();
+  const boundary = Date.parse('2026-10-21T06:37:00.000Z');
+  const api = hosted([new Response('', { status: 503, headers: { 'Retry-After': '1' } }),
+    progress(), progress({ status: 'partial' }), backfillStatus()], boundary - 500);
+  const result = await runCloudSync(options({ mode: 'backfill', maxBatches: 0 }), api);
+  assert.equal(result.readbackVerified, true);
+  assert.equal(result.retries, 1);
+  assert.ok(api.now() > boundary);
+  assert.deepEqual(api.requests.filter(request => request.url.endsWith('/start')).map(request => request.body), [
+    { idempotencyKey: 'fundscope:backfill:2026-10-21:0537', mode: 'backfill' },
+    { idempotencyKey: 'fundscope:backfill:2026-10-21:0537', mode: 'backfill' },
+  ]);
+});
+
+test('bulk completion with source gaps is distinct from complete historical coverage', async () => {
+  const { runCloudSync } = await runner();
+  const bulk = backfill({ active: false, attemptedCount: 3, unattemptedCount: 0, exhaustedCount: 1,
+    unresolvedSavedCount: 1, remainingCount: 0, completedAt: new Date(NOW + 1000).toISOString() });
+  const closed = progress({ status: 'partial', processed: 2, failed: 1, pending: 1, archivedCount: 2 });
+  const snapshot = status({ historyBacklog: 2, lastRun: { ...status().lastRun!, failed: 1 } });
+  const api = hosted([closed, closed, { ...snapshot, backfill: bulk }]);
+  const result = await runCloudSync(options({ mode: 'backfill' }), api);
+  assert.equal(result.readbackVerified, true);
+  assert.equal(result.backfillComplete, true);
+  assert.equal(result.status, 'partial');
+  assert.equal(result.historyBacklog, 2);
+  assert.deepEqual(result.backfill, bulk);
+  assert.equal(result.batches, 0);
+});
+
+test('a fully imported validated bulk archive is complete', async () => {
+  const { runCloudSync } = await runner();
+  const bulk = backfill({ active: false, attemptedCount: 3, unattemptedCount: 0, remainingCount: 0,
+    completedAt: new Date(NOW + 1000).toISOString() });
+  const closed = progress({ status: 'completed', processed: 3, pending: 0, archivedCount: 3 });
+  const snapshot = status({ archivedCount: 3, historyBacklog: 0,
+    lastRun: { ...status().lastRun!, status: 'completed', processed: 3 } });
+  const api = hosted([closed, closed, { ...snapshot, backfill: bulk }]);
+  const result = await runCloudSync(options({ mode: 'backfill' }), api);
+  assert.equal(result.status, 'completed');
+  assert.equal(result.backfillComplete, true);
+});
+
+test('missing or inconsistent backfill counters never authorize completion', async () => {
+  const { runCloudSync } = await runner();
+  const invalidBlocks = [undefined, null, {}, backfill({ active: 'true' }), backfill({ maxAttempts: 4 }),
+    backfill({ attemptedCount: 1 }), backfill({ remainingCount: 2 }), backfill({ retryPendingCount: 1 }),
+    backfill({ exhaustedCount: 1 }), backfill({ unresolvedSavedCount: 3 }), backfill({ unattemptedCount: -1 }),
+    backfill({ remainingCount: 1.5 }), backfill({ startedAt: null }), backfill({ completedAt: 'not-a-time' }),
+    backfill({ completedAt: new Date(NOW + 1000).toISOString() })];
+  for (const block of invalidBlocks) {
+    const api = hosted([progress(), progress({ status: 'partial' }), backfillStatus({ backfill: block })]);
+    const result = await runCloudSync(options({ mode: 'backfill', maxBatches: 0 }), api);
+    assert.equal(result.stopReason, 'invalid_response', JSON.stringify(block));
+    assert.equal(result.readbackVerified, false);
+    assert.equal(result.backfillComplete, false);
+    assert.equal(result.backfill, null);
+  }
+});
+
+test('the reported schedule must match the backfill activity state exactly', async () => {
+  const { runCloudSync } = await runner();
+  for (const snapshot of [
+    backfillStatus({ schedule: { timezone: 'UTC', times: ['05:37', '17:37'] } }),
+    backfillStatus({ schedule: { timezone: 'UTC', times: hourlyTimes.slice(1) } }),
+    backfillStatus({ schedule: { timezone: 'UTC', times: [...hourlyTimes].reverse() } }),
+    backfillStatus({ schedule: { timezone: 'Asia/Kolkata', times: hourlyTimes } }),
+    backfillStatus({ backfill: backfill({ active: false, startedAt: null }) }),
+  ]) {
+    const api = hosted([progress(), progress({ status: 'partial' }), snapshot]);
+    const result = await runCloudSync(options({ mode: 'backfill', maxBatches: 0 }), api);
+    assert.equal(result.stopReason, 'invalid_response');
+    assert.equal(result.readbackVerified, false);
+  }
+});
+
+test('an empty catalogue cannot complete bulk import', async () => {
+  const { runCloudSync } = await runner();
+  const closed = progress({ status: 'partial', pending: 0, catalogueCount: 0, archivedCount: 0 });
+  const bulk = backfill({ active: false, attemptedCount: 0, unattemptedCount: 0, remainingCount: 0,
+    completedAt: null });
+  const snapshot = status({ catalogueCount: 0, archivedCount: 0, observationCount: 0, historyBacklog: 0,
+    lastCatalogueSyncAt: null, lastRun: { ...status().lastRun!, processed: 0 } });
+  const api = hosted([closed, closed, { ...snapshot, backfill: bulk }]);
+  const result = await runCloudSync(options({ mode: 'backfill' }), api);
+  assert.equal(result.status, 'failed');
+  assert.equal(result.stopReason, 'catalogue_unavailable');
+  assert.equal(result.backfillComplete, false);
+});
+
+test('refresh mode remains compatible with legacy status and reports validated active bulk metadata', async () => {
+  const { runCloudSync } = await runner();
+  for (const snapshot of [status(), backfillStatus()]) {
+    const api = hosted([progress(), progress({ status: 'partial' }), snapshot]);
+    const result = await runCloudSync(options({ mode: 'refresh', maxBatches: 0 }), api);
+    assert.deepEqual(api.requests[0].body, { idempotencyKey: 'fundscope:2026-10-21:0537' });
+    assert.equal(result.mode, 'refresh');
+    assert.equal(result.readbackVerified, true);
+    assert.equal(result.backfillComplete, false);
+    assert.deepEqual(result.backfill, 'backfill' in snapshot ? backfill() : null);
+  }
+});
+
+test('equivalent valid UTC timestamp formats do not make completion appear earlier than its start', async () => {
+  const { runCloudSync } = await runner();
+  const bulk = backfill({ active: false, attemptedCount: 3, unattemptedCount: 0, remainingCount: 0,
+    startedAt: '2026-10-21T05:37:00Z', completedAt: '2026-10-21T05:37:00.000Z' });
+  const closed = progress({ status: 'completed', processed: 3, pending: 0, archivedCount: 3 });
+  const snapshot = status({ archivedCount: 3, historyBacklog: 0,
+    lastRun: { ...status().lastRun!, status: 'completed', processed: 3 } });
+  const api = hosted([closed, closed, { ...snapshot, backfill: bulk }]);
+  const result = await runCloudSync(options({ mode: 'backfill' }), api);
+  assert.equal(result.readbackVerified, true);
+  assert.equal(result.backfillComplete, true);
+});
+
+test('a historical completion timestamp cannot complete new schemes added by a later catalogue', async () => {
+  const { runCloudSync } = await runner();
+  const bulk = backfill({ active: false, startedAt: new Date(NOW - 2000).toISOString(),
+    completedAt: new Date(NOW - 1000).toISOString() });
+  const api = hosted([progress(), progress({ status: 'partial' }), { ...status(), backfill: bulk }]);
+  const result = await runCloudSync(options({ mode: 'backfill', maxBatches: 0 }), api);
+  assert.equal(result.readbackVerified, true);
+  assert.equal(result.backfillComplete, false);
+  assert.equal(result.backfill.remainingCount, 1);
+  assert.equal(result.status, 'partial');
+});
+
+test('an active bulk state with no remaining work waits for its explicit completion checkpoint', async () => {
+  const { runCloudSync } = await runner();
+  const bulk = backfill({ attemptedCount: 3, unattemptedCount: 0, remainingCount: 0 });
+  const closed = progress({ status: 'partial', processed: 3, pending: 0, archivedCount: 3 });
+  const snapshot = backfillStatus({ archivedCount: 3, historyBacklog: 0, backfill: bulk,
+    lastRun: { ...status().lastRun!, processed: 3 } });
+  const api = hosted([closed, closed, snapshot]);
+  const result = await runCloudSync(options({ mode: 'backfill' }), api);
+  assert.equal(result.readbackVerified, true);
+  assert.equal(result.backfillComplete, false);
+  assert.equal(result.backfill.active, true);
+  assert.equal(result.status, 'partial');
+});
