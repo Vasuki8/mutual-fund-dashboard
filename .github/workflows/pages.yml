@@ -20,6 +20,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    outputs:
+      artifact_name: ${{ steps.pages_artifact.outputs.name }}
     permissions:
       contents: read
       pages: read
@@ -60,9 +62,14 @@ jobs:
         run: node --experimental-strip-types scripts/publish-archive.ts
       - name: Configure Pages
         uses: actions/configure-pages@v6
+      - name: Choose Pages artifact name
+        id: pages_artifact
+        # Preserve the build's name for a deployment-only retry, whose attempt number changes.
+        run: echo "name=github-pages-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_OUTPUT"
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5
         with:
+          name: ${{ steps.pages_artifact.outputs.name }}
           path: dist/pages
 
   deploy:
@@ -80,3 +87,5 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+        with:
+          artifact_name: ${{ needs.build.outputs.artifact_name }}
