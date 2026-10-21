@@ -1,0 +1,14 @@
+minimumReleaseAge: 10080
+minimumReleaseAgeIgnoreMissingTime: false
+trustLockfile: false
+strictDepBuilds: true
+allowBuilds:
+  esbuild: true
+  sharp: true
+  workerd: true
+cacheDir: ${SITES_PNPM_SHARED_STORE:-.sites-runtime/pnpm-store}/policy-cache
+packageImportMethod: auto
+storeDir: ${SITES_PNPM_SHARED_STORE:-.sites-runtime/pnpm-store}
+enableGlobalVirtualStore: false
+verifyDepsBeforeRun: false
+optimisticRepeatInstall: false

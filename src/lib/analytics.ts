@@ -1,0 +1,241 @@
+import type { NavPoint, Period } from './types.ts';
+
+export const CALCULATION_VERSION = '1.0.0';
+
+const MILLISECONDS_PER_DAY = 86_400_000;
+const MAX_PRECEDING_DAYS = 7;
+const MONTHS_PER_PERIOD: Record<Exclude<Period, 'MAX'>, number> = {
+  '1M': 1, '3M': 3, '6M': 6, '1Y': 12, '3Y': 36, '5Y': 60,
+};
+
+function dateParts(value: string): [number, number, number] {
+  return [Number(value.slice(0, 4)), Number(value.slice(5, 7)), Number(value.slice(8, 10))];
+}
+
+function formatDate(year: number, month: number, day: number): string {
+  return `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+function daysInMonth(year: number, month: number): number {
+  if (month === 2) return year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0) ? 29 : 28;
+  return [4, 6, 9, 11].includes(month) ? 30 : 31;
+}
+
+function shiftMonths(value: string, offset: number): string {
+  const [year, month, day] = dateParts(value);
+  const shifted = year * 12 + month - 1 + offset;
+  const targetYear = Math.floor(shifted / 12);
+  const targetMonth = shifted - targetYear * 12 + 1;
+  return formatDate(targetYear, targetMonth, Math.min(day, daysInMonth(targetYear, targetMonth)));
+}
+
+function finiteOrNull(value: number): number | null {
+  return Number.isFinite(value) ? value : null;
+}
+
+/** Last observation at or before the target; never substitutes a future NAV. */
+function predecessorIndex(points: NavPoint[], target: string): number {
+  let left = 0;
+  let right = points.length;
+  while (left < right) {
+    const middle = Math.floor((left + right) / 2);
+    if (points[middle].date <= target) left = middle + 1;
+    else right = middle;
+  }
+  return left - 1;
+}
+
+function eligiblePredecessor(points: NavPoint[], target: string): NavPoint | null {
+  const index = predecessorIndex(points, target);
+  if (index < 0 || daysBetween(points[index].date, target) > MAX_PRECEDING_DAYS) return null;
+  return points[index];
+}
+
+/** MFAPI's DD-MM-YYYY format, validated without local-time conversion. */
+export function parseNavDate(value: string): string | null {
+  const match = /^(\d{2})-(\d{2})-(\d{4})$/.exec(value.trim());
+  if (!match) return null;
+  const day = Number(match[1]);
+  const month = Number(match[2]);
+  const year = Number(match[3]);
+  if (month < 1 || month > 12 || day < 1 || day > daysInMonth(year, month)) return null;
+  return formatDate(year, month, day);
+}
+
+/** Inputs throughout this module are validated, ascending ISO calendar dates. */
+export function daysBetween(start: string, end: string): number {
+  return (Date.parse(`${end}T00:00:00Z`) - Date.parse(`${start}T00:00:00Z`)) / MILLISECONDS_PER_DAY;
+}
+
+export function periodStart(end: string, period: Period): string | null {
+  return period === 'MAX' ? null : shiftMonths(end, -MONTHS_PER_PERIOD[period]);
+}
+
+/** The actual returned start makes any shorter available range explicit. */
+export function selectPeriod(points: NavPoint[], period: Period): NavPoint[] {
+  if (!points.length) return [];
+  const target = periodStart(points[points.length - 1].date, period);
+  if (target === null) return points.slice();
+  const index = predecessorIndex(points, target);
+  const eligible = index >= 0 && daysBetween(points[index].date, target) <= MAX_PRECEDING_DAYS;
+  return points.slice(eligible ? index : index + 1);
+}
+
+export function absoluteReturn(points: NavPoint[]): number | null {
+  if (points.length < 2) return null;
+  return finiteOrNull(points[points.length - 1].nav / points[0].nav - 1);
+}
+
+export function cagr(points: NavPoint[]): number | null {
+  if (points.length < 2) return null;
+  const end = points[points.length - 1];
+  const elapsedDays = daysBetween(points[0].date, end.date);
+  if (elapsedDays < 365) return null;
+  return finiteOrNull(Math.pow(end.nav / points[0].nav, 365 / elapsedDays) - 1);
+}
+
+export function trailingReturn(points: NavPoint[], years: number): number | null {
+  if (points.length < 2 || !Number.isInteger(years) || years < 1) return null;
+  const end = points[points.length - 1];
+  const target = shiftMonths(end.date, -years * 12);
+  const start = eligiblePredecessor(points, target);
+  if (!start) return null;
+  return years === 1 ? absoluteReturn([start, end]) : cagr([start, end]);
+}
+
+export function drawdownSeries(points: NavPoint[]): { date: string; value: number }[] {
+  let peak = 0;
+  return points.map(point => {
+    peak = Math.max(peak, point.nav);
+    return { date: point.date, value: point.nav / peak - 1 };
+  });
+}
+
+export function drawdownStats(points: NavPoint[]): {
+  maxDrawdown: number | null; currentDrawdown: number | null;
+  peakDate: string | null; troughDate: string | null; recoveryDate: string | null;
+} {
+  if (!points.length) {
+    return { maxDrawdown: null, currentDrawdown: null, peakDate: null, troughDate: null, recoveryDate: null };
+  }
+  let runningPeak = points[0];
+  let episodePeak = points[0].nav;
+  let maxDrawdown = 0;
+  let currentDrawdown = 0;
+  let peakDate: string | null = null;
+  let troughDate: string | null = null;
+  let recoveryDate: string | null = null;
+  for (const point of points) {
+    if (point.nav >= runningPeak.nav) runningPeak = point;
+    currentDrawdown = point.nav / runningPeak.nav - 1;
+    if (currentDrawdown < maxDrawdown) {
+      maxDrawdown = currentDrawdown;
+      peakDate = runningPeak.date;
+      troughDate = point.date;
+      episodePeak = runningPeak.nav;
+      recoveryDate = null;
+    } else if (troughDate !== null && recoveryDate === null && point.nav >= episodePeak) {
+      recoveryDate = point.date;
+    }
+  }
+  return { maxDrawdown, currentDrawdown, peakDate, troughDate, recoveryDate };
+}
+
+export function monthlyReturns(points: NavPoint[]): { year: number; month: number; date: string; value: number }[] {
+  if (points.length < 2) return [];
+  const lastInMonth = new Map<number, NavPoint>();
+  for (const point of points) {
+    const [year, month] = dateParts(point.date);
+    lastInMonth.set(year * 12 + month - 1, point);
+  }
+  const [latestYear, latestMonth] = dateParts(points[points.length - 1].date);
+  const latestMonthIndex = latestYear * 12 + latestMonth - 1;
+  const now = new Date(Date.now());
+  const currentMonthIndex = now.getUTCFullYear() * 12 + now.getUTCMonth();
+  const eligible = new Map<number, NavPoint>();
+  for (const [index, point] of lastInMonth) {
+    const year = Math.floor(index / 12);
+    const month = index - year * 12 + 1;
+    const end = formatDate(year, month, daysInMonth(year, month));
+    const complete = index < latestMonthIndex || point.date === end || index < currentMonthIndex;
+    if (complete && daysBetween(point.date, end) <= MAX_PRECEDING_DAYS) eligible.set(index, point);
+  }
+  const returns: { year: number; month: number; date: string; value: number }[] = [];
+  for (const [index, point] of eligible) {
+    const previous = eligible.get(index - 1);
+    if (!previous) continue;
+    const year = Math.floor(index / 12);
+    returns.push({ year, month: index - year * 12 + 1, date: point.date, value: point.nav / previous.nav - 1 });
+  }
+  return returns;
+}
+
+export function riskStats(points: NavPoint[], annualRiskFreeRate = 0): {
+  volatility: number | null; sharpe: number | null; sortino: number | null;
+  monthlyCount: number; positiveMonths: number; bestMonth: number | null; worstMonth: number | null;
+} {
+  const returns = monthlyReturns(points).map(point => point.value);
+  const monthlyCount = returns.length;
+  const summaries = {
+    monthlyCount,
+    positiveMonths: returns.filter(value => value > 0).length,
+    bestMonth: monthlyCount ? Math.max(...returns) : null,
+    worstMonth: monthlyCount ? Math.min(...returns) : null,
+  };
+  if (monthlyCount < 12) return { volatility: null, sharpe: null, sortino: null, ...summaries };
+  const mean = returns.reduce((sum, value) => sum + value, 0) / monthlyCount;
+  const variance = returns.reduce((sum, value) => sum + (value - mean) ** 2, 0) / (monthlyCount - 1);
+  const volatility = Math.sqrt(variance * 12);
+  if (!Number.isFinite(annualRiskFreeRate) || annualRiskFreeRate < -1) {
+    return { volatility, sharpe: null, sortino: null, ...summaries };
+  }
+  const target = Math.pow(1 + annualRiskFreeRate, 1 / 12) - 1;
+  const annualExcess = (mean - target) * 12;
+  // All monthly observations enter the downside denominator, including zero shortfalls.
+  const downsideVariance = returns.reduce((sum, value) => sum + Math.min(0, value - target) ** 2, 0) / monthlyCount;
+  const annualDownside = Math.sqrt(downsideVariance * 12);
+  return {
+    volatility,
+    sharpe: volatility > 0 ? finiteOrNull(annualExcess / volatility) : null,
+    sortino: annualDownside > 0 ? finiteOrNull(annualExcess / annualDownside) : null,
+    ...summaries,
+  };
+}
+
+export function rollingReturns(points: NavPoint[], years: number): { start: string; end: string; value: number }[] {
+  if (points.length < 2 || !Number.isInteger(years) || years < 1) return [];
+  const latest = points[points.length - 1].date;
+  const returns: { start: string; end: string; value: number }[] = [];
+  for (const start of points) {
+    const anniversary = shiftMonths(start.date, years * 12);
+    if (anniversary > latest) break;
+    const end = eligiblePredecessor(points, anniversary);
+    if (!end) continue;
+    const value = years === 1 ? absoluteReturn([start, end]) : cagr([start, end]);
+    if (value !== null) returns.push({ start: start.date, end: end.date, value });
+  }
+  return returns;
+}
+
+export function alignFunds(series: NavPoint[][], period: Period): {
+  dates: string[]; series: NavPoint[][]; start: string | null; end: string | null;
+} {
+  const empty = { dates: [], series: series.map(() => []), start: null, end: null };
+  if (!series.length || series.some(points => !points.length)) return empty;
+  const lookups = series.map(points => new Map(points.map(point => [point.date, point])));
+  const commonPoints = series[0].filter(point => lookups.every(lookup => lookup.has(point.date)));
+  const selected = selectPeriod(commonPoints, period);
+  if (!selected.length) return empty;
+  const dates = selected.map(point => point.date);
+  return {
+    dates,
+    series: lookups.map(lookup => dates.map(date => lookup.get(date)!)),
+    start: dates[0],
+    end: dates[dates.length - 1],
+  };
+}
+
+export function isGrowthScheme(name: string): boolean {
+  if (/\b(?:idcw|dividend)\b|income\s+distribution|capital\s+withdrawal/i.test(name)) return false;
+  return /\bgrowth\b/i.test(name);
+}
