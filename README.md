@@ -1,15 +1,15 @@
 # FundScope — Mutual Fund Dashboard
 
-An Indian mutual fund research dashboard with the approved light FundScope interface and analytics based on available MFAPI NAV histories.
+An Indian mutual fund research dashboard with the approved Graphite interface and analytics based on available MFAPI NAV histories.
 
 - **Canonical development repository:** [Vasuki8/mutual-fund-dashboard](https://github.com/Vasuki8/mutual-fund-dashboard)
 - **Development direction:** GitHub only, as requested by the owner on 21 October 2026.
-- **GitHub website deployment:** not yet configured or verified. This repository currently contains the prior Worker application and a separate optional GitHub archive importer.
+- **GitHub website deployment:** standalone Pages build and deployment workflow prepared; repository configuration and a successful live deployment still require verification.
 - **Source:** [MFAPI](https://www.mfapi.in/) · [API documentation](https://www.mfapi.in/docs/)
 
 Development and scheduled imports for the former ChatGPT-hosted website have stopped. Its existing data has not been deleted or migrated. The linked import task is paused. Do not publish further releases to that host or restart its task without a later explicit request from the owner.
 
-The next deployment work is a standalone GitHub Pages build that reuses the approved interface. The current browser data and status calls still depend on the old server, so this requires an adapter and a verified deployment workflow. See [deployment status and next steps](docs/DEPLOYMENT.md). GitHub pushes currently run checks; they do not publish a website.
+The standalone GitHub Pages build reuses the Graphite interface and fetches MFAPI directly with credentials omitted. Its status view describes the histories cached in this browser and source availability. It has no shared historical archive or unattended refresh jobs. The retained Worker application and optional GitHub archive importer remain separate. See [deployment configuration and verification](docs/DEPLOYMENT.md) before treating a workflow or commit as a live website.
 
 ## What the application does
 
@@ -46,13 +46,22 @@ npm install --global pnpm@11.25.0
 pnpm install --frozen-lockfile
 pnpm run typecheck
 pnpm test
+pnpm run build:pages
+pnpm run dev:pages
+```
+
+The standalone Vite app starts at `static-pages/index.html`, uses `/mutual-fund-dashboard/` as its base, and retains the existing hash routes. The source entry stays outside the repository root so existing branch-based Pages publishing keeps its landing page. Its directory name also avoids activating the retained framework's `pages/` router convention. `pnpm run preview:pages` serves the compiled `dist/pages` locally. Its requests go directly to MFAPI; it requires no former-host credentials or Worker bindings.
+
+To validate the retained Worker implementation locally:
+
+```sh
 pnpm run build
 pnpm run dev
 ```
 
-A clean clone currently uses the portable Vinext development environment. These commands validate the retained application locally; they do not deploy it. Install scripts approve only named build dependencies, use a pinned package manager, and enforce the committed release-age policy.
+A clean clone retains the portable Vinext environment for those original commands. Local build and preview commands do not deploy either runtime. Install scripts approve only named build dependencies, use a pinned package manager, and enforce the committed release-age policy.
 
-The retained browser client calls same-origin `/api/mf` endpoints. A standalone GitHub Pages version still needs to replace this server dependency and its `/api/data/status` call. The former private sync procedure is archived in [SYNC_OPERATIONS.md](docs/SYNC_OPERATIONS.md) and must not be used for current development.
+The retained Worker browser client still calls same-origin `/api/mf` and `/api/data/status` endpoints. The standalone build selects its data path through a build-only flag and does not use those services. Histories, watchlists, and settings stored at another website do not transfer automatically; use the existing JSON backup and restore controls for a user-controlled transfer. The former private sync procedure is archived in [SYNC_OPERATIONS.md](docs/SYNC_OPERATIONS.md) and must not be used for current development.
 
 ### Legacy database setup for local development
 
@@ -92,4 +101,4 @@ All sync writes require `FUNDSCOPE_SYNC_TOKEN`. Credentials belong in the runtim
 
 ## Verification record
 
-Historical release verification is recorded in `docs/RELEASE_VERIFICATION.md`. CI runs typechecking, behavioral tests and the current production build on main, feature branches and pull requests. A future GitHub website release must verify its own deployment and data path. A future GitHub updater must verify its own persisted results before its schedule is described as active.
+Historical release verification is recorded in `docs/RELEASE_VERIFICATION.md`. CI runs typechecking, behavioral tests and both production builds on main, feature branches and pull requests. The separate Pages workflow uses a read-only preflight to require **Settings → Pages → Source = GitHub Actions** before it builds, tests, and deploys `main`; it can also be dispatched manually. It never changes the publishing-source setting. A GitHub website release must verify its returned deployment URL and data path before being reported as live. A GitHub updater must independently satisfy its activation conditions and verify persisted results before its schedule is described as active.

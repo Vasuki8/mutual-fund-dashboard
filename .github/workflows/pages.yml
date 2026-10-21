@@ -1,0 +1,70 @@
+name: Deploy FundScope to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pages: read
+    steps:
+      - name: Verify Pages publishing source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! pages_build_type="$(gh api --method GET "repos/${GITHUB_REPOSITORY}/pages" --jq '.build_type // "unknown"')"; then
+            echo '::error::Could not read GitHub Pages settings. A maintainer must verify Settings → Pages → Build and deployment → Source = GitHub Actions, then rerun this workflow.'
+            exit 1
+          fi
+          if [ "$pages_build_type" != 'workflow' ]; then
+            echo '::error::GitHub Pages must use Source = GitHub Actions. A maintainer must select Settings → Pages → Build and deployment → Source → GitHub Actions, then rerun this workflow. Existing branch publishing was not changed.'
+            exit 1
+          fi
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Install pinned package manager
+        run: npm install --global pnpm@11.25.0
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Typecheck
+        run: pnpm run typecheck
+      - name: Behavioral tests
+        run: pnpm test
+      - name: Build standalone application
+        run: pnpm run build:pages
+      - name: Configure Pages
+        uses: actions/configure-pages@v6
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist/pages
+
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

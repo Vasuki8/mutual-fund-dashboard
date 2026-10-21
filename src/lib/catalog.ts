@@ -9,4 +9,4 @@ export const STARTER_FUNDS: Scheme[] = [
   { schemeCode: 120586, schemeName: 'ICICI Prudential Large Cap Fund (erstwhile Bluechip Fund) - Direct Plan - Growth' },
   { schemeCode: 125497, schemeName: 'SBI SMALL CAP FUND - Direct Plan - Growth' },
 ];
-export const BRAND = { name: 'FundScope', tag: 'INDIAN MUTUAL FUND RESEARCH', accent: '#245442' };
+export const BRAND = { name: 'FundScope', tag: 'INDIAN MUTUAL FUND RESEARCH', accent: '#a4b4ff' };

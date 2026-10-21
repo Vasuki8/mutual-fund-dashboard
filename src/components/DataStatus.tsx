@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { AlertCircle, ArrowRight, CheckCircle2, Database, RefreshCw } from 'lucide-react';
-import { archiveActivity, initialImportSummary, nextPlannedUpdate, validBackfillStatus } from '../lib/archive-status.ts';
+import { archiveActivity, initialImportSummary, nextPlannedUpdate } from '../lib/archive-status.ts';
+import { isStaticRuntime, loadDataStatus, type BrowserDataStatus } from '../lib/runtime.ts';
 import type { SyncStatus } from '../lib/sync-types.ts';
 
 const integer = new Intl.NumberFormat('en-IN');
@@ -11,9 +12,19 @@ function time(value: string | null): string {
 }
 export function useDataStatus() {
   const [status, setStatus] = useState<SyncStatus | null>(null);
+  const [localStatus, setLocalStatus] = useState<BrowserDataStatus | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(true);
   const [revision, setRevision] = useState(0);
+  const refresh = useCallback(() => setRevision(value => value + 1), []);
+  useEffect(() => {
+    if (!isStaticRuntime()) return;
+    // storageStats validates saved histories. Read it when the user opens the
+    // data view or requests a check, rather than scanning it on a timer.
+    const onRoute = () => { if (window.location.hash.split('?')[0] === '#data') refresh(); };
+    window.addEventListener('hashchange', onRoute);
+    return () => window.removeEventListener('hashchange', onRoute);
+  }, [refresh]);
   useEffect(() => {
     const controller = new AbortController();
     let closed = false;
@@ -21,16 +32,12 @@ export function useDataStatus() {
     const timeout = setTimeout(() => controller.abort(), 15_000);
     void (async () => {
       try {
-        const response = await fetch('/api/data/status', { credentials: 'same-origin', cache: 'no-store', signal: controller.signal });
-        if (!response.ok) throw new Error('Data status is temporarily unavailable.');
-        const body = await response.json() as SyncStatus;
-        if (body.source !== 'mfapi.in' || !Array.isArray(body.warnings)
-          || ['catalogueCount', 'archivedCount', 'observationCount', 'historyBacklog'].some(key =>
-            !Number.isSafeInteger(body[key as keyof SyncStatus]) || Number(body[key as keyof SyncStatus]) < 0)
-          || !validBackfillStatus(body)) {
-          throw new Error('Data status could not be verified.');
+        const result = await loadDataStatus(controller.signal);
+        if (!closed) {
+          if (result.kind === 'browser') setLocalStatus(result);
+          else setStatus(result.status);
+          setError('');
         }
-        if (!closed) { setStatus(body); setError(''); }
       } catch {
         if (!closed) setError('Data status is temporarily unavailable. Previously loaded histories remain usable.');
       } finally {
@@ -38,16 +45,50 @@ export function useDataStatus() {
         if (!closed) setBusy(false);
       }
     })();
-    const poll = setTimeout(() => setRevision(value => value + 1), 60_000);
+    const poll = isStaticRuntime() ? undefined : setTimeout(refresh, 60_000);
     return () => { closed = true; controller.abort(); clearTimeout(timeout); clearTimeout(poll); };
-  }, [revision]);
-  return { status, error, busy, refresh: () => setRevision(value => value + 1) };
+  }, [revision, refresh]);
+  return { status, localStatus, error, busy, refresh };
 }
 export type DataStatusState = ReturnType<typeof useDataStatus>;
+
+function BrowserStatus({ state, compact, onOpen }: {
+  state: DataStatusState; compact: boolean; onOpen?: () => void;
+}) {
+  const { localStatus, error, busy, refresh } = state;
+  const available = localStatus?.sourceAvailable === true && !error;
+  const title = busy ? 'Checking MFAPI access…' : available
+    ? 'MFAPI reached at last check · Histories cached in this browser'
+    : 'MFAPI access unavailable · Saved histories remain usable';
+  if (compact) return <div className="data-status-line"><span className={`status-dot ${available && !busy ? '' : 'pending'}`} />
+    <span>{title}</span><button onClick={onOpen}>Data status <ArrowRight size={12} /></button></div>;
+
+  const notices = [error, localStatus?.sourceError, localStatus?.cacheError, localStatus?.cacheWarning].filter(Boolean);
+  return <section className="panel archive-panel" aria-labelledby="browser-data-heading">
+    <div className="panel-heading"><div><div className="eyebrow">SOURCE & LOCAL STORAGE</div><h2 id="browser-data-heading">MFAPI & browser histories</h2>
+      <p>Fund searches and available NAV histories are fetched directly from MFAPI when needed.</p></div>
+      <button className="button secondary small" onClick={refresh} disabled={busy}><RefreshCw size={14} className={busy ? 'spin' : ''} />Check source & cache</button></div>
+    {notices.length > 0 && <div className="notice warning" role="status"><AlertCircle size={17} /><span>{notices.join(' ')}</span></div>}
+    <div className="archive-metrics">
+      <div><span>Market-data source</span><strong>MFAPI</strong><small>Direct access from this browser</small></div>
+      <div><span>Cached fund histories</span><strong>{localStatus?.fundCount == null ? '—' : integer.format(localStatus.fundCount)}</strong><small>In this browser at the last check</small></div>
+      <div><span>History refresh</span><strong>On demand</strong><small>While you use FundScope</small></div>
+    </div>
+    <dl className="archive-facts">
+      <div><dt>MFAPI source access</dt><dd>{busy ? 'Checking…' : localStatus ? available ? 'Reached at last check' : 'Unavailable at last check' : 'Not yet checked'}</dd></div>
+      <div><dt>Last status check</dt><dd>{localStatus ? time(localStatus.checkedAt) : 'Not yet checked'}</dd></div>
+      <div><dt>History coverage</dt><dd>Funds opened or restored here</dd></div>
+      <div><dt>Storage scope</dt><dd>This website in this browser</dd></div>
+    </dl>
+    <p className="panel-note">The cache contains the available histories you have opened or restored, with no fixed history cutoff. Source gaps remain visible. A successful access check does not verify every scheme or the freshness of every cached history.</p>
+    <p className="panel-note">Refresh a fund to request current source data. FundScope does not run background imports or update histories while this page is closed. Export a backup to keep or move your research; data from another website does not transfer automatically.</p>
+  </section>;
+}
 
 export function DataStatus({ state, compact = false, onOpen }: {
   state: DataStatusState; compact?: boolean; onOpen?: () => void;
 }) {
+  if (isStaticRuntime()) return <BrowserStatus state={state} compact={compact} onOpen={onOpen} />;
   const { status, error, busy, refresh } = state;
   const now = Date.now();
   const age = status?.lastCatalogueSyncAt ? now - Date.parse(status.lastCatalogueSyncAt) : Infinity;

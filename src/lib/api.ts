@@ -1,11 +1,12 @@
 import type { FundData, Scheme } from './types.ts';
 import { validateArchiveProvenance } from './provenance.ts';
+import { getApiConnection } from './runtime.ts';
 import { getCachedFund, getCachedSearch, normalizeNavRecords, putCachedFund, putCachedSearch,
   assertStorageGeneration, getStorageGeneration, storageWarning, validSchemeCode, validateScheme } from './storage.ts';
 
-// Browser requests use the persistent same-origin service. Node consumers can
-// still validate MFAPI directly without needing a browser sign-in session.
-const BASE_URL = typeof window === 'undefined' ? 'https://api.mfapi.in' : '/api';
+// The Pages build uses MFAPI directly. Legacy browsers keep the same-origin
+// service, while Node consumers retain direct access for source validation.
+const { baseUrl: BASE_URL, credentials: REQUEST_CREDENTIALS } = getApiConnection();
 const HISTORY_TTL = 6 * 60 * 60 * 1_000;
 const SEARCH_TTL = 24 * 60 * 60 * 1_000;
 const REQUEST_TIMEOUT = 35_000;
@@ -58,7 +59,7 @@ async function fetchOnce(path: string, generation: number): Promise<unknown> {
       let response: Response;
       try {
         response = await fetch(`${BASE_URL}${path}`, {
-          signal: controller.signal, credentials: BASE_URL.startsWith('/') ? 'same-origin' : 'omit', headers: { Accept: 'application/json' }, cache: 'no-store',
+          signal: controller.signal, credentials: REQUEST_CREDENTIALS, headers: { Accept: 'application/json' }, cache: 'no-store',
         });
       } catch (error) {
         const message = controller.signal.aborted ? 'Fund data request timed out after 35 seconds.' : 'Fund data could not be reached. Check your connection and try again.';
