@@ -1,0 +1,29 @@
+name: FundScope GitHub-only MFAPI archive
+
+on:
+  schedule:
+    - cron: '7,22,37,52 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fundscope-github-history-v1
+  cancel-in-progress: false
+
+jobs:
+  archive:
+    # Public repository => Release assets are public. Enable only after data-use review.
+    if: github.repository == 'Vasuki8/mutual-fund-dashboard' && vars.FUNDSCOPE_GITHUB_ARCHIVE_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Archive one bounded tranche using public MFAPI and GitHub Releases
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node --experimental-strip-types scripts/github-history.mjs
