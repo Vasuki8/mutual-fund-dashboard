@@ -16,7 +16,7 @@ Search by scheme name or code, distinguish Direct/Regular and Growth/IDCW option
 
 ## Persistent data and twice-daily updates
 
-The cloud updater is designed to run at **05:37 and 17:37 UTC every day** — **11:07 AM and 11:07 PM IST** — without a visitor keeping the website open. It refreshes the all-scheme latest snapshot and processes bounded batches of complete histories. Data writes do not redeploy the application.
+The cloud updater is enabled at **05:37 and 17:37 UTC every day** — **11:07 AM and 11:07 PM IST** — without a visitor keeping the website open. It refreshes the all-scheme latest snapshot and processes bounded batches of complete histories. Data writes do not redeploy the application. The initial hosted import and the linked schedule were verified on 21 October 2026; see the [release verification record](docs/RELEASE_VERIFICATION.md).
 
 | Data | Storage and behavior |
 | --- | --- |
