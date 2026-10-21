@@ -88,6 +88,10 @@ The static browser verifies and decompresses same-origin assets under `/mutual-f
 
 If an upload or checkpoint readback fails, rerun normally after the transient fault clears. Never advance counters manually or delete a prior good asset to make a retry pass. A failed website build leaves the previous deployment live; fix the reported validation/capacity problem and rerun Pages.
 
+Each Pages build names its temporary workflow artifact with the run ID and build attempt. The deployment job reads that exact name from the build's saved output. Rebuilding therefore does not collide with an earlier artifact, and retrying only deployment still selects the original build's artifact. These temporary website artifacts are separate from the immutable historical Release assets.
+
+Runs created before this naming fix retain the older workflow definition. If one fails with `Multiple artifacts named "github-pages"`, start a new **Deploy FundScope to GitHub Pages** run on current `main` (a new main-branch push also starts one). That build reads the latest verified archive checkpoint. Repeatedly retrying the old deployment will not resolve its duplicate artifact names; no historical data needs to be deleted or reimported.
+
 ## Verification commands
 
 ```sh
