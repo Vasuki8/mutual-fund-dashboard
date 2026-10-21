@@ -4,6 +4,7 @@ import { exportBackup, getSettings, importBackup, saveSettings, storageStats } f
 import * as storage from '../src/lib/storage.ts';
 import type { TestContext } from 'node:test';
 import type { FundData, ResearchSettings } from '../src/lib/types.ts';
+import { qualityBlocked } from '../src/lib/format.ts';
 
 const defaults = (): ResearchSettings => ({ version: 1, watchlist: [], compared: [], riskFreeRate: 0.06, lastFund: null });
 const scheme = (code = 122639) => ({ schemeCode: code, schemeName: `Example Direct Plan Growth ${code}` });
@@ -16,6 +17,48 @@ function backup(funds: FundData[] = [], settings = defaults()) {
   return { version: 1, createdAt: new Date().toISOString(), settings, funds };
 }
 beforeEach(async () => { await importBackup(JSON.stringify(backup())); });
+
+test('cache writes merge a shortened newer response without deleting earlier observations', async () => {
+  await storage.putCachedFund(fund());
+  const incoming = fund();
+  incoming.fetchedAt = '2026-10-21T10:00:00.000Z';
+  incoming.points = [{ date: '2025-01-02', nav: 10.2 }, { date: '2025-01-03', nav: 10.3 }];
+  const saved = await storage.putCachedFund(incoming);
+  assert.deepEqual(saved.points, [{ date: '2025-01-01', nav: 10 }, { date: '2025-01-02', nav: 10.2 }, { date: '2025-01-03', nav: 10.3 }]);
+  assert.ok(saved.warnings.some(warning => /retained/i.test(warning)));
+  assert.equal((await storage.getCachedFund(incoming.meta.schemeCode))?.points.length, 3);
+});
+
+test('cache history merging never labels a mixed local history as an unchanged archived payload', async () => {
+  const saved = fund();
+  saved.archive = { fetchedAt: saved.fetchedAt, archivedAt: saved.fetchedAt, coverageStart: '2025-01-01',
+    coverageEnd: '2025-01-02', observationCount: 2, fromArchive: true, stale: false, warnings: [] };
+  await storage.putCachedFund(saved);
+  const incoming = fund();
+  incoming.fetchedAt = '2026-10-21T10:00:00.000Z';
+  incoming.points = [{ date: '2025-01-03', nav: 10.3 }];
+  const merged = await storage.putCachedFund(incoming);
+  assert.equal(merged.points.length, 3);
+  assert.equal(merged.archive, undefined);
+});
+
+test('older archive observations retain their blocking quality warnings when merged into a newer short history', async () => {
+  const current = fund();
+  current.fetchedAt = '2026-10-21T10:00:00.000Z';
+  current.points = [{ date: '2026-10-21', nav: 10.2 }];
+  await storage.putCachedFund(current);
+  const archived = fund();
+  archived.fetchedAt = '2026-10-20T10:00:00.000Z';
+  archived.points = [{ date: '2026-10-19', nav: 10 }, { date: '2026-10-20', nav: 10.1 }];
+  archived.warnings = ['Conflicting NAV values occur on 1 duplicate date(s); the lowest value is retained deterministically and analytics are blocked.',
+    'Invalid NAV observations were excluded (1); derived analytics are blocked until the data is resolved.'];
+  const merged = await storage.putCachedFund(archived);
+  assert.deepEqual(merged.points.map(point => point.date), ['2026-10-19', '2026-10-20', '2026-10-21']);
+  assert.equal(merged.fetchedAt, current.fetchedAt);
+  assert.equal(qualityBlocked(merged), true, 'Adding older unresolved observations must not silently enable analytics.');
+  for (const warning of archived.warnings) assert.ok(merged.warnings.includes(warning));
+  assert.equal(qualityBlocked((await storage.getCachedFund(current.meta.schemeCode))!), true);
+});
 
 test('settings default to the explicit annual rate assumption', () => {
   assert.deepEqual(getSettings(), defaults());

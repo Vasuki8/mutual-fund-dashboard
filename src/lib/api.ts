@@ -1,6 +1,7 @@
 import type { FundData, Scheme } from './types.ts';
 import { validateArchiveProvenance } from './provenance.ts';
-import { getApiConnection } from './runtime.ts';
+import { getApiConnection, isStaticRuntime } from './runtime.ts';
+import { loadSharedFund, searchSharedCatalogue } from './shared-archive.ts';
 import { getCachedFund, getCachedSearch, normalizeNavRecords, putCachedFund, putCachedSearch,
   assertStorageGeneration, getStorageGeneration, storageWarning, validSchemeCode, validateScheme } from './storage.ts';
 
@@ -116,6 +117,10 @@ export function validateFundResponse(payload: unknown, code: number): FundData {
     isinGrowth: meta.isin_growth, isinDivReinvestment: meta.isin_div_reinvestment });
   const normalized = normalizeNavRecords(body.data, 'mfapi');
   const archive = validateArchiveProvenance(body._fundscope);
+  if (archive && (archive.observationCount !== normalized.points.length
+    || archive.coverageStart !== normalized.points[0].date || archive.coverageEnd !== normalized.points.at(-1)!.date)) {
+    throw new Error('Archive provenance does not match its observation count or coverage.');
+  }
   return { meta: { ...scheme, fundHouse: metadataString(meta.fund_house, 'fund house'),
     schemeType: metadataString(meta.scheme_type, 'scheme type'), schemeCategory: metadataString(meta.scheme_category, 'scheme category') },
     points: normalized.points, fetchedAt: archive?.fetchedAt ?? new Date().toISOString(), source: 'mfapi.in', fromCache: false, stale: archive?.stale ?? false,
@@ -135,31 +140,53 @@ function decorate(fund: FundData, fromCache: boolean, stale: boolean, message?: 
   return result;
 }
 
-async function refreshFund(code: number, cached: FundData | null, generation: number): Promise<FundData> {
+async function refreshFund(code: number, cached: FundData | null, generation: number, force = false): Promise<FundData> {
+  let fallback = cached;
+  let archiveWarning = '';
+  if (isStaticRuntime() && !force) {
+    try {
+      const payload = await loadSharedFund(code);
+      assertStorageGeneration(generation);
+      if (payload) {
+        fallback = await putCachedFund(validateFundResponse(payload, code), generation);
+        assertStorageGeneration(generation);
+        if (!fallback.stale && fresh(fallback.fetchedAt, HISTORY_TTL)) return decorate(fallback, false, false);
+      }
+    } catch {
+      assertStorageGeneration(generation);
+      archiveWarning = 'The shared archive could not be verified; this history was requested directly from MFAPI.';
+    }
+  }
   try {
     const fund = validateFundResponse(await requestJson(`/mf/${code}`, generation), code);
     assertStorageGeneration(generation);
-    if (cached && fund.points.at(-1)!.date < cached.points.at(-1)!.date) {
-      return decorate(cached, true, true, 'MFAPI returned an older latest observation; the newer saved history was retained.');
-    }
     const saved = await putCachedFund(fund, generation);
     assertStorageGeneration(generation);
     if (saved.points.at(-1)!.date > fund.points.at(-1)!.date) {
       return decorate(saved, true, true, 'A newer saved history was retained instead of an older provider response.');
     }
-    return decorate(saved, false, false);
+    return decorate(saved, false, false, archiveWarning || undefined);
   } catch (error) {
     assertStorageGeneration(generation);
-    if (!cached) throw error;
+    if (!fallback && isStaticRuntime() && force) {
+      try {
+        const payload = await loadSharedFund(code);
+        assertStorageGeneration(generation);
+        if (payload) fallback = await putCachedFund(validateFundResponse(payload, code), generation);
+      } catch { assertStorageGeneration(generation); }
+    }
+    assertStorageGeneration(generation);
+    if (!fallback) throw error;
     const reason = error instanceof Error ? error.message : 'The provider could not be reached.';
-    return decorate(cached, true, true, `Refresh failed: ${reason} Showing the saved history fetched ${cached.fetchedAt}.`);
+    return decorate(fallback, true, true, `Refresh failed: ${reason} Showing the saved history fetched ${fallback.fetchedAt}.`);
   }
 }
 
 export async function getFund(code: number, options: { force?: boolean } = {}): Promise<FundData> {
   if (!validSchemeCode(code)) throw new Error('Invalid requested scheme code.');
   const generation = getStorageGeneration();
-  const key = `${generation}:${code}`;
+  // A manual source refresh must not be absorbed by an in-flight archive read.
+  const key = `${generation}:${code}${isStaticRuntime() && options.force ? ':source' : ''}`;
   const current = pendingFunds.get(key);
   if (current) {
     const result = await current;
@@ -177,7 +204,7 @@ export async function getFund(code: number, options: { force?: boolean } = {}): 
     assertStorageGeneration(generation);
     return structuredClone(result);
   }
-  const request = refreshFund(code, cached, generation);
+  const request = refreshFund(code, cached, generation, options.force === true);
   pendingFunds.set(key, request);
   try {
     const result = await request;
@@ -226,7 +253,17 @@ export async function searchSchemes(query: string): Promise<Scheme[]> {
     return structuredClone(results);
   }
   const request = (async () => {
-    const results = searchResults(await requestJson(`/mf/search?q=${encodeURIComponent(trimmed)}`, generation));
+    let results: Scheme[];
+    try { results = searchResults(await requestJson(`/mf/search?q=${encodeURIComponent(trimmed)}`, generation)); }
+    catch (error) {
+      assertStorageGeneration(generation);
+      if (!isStaticRuntime()) throw error;
+      let shared: Scheme[] | null = null;
+      try { shared = await searchSharedCatalogue(trimmed); } catch { assertStorageGeneration(generation); }
+      assertStorageGeneration(generation);
+      if (!shared) throw error;
+      results = shared;
+    }
     assertStorageGeneration(generation);
     await putCachedSearch(key, results, generation);
     assertStorageGeneration(generation);

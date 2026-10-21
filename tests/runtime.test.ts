@@ -67,16 +67,22 @@ test('the legacy browser client keeps same-origin requests and credentials', asy
   assert.deepEqual(await searchSchemes('Legacy source routing test'), []);
 });
 
-test('static data status checks MFAPI without requesting the shared archive', async t => {
-  browser();
+test('static data status checks MFAPI and the published manifest without inventing shared coverage', async t => {
+  Object.defineProperty(globalThis, 'window', { configurable: true,
+    value: { location: new URL('https://runtime-test.example/mutual-fund-dashboard/') } });
   runtimeGlobal.__FUNDSCOPE_STATIC__ = true;
   const requests: string[] = [];
   t.mock.method(globalThis, 'fetch', async (input: string | URL | Request, init?: RequestInit) => {
     const url = String(input);
     requests.push(url);
+    assert.equal(init?.credentials, 'omit');
+    if (new URL(url).origin === 'https://runtime-test.example') {
+      assert.equal(new URL(url).pathname, '/mutual-fund-dashboard/archive/manifest.json');
+      return Response.json({ version: 2, source: 'mfapi.in', status: 'disabled', generatedAt: new Date().toISOString(),
+        message: 'The shared archive is not enabled.' });
+    }
     assert.equal(new URL(url).origin, 'https://api.mfapi.in');
     assert.equal(new URL(url).pathname, '/mf/search');
-    assert.equal(init?.credentials, 'omit');
     return Response.json([]);
   });
   const result = await loadDataStatus(new AbortController().signal);
@@ -86,10 +92,38 @@ test('static data status checks MFAPI without requesting the shared archive', as
   assert.equal(result.fundCount, 0);
   assert.equal(result.sourceError, null);
   assert.ok(Number.isFinite(Date.parse(result.checkedAt)));
-  assert.equal(requests.length, 1);
+  assert.equal(requests.length, 2);
   assert.equal(requests.some(url => url.includes('/api/data/status')), false);
   assert.equal('archivedCount' in result, false);
   assert.equal('schedule' in result, false);
+  assert.equal(result.sharedManifest?.status, 'disabled');
+  assert.equal(result.sharedError, null);
+});
+
+test('shared progress remains distinct from browser cache coverage during a source outage', async t => {
+  runtimeGlobal.__FUNDSCOPE_STATIC__ = true;
+  Object.defineProperty(globalThis, 'window', { configurable: true,
+    value: { location: new URL('https://runtime-shared.example/mutual-fund-dashboard/') } });
+  const now = new Date().toISOString();
+  const descriptor = { path: 'archive/example.json.gz', bytes: 100, expandedBytes: 1000, sha256: 'a'.repeat(64) };
+  t.mock.method(globalThis, 'fetch', async (input: RequestInfo | URL) => {
+    if (new URL(String(input)).origin === 'https://api.mfapi.in') throw new TypeError('Offline');
+    return Response.json({ version: 2, source: 'mfapi.in', status: 'ready', collectionEnabled: true, sequence: 7, generatedAt: now,
+      checkpointAt: now, catalogueFetchedAt: now, latestNavDate: '2026-10-20', catalogue: descriptor,
+      shards: { '3000': descriptor }, issues: [], warnings: [], counts: { total: 10, attempted: 6, saved: 4,
+        clean: 3, qualityIssues: 1, sourceGaps: 2, pending: 4, refreshPending: 5,
+        bulkPassComplete: false, coverageComplete: false } });
+  });
+  const result = await loadDataStatus(new AbortController().signal);
+  assert.equal(result.kind, 'browser');
+  if (result.kind !== 'browser') throw new Error('Expected browser data status.');
+  assert.equal(result.sourceAvailable, false);
+  assert.equal(result.fundCount, 0);
+  assert.equal(result.sharedManifest?.status, 'ready');
+  if (result.sharedManifest?.status !== 'ready') throw new Error('Expected a verified shared checkpoint.');
+  assert.equal(result.sharedManifest.counts.saved, 4);
+  assert.equal(result.sharedManifest.counts.coverageComplete, false);
+  assert.equal(result.sharedError, null);
 });
 
 test('static status reports source failure without discarding local cache coverage', async t => {

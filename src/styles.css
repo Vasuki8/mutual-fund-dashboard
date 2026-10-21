@@ -463,6 +463,10 @@ svg { flex-shrink: 0; }
 .archive-run svg { margin-top: 2px; }
 .archive-run span { min-width: 0; overflow-wrap: anywhere; }
 .archive-run strong { color: var(--text); font-weight: 500; }
+.archive-issues { margin: 0 12px 12px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.archive-issues summary { color: var(--text); cursor: pointer; }
+.archive-issues ul { padding-left: 20px; }
+.archive-issues li { margin: 6px 0; overflow-wrap: anywhere; }
 
 @media (max-width: 950px) {
   :root, .graphite-ui { --graphite-sidebar-width: 145px; }

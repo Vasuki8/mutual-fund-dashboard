@@ -236,6 +236,26 @@ test('an older provider response never replaces a newer saved observation', asyn
   assert.equal(JSON.parse(await exportBackup()).funds[0].points.at(-1).date, '2026-10-19');
 });
 
+test('a shortened same-date source refresh retains older saved observations and applies valid corrections', async t => {
+  await seed([cached()]);
+  t.mock.method(globalThis, 'fetch', async () => Response.json(payload(CODE, [
+    { date: '19-10-2026', nav: '91.00' },
+  ])));
+  const result = await getFund(CODE, { force: true });
+  assert.deepEqual(result.points, [{ date: '2026-10-16', nav: 90.8844 }, { date: '2026-10-19', nav: 91 }]);
+  assert.ok(result.warnings.some(warning => /retained/i.test(warning)));
+  assert.deepEqual(JSON.parse(await exportBackup()).funds[0].points, result.points);
+});
+
+test('archive provenance must agree with the returned observation count and coverage', () => {
+  const now = new Date().toISOString();
+  const provenance = { fetchedAt: now, archivedAt: now, fromArchive: true, stale: false,
+    coverageStart: '2026-10-16', coverageEnd: '2026-10-19', observationCount: 3, warnings: [] };
+  assert.throws(() => validateFundResponse({ ...payload(), _fundscope: provenance }, CODE), /provenance|coverage|count/i);
+  assert.throws(() => validateFundResponse({ ...payload(), _fundscope: { ...provenance,
+    observationCount: 2, coverageStart: '2025-01-01' } }, CODE), /provenance|coverage|count/i);
+});
+
 test('a transient provider failure may recover on the single retry', async t => {
   let requests = 0;
   t.mock.method(globalThis, 'fetch', async () => {

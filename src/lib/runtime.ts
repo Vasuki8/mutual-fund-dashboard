@@ -1,6 +1,8 @@
 import { validBackfillStatus } from './archive-status.ts';
 import { storageStats, storageWarning, validateScheme } from './storage.ts';
 import type { SyncStatus } from './sync-types.ts';
+import type { PublicArchiveManifest } from './archive-types.ts';
+import { loadSharedManifest } from './shared-archive.ts';
 
 // Only the standalone Vite configuration defines this constant. Legacy builds
 // and Node tests intentionally keep their existing behavior when it is absent.
@@ -24,6 +26,8 @@ export interface BrowserDataStatus {
   cacheError: string | null;
   sourceAvailable: boolean;
   sourceError: string | null;
+  sharedManifest: PublicArchiveManifest | null;
+  sharedError: string | null;
 }
 
 export type RuntimeDataStatus = BrowserDataStatus | { kind: 'archive'; status: SyncStatus };
@@ -44,7 +48,9 @@ async function checkSource(signal: AbortSignal): Promise<void> {
 
 export async function loadDataStatus(signal: AbortSignal): Promise<RuntimeDataStatus> {
   if (isStaticRuntime()) {
-    const [cache, source] = await Promise.allSettled([storageStats(), checkSource(signal)]);
+    const [cache, source, shared] = await Promise.allSettled([
+      storageStats(), checkSource(signal), loadSharedManifest({ force: true, signal }),
+    ]);
     // Counts remain useful during an outage. They describe this browser only;
     // never substitute or combine archive totals from another deployment.
     return {
@@ -59,6 +65,9 @@ export async function loadDataStatus(signal: AbortSignal): Promise<RuntimeDataSt
           : signal.aborted ? 'MFAPI availability check timed out. Try checking status again.'
           : 'MFAPI could not be reached from this browser. Previously cached histories remain usable.'
         : null,
+      sharedManifest: shared.status === 'fulfilled' ? shared.value : null,
+      sharedError: shared.status === 'rejected'
+        ? 'The shared archive status could not be verified. Direct MFAPI access and saved browser histories remain available.' : null,
     };
   }
 
