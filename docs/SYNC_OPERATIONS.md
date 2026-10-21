@@ -106,12 +106,14 @@ The CLI rejects other hosts, HTTP production URLs, URL credentials, paths, query
 
 The runner performs these operations sequentially against the same origin:
 
-1. `POST /api/sync/start` with an idempotency key such as `fundscope:2026-10-21:00`.
+1. `POST /api/sync/start` with an idempotency key such as `fundscope:2026-10-21:0537`.
 2. `POST /api/sync/step` with the returned `runId` and `limit: 20`, while the run is active and both work limits allow another batch.
 3. `POST /api/sync/finish` to close the invocation while retaining durable outstanding work.
 4. `GET /api/data/status` with cache bypass, validating the closed run identity, counts, dates, and schedule before claiming readback success.
 
-The key is fixed for each UTC date and twelve-hour slot: `00` for 00:00–11:59 UTC and `12` for 12:00–23:59 UTC. Retrying within the same slot sends the same key. A running key resumes the durable run; a finished key returns its terminal result without performing another history loop. The next scheduled slot builds a new queue from durable coverage and unresolved work. Do not invent new idempotency keys to force extra work during an ordinary task.
+The key identifies the most recent scheduled occurrence, using its UTC date and time (`0537` or `1737`). From 05:37 up to 17:37 UTC, the key uses that day's `0537` occurrence. From 17:37 onward, it uses that day's `1737` occurrence. Before 05:37, it uses the previous day's `1737` occurrence. A manual check before the morning schedule therefore cannot consume the upcoming morning occurrence. Retrying within the same occurrence sends the same key. A running key resumes the durable run; a finished key returns its terminal result without performing another history loop. The next scheduled occurrence builds a new queue from durable coverage and unresolved work. Do not invent new idempotency keys to force extra work during an ordinary task.
+
+For example, a verification at 04:02 UTC on 21 October 2026 uses `fundscope:2026-10-20:1737`. The scheduled invocation at 05:37 UTC uses `fundscope:2026-10-21:0537`. The old midnight/noon key format could assign both invocations the same key and replay a finished partial run; the schedule-aligned format prevents that collision. Previously saved histories and run records remain intact.
 
 `--max-seconds` is an integer from 1 through 900 and bounds start/step work using a monotonic clock. `--max-batches` is an integer from 0 through 100. Every request is capped at 40 seconds; start uses any shorter remaining work budget. Each history-step attempt, including a retry after backoff, requires a full 40 seconds remaining before it begins. Otherwise the runner stops with `time_limit` and checkpoints. This avoids aborting a fresh server step after only a few seconds while that step can still hold its durable lease. A work budget below 40 seconds intentionally permits only catalogue start and finalization, with no history steps. After work stops, finish and readback each receive a separate allowance of at most 40 seconds. Consequently an invocation can take up to its work budget plus 80 seconds after credential input; its maximum number of logical history steps remains 100.
 

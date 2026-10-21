@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { AlertCircle, ArrowRight, CheckCircle2, Database, RefreshCw } from 'lucide-react';
+import { archiveActivity, nextPlannedUpdate } from '../lib/archive-status.ts';
 import type { SyncStatus } from '../lib/sync-types.ts';
 
 const integer = new Intl.NumberFormat('en-IN');
@@ -47,35 +48,44 @@ export function DataStatus({ state, compact = false, onOpen }: {
   state: DataStatusState; compact?: boolean; onOpen?: () => void;
 }) {
   const { status, error, busy, refresh } = state;
-  const age = status?.lastCatalogueSyncAt ? Date.now() - Date.parse(status.lastCatalogueSyncAt) : Infinity;
+  const now = Date.now();
+  const age = status?.lastCatalogueSyncAt ? now - Date.parse(status.lastCatalogueSyncAt) : Infinity;
   const current = age >= 0 && age < 14 * 3600_000 && !error;
   const title = error ? 'Data status unavailable' : status?.lastCatalogueSyncAt
     ? `Market data checked ${time(status.lastCatalogueSyncAt)}` : busy ? 'Checking market-data status…' : 'First market-data refresh pending';
   if (compact) return <div className="data-status-line"><span className={`status-dot ${current ? '' : 'pending'}`} />
     <span>{title}</span><button onClick={onOpen}>Data status <ArrowRight size={12} /></button></div>;
 
+  const activity = status ? archiveActivity(status) : null;
+  const nextUpdate = status ? nextPlannedUpdate(status.schedule, now) : null;
+  const coverage = status?.catalogueCount ? Math.min(100, status.archivedCount / status.catalogueCount * 100).toFixed(2) : '0.00';
+  const savedCount = status ? `${integer.format(status.archivedCount)} of ${integer.format(status.catalogueCount)}` : '';
+
   return <section className="panel archive-panel" aria-labelledby="archive-heading">
     <div className="panel-heading"><div><div className="eyebrow">SHARED MARKET DATA</div><h2 id="archive-heading">A lasting view of the history.</h2>
-      <p>Full available MFAPI history is fetched when you open a scheme. The archive grows automatically between visits.</p></div>
+      <p>Full available MFAPI histories are saved during scheduled imports and when you open a fund.</p></div>
       <button className="button secondary small" onClick={refresh} disabled={busy}><RefreshCw size={14} className={busy ? 'spin' : ''} />Check status</button></div>
-    {error && <div className="notice warning" role="status"><AlertCircle size={17} /><span>{error}{status ? ' The figures below are the last status retrieved.' : ''}</span></div>}
+    {error && <div className="notice warning" role="status"><AlertCircle size={17} /><span>{error}{status ? ' The figures and import state below are from the last successful status check.' : ''}</span></div>}
     <div className="archive-metrics">
       <div><span>Catalogued schemes</span><strong>{status ? integer.format(status.catalogueCount) : '—'}</strong><small>Includes retained older schemes</small></div>
       <div><span>Histories archived</span><strong>{status ? integer.format(status.archivedCount) : '—'}</strong><small>{status ? `${integer.format(status.historyBacklog)} needing import or follow-up` : 'Coverage loading'}</small></div>
       <div><span>NAV observations stored</span><strong>{status ? integer.format(status.observationCount) : '—'}</strong><small>No fixed history cutoff</small></div>
     </div>
     {status && <>
-      <div className="archive-progress"><label htmlFor="archive-coverage">Schemes with saved history <strong>{status.catalogueCount ? Math.min(100, status.archivedCount / status.catalogueCount * 100).toFixed(1) : '0.0'}%</strong></label>
-        <progress id="archive-coverage" value={Math.min(status.archivedCount, status.catalogueCount)} max={status.catalogueCount || 1} /></div>
+      <div className="archive-progress"><label htmlFor="archive-coverage"><span>Archive coverage<br /><small>{savedCount} histories saved</small></span><strong>{coverage}%</strong></label>
+        <progress id="archive-coverage" value={Math.min(status.archivedCount, status.catalogueCount)} max={status.catalogueCount || 1}
+          aria-valuetext={`${savedCount} histories saved (${coverage}%)`} /></div>
       <dl className="archive-facts"><div><dt>Latest catalogue refresh</dt><dd>{time(status.lastCatalogueSyncAt)}</dd></div>
         <div><dt>Newest reported NAV date</dt><dd>{status.latestNavDate ?? 'Awaiting provider data'}</dd></div>
         <div><dt>Latest history stored</dt><dd>{time(status.lastHistorySyncAt)}</dd></div>
-        <div><dt>Daily refresh times</dt><dd>11:07 AM &amp; 11:07 PM IST</dd></div></dl>
-      {status.lastRun && <div className="archive-run">{status.lastRun.status === 'failed' ? <AlertCircle size={16} /> : status.historyBacklog === 0 && status.lastRun.status === 'completed' ? <CheckCircle2 size={16} /> : <Database size={16} />}
-        <span>Last run: <strong>{status.lastRun.status}</strong> · {integer.format(status.lastRun.processed)} histories processed · {integer.format(status.lastRun.failed)} failed
-          {status.lastRun.error ? ` · ${status.lastRun.error}` : ''}</span></div>}
+        <div><dt>Next planned update</dt><dd>{nextUpdate ? time(nextUpdate) : 'Schedule unavailable'}</dd></div></dl>
+      <div className="archive-run">{activity?.kind === 'failed' ? <AlertCircle size={16} /> : activity?.kind === 'complete' ? <CheckCircle2 size={16} /> : <Database size={16} />}
+        <span><strong>{activity?.label}</strong>{status.lastRun && <><br />
+          {status.lastRun.status === 'running' ? 'Last reported run' : 'Last run'}: {integer.format(status.lastRun.processed)} histories processed · {integer.format(status.lastRun.failed)} failed
+          {status.lastRun.finishedAt ? ` · Finished ${time(status.lastRun.finishedAt)}` : ''}
+          {status.lastRun.error ? ` · ${status.lastRun.error}` : ''}</>}</span></div>
       {status.warnings.length > 0 && <div className="notice"><AlertCircle size={16} /><span>{status.warnings.join(' ')}</span></div>}
     </>}
-    <p className="panel-note">A catalogue refresh does not mean every history has been archived. The remaining history import resumes in batches; opening a fund also saves its available history. Provider gaps remain visible, and older observations are retained.</p>
+    <p className="panel-note">Check status refreshes this display. Additional histories are saved during scheduled jobs or when you open a fund. The next update is a planned time; actual job starts may vary. Provider gaps remain visible, and older observations are retained.</p>
   </section>;
 }
