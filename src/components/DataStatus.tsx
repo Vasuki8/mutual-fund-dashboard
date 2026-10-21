@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { AlertCircle, ArrowRight, CheckCircle2, Database, RefreshCw } from 'lucide-react';
-import { archiveActivity, nextPlannedUpdate } from '../lib/archive-status.ts';
+import { archiveActivity, initialImportSummary, nextPlannedUpdate, validBackfillStatus } from '../lib/archive-status.ts';
 import type { SyncStatus } from '../lib/sync-types.ts';
 
 const integer = new Intl.NumberFormat('en-IN');
@@ -26,7 +26,8 @@ export function useDataStatus() {
         const body = await response.json() as SyncStatus;
         if (body.source !== 'mfapi.in' || !Array.isArray(body.warnings)
           || ['catalogueCount', 'archivedCount', 'observationCount', 'historyBacklog'].some(key =>
-            !Number.isSafeInteger(body[key as keyof SyncStatus]) || Number(body[key as keyof SyncStatus]) < 0)) {
+            !Number.isSafeInteger(body[key as keyof SyncStatus]) || Number(body[key as keyof SyncStatus]) < 0)
+          || !validBackfillStatus(body)) {
           throw new Error('Data status could not be verified.');
         }
         if (!closed) { setStatus(body); setError(''); }
@@ -57,6 +58,7 @@ export function DataStatus({ state, compact = false, onOpen }: {
     <span>{title}</span><button onClick={onOpen}>Data status <ArrowRight size={12} /></button></div>;
 
   const activity = status ? archiveActivity(status) : null;
+  const initialImport = status ? initialImportSummary(status) : null;
   const nextUpdate = status ? nextPlannedUpdate(status.schedule, now) : null;
   const coverage = status?.catalogueCount ? Math.min(100, status.archivedCount / status.catalogueCount * 100).toFixed(2) : '0.00';
   const savedCount = status ? `${integer.format(status.archivedCount)} of ${integer.format(status.catalogueCount)}` : '';
@@ -79,6 +81,20 @@ export function DataStatus({ state, compact = false, onOpen }: {
         <div><dt>Newest reported NAV date</dt><dd>{status.latestNavDate ?? 'Awaiting provider data'}</dd></div>
         <div><dt>Latest history stored</dt><dd>{time(status.lastHistorySyncAt)}</dd></div>
         <div><dt>Next planned update</dt><dd>{nextUpdate ? time(nextUpdate) : 'Schedule unavailable'}</dd></div></dl>
+      {initialImport && <section aria-labelledby="initial-import-heading">
+        <div className="archive-run"><Database size={16} /><span><strong id="initial-import-heading">Initial history import</strong><br />
+          {initialImport.label}<br />{integer.format(initialImport.checked)} of {integer.format(initialImport.total)} schemes checked</span></div>
+        <dl className="archive-facts">
+          <div><dt>Awaiting first attempt</dt><dd>{integer.format(initialImport.awaiting)}</dd></div>
+          <div><dt>Waiting for retry</dt><dd>{integer.format(initialImport.retrying)}</dd></div>
+          <div><dt>No history after 3 attempts</dt><dd>{integer.format(initialImport.unavailable)}</dd></div>
+          <div><dt>Saved histories needing review</dt><dd>{integer.format(initialImport.needsReview)}</dd></div>
+        </dl>
+        <p className="panel-note">Checked means an import was attempted or history was already saved. It does not mean that every history passed validation.
+          {status.backfill?.active ? ' The initial import continues in hourly batches.' : ' Scheduled updates continue to check for available data.'}
+          {status.backfill?.completedAt && !status.backfill.active && status.backfill.remainingCount === 0 && status.catalogueCount > 0
+            ? ` Initial import finished ${time(status.backfill.completedAt)}.` : ''}</p>
+      </section>}
       <div className="archive-run">{activity?.kind === 'failed' ? <AlertCircle size={16} /> : activity?.kind === 'complete' ? <CheckCircle2 size={16} /> : <Database size={16} />}
         <span><strong>{activity?.label}</strong>{status.lastRun && <><br />
           {status.lastRun.status === 'running' ? 'Last reported run' : 'Last run'}: {integer.format(status.lastRun.processed)} histories processed · {integer.format(status.lastRun.failed)} failed

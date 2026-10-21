@@ -14,9 +14,11 @@ Search by scheme name or code, distinguish Direct/Regular and Growth/IDCW option
 
 `All` uses the entire history available for the selected scheme. There is no 1-, 3-, or 5-year storage cutoff. Provider data gaps are not filled with invented values. Distribution-paying options show raw NAV; total-return analytics require suitable data. [Calculation rules](docs/METHODOLOGY.md) document the financial assumptions and data-quality gates.
 
-## Persistent data and twice-daily updates
+## Persistent data, initial import, and regular updates
 
-The cloud updater is enabled at **05:37 and 17:37 UTC every day** — **11:07 AM and 11:07 PM IST** — without a visitor keeping the website open. It refreshes the all-scheme latest snapshot and processes bounded batches of complete histories. Data writes do not redeploy the application. The initial hosted import and the linked schedule were verified on 21 October 2026; see the [release verification record](docs/RELEASE_VERIFICATION.md).
+The regular cloud updater runs at **05:37 and 17:37 UTC every day** — **11:07 AM and 11:07 PM IST** — without a visitor keeping the website open. During the requested initial full-history import, the same linked task runs **hourly at minute 37**, using bounded 15-minute tranches. It returns to the regular cadence after the bulk pass. Data writes do not redeploy the application. Historical release snapshots are recorded in the [release verification record](docs/RELEASE_VERIFICATION.md); the dashboard shows current coverage.
+
+Bulk import prioritizes schemes that have never been attempted, then retries schemes with no saved history up to three recorded attempts. It does not spend the initial sweep repeatedly refreshing already saved histories. Each tranche refreshes the catalogue, saves full available per-scheme histories, and keeps progress across interruptions. The completion report separates saved histories, unresolved saved data, and schemes with no usable history after three attempts. Those exceptions remain eligible for normal follow-up; completion of the bulk pass is not a claim that the source supplies every historical observation.
 
 | Data | Storage and behavior |
 | --- | --- |
@@ -69,8 +71,8 @@ This command targets local preview state only; apply each migration once.
 | --- | --- | --- |
 | GET | `/api/mf/search?q=...` | Scheme search, with persistent catalogue fallback. |
 | GET | `/api/mf/{schemeCode}` | Complete available history with `_fundscope` archive provenance. |
-| GET | `/api/data/status` | Catalogue/history coverage, last refresh and run status. |
-| POST | `/api/sync/start` | Authorized, idempotent catalogue refresh and history run. |
+| GET | `/api/data/status` | Catalogue/history coverage, initial-import counters, planned cadence, last refresh and run status. |
+| POST | `/api/sync/start` | Authorized, idempotent catalogue refresh and history run; optional `mode: 'backfill'` prioritizes the initial import. |
 | POST | `/api/sync/step` | Authorized, checkpointed batch of up to 20 histories. |
 | POST | `/api/sync/finish` | Authorized final checkpoint with honest remaining-work status. |
 

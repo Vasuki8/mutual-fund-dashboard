@@ -665,3 +665,241 @@ if (module) {
     assert.equal((await (await h.request('/api/data/status')).json()).archivedCount, 0);
   });
 }
+
+function seedMissingFailure(h: ReturnType<typeof harness>, code: number, attempts: number, nextRetryAt = 0) {
+  h.DB.sqlite.prepare(`INSERT INTO fundscope_failures
+    (scheme_code, run_id, attempts, error, last_attempt_at, next_retry_at) VALUES (?, NULL, ?, ?, ?, ?)`)
+    .run(code, attempts, 'MFAPI returned no usable history.', h.options.now().toISOString(), nextRetryAt);
+}
+
+function savedQueue(h: ReturnType<typeof harness>, runId: string) {
+  const run = h.DB.sqlite.prepare('SELECT queue_key FROM fundscope_runs WHERE id = ?').get(runId)!;
+  return JSON.parse(h.BUCKET.values.get(String(run.queue_key))!);
+}
+
+if (module) {
+  test('backfill status is explicit before a catalogue exists and does not imply completion', async () => {
+    const status = await (await harness().request('/api/data/status')).json();
+    assert.deepEqual(status.backfill, { active: false, attemptedCount: 0, unattemptedCount: 0,
+      retryPendingCount: 0, exhaustedCount: 0, unresolvedSavedCount: 0, remainingCount: 0,
+      maxAttempts: 3, startedAt: null, completedAt: null });
+    assert.deepEqual(status.schedule.times, ['05:37', '17:37']);
+  });
+
+  test('invalid import modes are rejected before provider access or run creation', async () => {
+    const h = harness();
+    for (const mode of [null, false, 1, {}, [], '', 'bulk', 'BACKFILL']) {
+      const response = await h.request('/api/sync/start', { idempotencyKey: 'bad-mode', mode });
+      assert.equal(response.status, 400, JSON.stringify(mode));
+    }
+    assert.equal(h.callCount(), 0);
+    assert.equal(h.DB.sqlite.prepare('SELECT COUNT(*) AS n FROM fundscope_runs').get()?.n, 0);
+  });
+
+  test('backfill prioritizes unseen schemes across closed tranches before retrying missing history', async () => {
+    const h = harness();
+    await h.request(`/api/mf/${CODE}`);
+    h.advance(7 * 60 * 60 * 1000);
+    seedMissingFailure(h, CODE + 1, 1);
+    const visited: number[] = [];
+    h.setFetch(async url => {
+      const path = new URL(url).pathname;
+      if (path === '/mf/latest') return Response.json(latest([CODE, CODE + 1, CODE + 2, CODE + 3]));
+      const code = Number(path.split('/').at(-1));
+      visited.push(code);
+      return Response.json(history(code));
+    });
+    let began: string | null = null;
+    for (const [key, expected] of [['tranche-one', CODE + 2], ['tranche-two', CODE + 3], ['tranche-three', CODE + 1]] as const) {
+      const run = await (await h.request('/api/sync/start', { idempotencyKey: key, mode: 'backfill' })).json();
+      assert.equal(savedQueue(h, run.runId).mode, 'backfill');
+      const started = await (await h.request('/api/data/status')).json();
+      began ??= started.backfill.startedAt;
+      assert.equal(started.backfill.startedAt, began);
+      assert.equal(started.backfill.active, true);
+      assert.deepEqual(started.schedule.times, Array.from({ length: 24 }, (_, hour) => `${String(hour).padStart(2, '0')}:37`));
+      await h.request('/api/sync/step', { runId: run.runId, limit: 1 });
+      assert.equal(visited.at(-1), expected);
+      await h.request('/api/sync/finish', { runId: run.runId });
+      h.advance(60 * 60 * 1000);
+    }
+    assert.deepEqual(visited, [CODE + 2, CODE + 3, CODE + 1]);
+    const status = await (await h.request('/api/data/status')).json();
+    assert.equal(status.archivedCount, 4);
+    assert.equal(status.backfill.attemptedCount, 4);
+    assert.equal(status.backfill.remainingCount, 0);
+    assert.equal(status.backfill.active, false);
+    assert.ok(status.backfill.completedAt);
+    assert.deepEqual(status.schedule.times, ['05:37', '17:37']);
+  });
+
+  test('backfill retains saved quality warnings and reports exhausted missing histories separately', async () => {
+    const h = harness();
+    h.setFetch(async () => Response.json(history(CODE, [
+      { date: '19-10-2026', nav: '10.0000' }, { date: '18-10-2026', nav: '0' },
+    ])));
+    await h.request(`/api/mf/${CODE}`);
+    seedMissingFailure(h, CODE + 1, 3);
+    seedMissingFailure(h, CODE + 100, 1); // An unrelated failure is outside the known catalogue.
+    const visited: number[] = [];
+    h.setFetch(async url => {
+      const path = new URL(url).pathname;
+      if (path === '/mf/latest') return Response.json(latest([CODE, CODE + 1, CODE + 2]));
+      const code = Number(path.split('/').at(-1));
+      visited.push(code);
+      return Response.json(history(code));
+    });
+    const run = await (await h.request('/api/sync/start', { idempotencyKey: 'gaps', mode: 'backfill' })).json();
+    await h.request('/api/sync/step', { runId: run.runId, limit: 20 });
+    const ended = await (await h.request('/api/sync/finish', { runId: run.runId })).json();
+    assert.deepEqual(visited, [CODE + 2]);
+    assert.equal(ended.status, 'partial');
+    const status = await (await h.request('/api/data/status')).json();
+    assert.equal(status.catalogueCount, 3);
+    assert.equal(status.archivedCount, 2);
+    assert.equal(status.backfill.attemptedCount, 3);
+    assert.equal(status.backfill.exhaustedCount, 1);
+    assert.equal(status.backfill.unresolvedSavedCount, 1);
+    assert.equal(status.backfill.remainingCount, 0);
+    assert.equal(status.backfill.active, false);
+    assert.ok(status.backfill.completedAt);
+    const retained = await (await h.request(`/api/mf/${CODE}`)).json();
+    assert.equal(retained.data.length, 1);
+    assert.match(retained._fundscope.warnings.join(' '), /Invalid NAV/);
+  });
+
+  test('a future retry remains pending until its third attempt and cannot end the backfill early', async () => {
+    const h = harness();
+    seedMissingFailure(h, CODE, 2, h.options.now().getTime() + 90 * 60 * 1000);
+    let historyRequests = 0;
+    h.setFetch(async url => {
+      if (new URL(url).pathname === '/mf/latest') return Response.json(latest());
+      historyRequests += 1;
+      return Response.json(history(CODE, []));
+    });
+    const waiting = await (await h.request('/api/sync/start', { idempotencyKey: 'not-due', mode: 'backfill' })).json();
+    assert.equal(savedQueue(h, waiting.runId).items.length, 0);
+    const waitingEnd = await (await h.request('/api/sync/finish', { runId: waiting.runId })).json();
+    assert.equal(waitingEnd.status, 'partial');
+    let status = await (await h.request('/api/data/status')).json();
+    assert.equal(status.backfill.retryPendingCount, 1);
+    assert.equal(status.backfill.remainingCount, 1);
+    assert.equal(status.backfill.active, true);
+    assert.equal(status.backfill.completedAt, null);
+    assert.equal(historyRequests, 0);
+    h.advance(2 * 60 * 60 * 1000);
+    const due = await (await h.request('/api/sync/start', { idempotencyKey: 'due', mode: 'backfill' })).json();
+    await h.request('/api/sync/step', { runId: due.runId, limit: 20 });
+    await h.request('/api/sync/finish', { runId: due.runId });
+    status = await (await h.request('/api/data/status')).json();
+    assert.equal(historyRequests, 1);
+    assert.equal(status.backfill.retryPendingCount, 0);
+    assert.equal(status.backfill.exhaustedCount, 1);
+    assert.equal(status.backfill.remainingCount, 0);
+    assert.equal(status.backfill.active, false);
+    assert.ok(status.backfill.completedAt);
+    const replay = await (await h.request('/api/sync/start', { idempotencyKey: 'after-limit', mode: 'backfill' })).json();
+    assert.equal(savedQueue(h, replay.runId).items.length, 0);
+    await h.request('/api/sync/step', { runId: replay.runId, limit: 20 });
+    assert.equal(historyRequests, 1);
+  });
+
+  test('backfill rechecks retry exhaustion before fetching an entry from a saved queue', async () => {
+    const h = harness();
+    seedMissingFailure(h, CODE, 2);
+    const run = await (await h.request('/api/sync/start', { idempotencyKey: 'stale-retry', mode: 'backfill' })).json();
+    h.DB.sqlite.prepare('UPDATE fundscope_failures SET attempts = 3 WHERE scheme_code = ?').run(CODE);
+    const before = h.callCount();
+    await h.request('/api/sync/step', { runId: run.runId, limit: 20 });
+    assert.equal(h.callCount(), before);
+    assert.equal(h.DB.sqlite.prepare('SELECT attempts FROM fundscope_failures WHERE scheme_code = ?').get(CODE)?.attempts, 3);
+  });
+
+  test('a quality-flagged on-demand archive satisfies backfill storage without another download', async () => {
+    const h = harness();
+    const run = await (await h.request('/api/sync/start', { idempotencyKey: 'on-demand-race', mode: 'backfill' })).json();
+    h.setFetch(async () => Response.json(history(CODE, [
+      { date: '19-10-2026', nav: '10' }, { date: '18-10-2026', nav: '0' },
+    ])));
+    await h.request(`/api/mf/${CODE}`);
+    const before = h.callCount();
+    h.setFetch(async () => { throw new Error('No duplicate history fetch should be needed.'); });
+    const progress = await (await h.request('/api/sync/step', { runId: run.runId, limit: 20 })).json();
+    assert.equal(h.callCount(), before);
+    assert.equal(progress.failed, 1);
+    const ended = await (await h.request('/api/sync/finish', { runId: run.runId })).json();
+    assert.equal(ended.status, 'partial');
+    const status = await (await h.request('/api/data/status')).json();
+    assert.equal(status.backfill.remainingCount, 0);
+    assert.equal(status.backfill.unresolvedSavedCount, 1);
+  });
+
+  test('old start and finish replays cannot deactivate a newer interrupted backfill tranche', async () => {
+    const h = harness();
+    const old = await (await h.request('/api/sync/start', { idempotencyKey: 'old-bulk', mode: 'backfill' })).json();
+    const firstStatus = await (await h.request('/api/data/status')).json();
+    h.advance(60 * 60 * 1000);
+    const current = await (await h.request('/api/sync/start', { idempotencyKey: 'new-bulk', mode: 'backfill' })).json();
+    await h.request(`/api/mf/${CODE}`);
+    const replay = await (await h.request('/api/sync/start', { idempotencyKey: 'old-bulk', mode: 'backfill' })).json();
+    assert.equal(replay.status, 'partial');
+    await h.request('/api/sync/finish', { runId: old.runId });
+    let status = await (await h.request('/api/data/status')).json();
+    assert.equal(status.backfill.remainingCount, 0);
+    assert.equal(status.backfill.active, true);
+    assert.equal(status.backfill.startedAt, firstStatus.backfill.startedAt);
+    assert.equal(status.backfill.completedAt, null);
+    await h.request('/api/sync/step', { runId: current.runId, limit: 20 });
+    await h.request('/api/sync/finish', { runId: current.runId });
+    status = await (await h.request('/api/data/status')).json();
+    assert.equal(status.backfill.active, false);
+    assert.ok(status.backfill.completedAt);
+    await h.request('/api/sync/start', { idempotencyKey: 'old-bulk', mode: 'backfill' });
+    assert.deepEqual((await (await h.request('/api/data/status')).json()).backfill, status.backfill);
+  });
+
+  test('ordinary refresh and legacy queues retain their existing refresh behavior', async () => {
+    const h = harness();
+    await h.request(`/api/mf/${CODE}`);
+    h.advance(7 * 60 * 60 * 1000);
+    const run = await (await h.request('/api/sync/start', { idempotencyKey: 'legacy-refresh' })).json();
+    const row = h.DB.sqlite.prepare('SELECT queue_key FROM fundscope_runs WHERE id = ?').get(run.runId)!;
+    const queue = savedQueue(h, run.runId);
+    delete queue.mode;
+    h.BUCKET.values.set(String(row.queue_key), JSON.stringify(queue));
+    const before = h.callCount();
+    const progress = await (await h.request('/api/sync/step', { runId: run.runId, limit: 20 })).json();
+    assert.equal(progress.processed, 1);
+    assert.equal(h.callCount(), before + 1);
+    const status = await (await h.request('/api/data/status')).json();
+    assert.equal(status.backfill.active, false);
+    assert.equal(status.backfill.startedAt, null);
+    assert.equal(status.backfill.completedAt, null);
+    assert.deepEqual(status.schedule.times, ['05:37', '17:37']);
+  });
+
+  test('snapshot failure does not activate backfill or mark an empty catalogue complete', async () => {
+    const h = harness();
+    h.BUCKET.failWrites = true;
+    assert.equal((await h.request('/api/sync/start', { idempotencyKey: 'failed-bulk', mode: 'backfill' })).status, 503);
+    const status = await (await h.request('/api/data/status')).json();
+    assert.equal(status.catalogueCount, 0);
+    assert.equal(status.backfill.active, false);
+    assert.equal(status.backfill.startedAt, null);
+    assert.equal(status.backfill.completedAt, null);
+  });
+
+  test('backfill activation remains fenced when another owner takes the synchronization lease', async () => {
+    const h = harness();
+    const original = h.DB.batch.bind(h.DB);
+    h.DB.batch = async statements => {
+      h.DB.sqlite.prepare("UPDATE fundscope_leases SET owner = 'replacement' WHERE key = 'sync'").run();
+      return original(statements);
+    };
+    assert.equal((await h.request('/api/sync/start', { idempotencyKey: 'lost-lease', mode: 'backfill' })).status, 409);
+    const status = await (await h.request('/api/data/status')).json();
+    assert.equal(status.backfill.active, false);
+    assert.equal(status.backfill.startedAt, null);
+    assert.equal(status.catalogueCount, 0);
+  });
+}

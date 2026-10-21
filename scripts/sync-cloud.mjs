@@ -10,7 +10,9 @@ const MAX_RESPONSE_BYTES = 64 * 1024;
 const MAX_RETRIES = 2;
 const RETRYABLE = new Set([429, 502, 503, 504]);
 const RUN_STATES = new Set(['running', 'completed', 'partial', 'failed']);
-const defaults = { siteUrl: SITE_ORIGIN, maxSeconds: 900, maxBatches: 100 };
+const DAILY_TIMES = ['05:37', '17:37'];
+const HOURLY_TIMES = Array.from({ length: 24 }, (_, hour) => `${String(hour).padStart(2, '0')}:37`);
+const defaults = { siteUrl: SITE_ORIGIN, mode: 'refresh', maxSeconds: 900, maxBatches: 100 };
 
 class RunnerError extends Error {
   constructor(code, httpStatus = null) {
@@ -66,7 +68,8 @@ function selectedOrigin(value, allowLocalhost = false) {
 
 function validateOptions(options) {
   const settings = { ...defaults, ...options };
-  if (!Number.isInteger(settings.maxSeconds) || settings.maxSeconds < 1 || settings.maxSeconds > 900
+  if (!['refresh', 'backfill'].includes(settings.mode)
+    || !Number.isInteger(settings.maxSeconds) || settings.maxSeconds < 1 || settings.maxSeconds > 900
     || !Number.isInteger(settings.maxBatches) || settings.maxBatches < 0 || settings.maxBatches > 100) {
     fail('invalid_options');
   }
@@ -80,10 +83,11 @@ export function parseArgs(args) {
   for (let index = 0; index < args.length; index += 2) {
     const key = args[index];
     const value = args[index + 1];
-    if (!['--site-url', '--max-seconds', '--max-batches'].includes(key)
+    if (!['--site-url', '--mode', '--max-seconds', '--max-batches'].includes(key)
       || seen.has(key) || value === undefined) fail('invalid_options');
     seen.add(key);
     if (key === '--site-url') options.siteUrl = value;
+    else if (key === '--mode') options.mode = value;
     else {
       if (!/^\d+$/.test(value)) fail('invalid_options');
       options[key === '--max-seconds' ? 'maxSeconds' : 'maxBatches'] = Number(value);
@@ -175,15 +179,40 @@ function validateProgress(value, previous = null, finishing = false) {
     pending: value.pending, catalogueCount: value.catalogueCount, archivedCount: value.archivedCount };
 }
 
-function validateStatus(value, checkpoint) {
+function validateBackfill(value, catalogueCount, archivedCount) {
+  const fields = ['attemptedCount', 'unattemptedCount', 'retryPendingCount', 'exhaustedCount',
+    'unresolvedSavedCount', 'remainingCount'];
+  if (!record(value) || typeof value.active !== 'boolean' || value.maxAttempts !== 3
+    || !fields.every(key => count(value[key]) && value[key] <= catalogueCount)
+    || value.attemptedCount !== catalogueCount - value.unattemptedCount
+    || value.attemptedCount !== archivedCount + value.retryPendingCount + value.exhaustedCount
+    || value.remainingCount !== value.unattemptedCount + value.retryPendingCount
+    || value.unresolvedSavedCount > archivedCount
+    || !nullable(value.startedAt, timestamp) || !nullable(value.completedAt, timestamp)
+    || value.active && (value.startedAt === null || value.completedAt !== null)
+    || value.completedAt !== null && (value.startedAt === null || Date.parse(value.completedAt) < Date.parse(value.startedAt))) {
+    fail('invalid_response');
+  }
+  // Select validated fields explicitly; never copy server-supplied extra strings.
+  return { active: value.active, attemptedCount: value.attemptedCount, unattemptedCount: value.unattemptedCount,
+    retryPendingCount: value.retryPendingCount, exhaustedCount: value.exhaustedCount,
+    unresolvedSavedCount: value.unresolvedSavedCount, remainingCount: value.remainingCount,
+    maxAttempts: value.maxAttempts, startedAt: value.startedAt, completedAt: value.completedAt };
+}
+
+function validateStatus(value, checkpoint, mode) {
   if (!record(value) || value.source !== 'mfapi.in'
     || !['catalogueCount', 'archivedCount', 'observationCount', 'historyBacklog'].every(key => count(value[key]))
     || !nullable(value.lastCatalogueSyncAt, timestamp) || !nullable(value.lastHistorySyncAt, timestamp)
     || !nullable(value.latestNavDate, date)
     || !Array.isArray(value.warnings) || !value.warnings.every(warning => typeof warning === 'string')
     || !record(value.schedule) || value.schedule.timezone !== 'UTC'
-    || !Array.isArray(value.schedule.times) || value.schedule.times.length !== 2
-    || value.schedule.times[0] !== '05:37' || value.schedule.times[1] !== '17:37') fail('invalid_response');
+    || !Array.isArray(value.schedule.times)) fail('invalid_response');
+  const backfill = value.backfill === undefined && mode === 'refresh' ? null
+    : validateBackfill(value.backfill, value.catalogueCount, value.archivedCount);
+  const expectedTimes = backfill?.active ? HOURLY_TIMES : DAILY_TIMES;
+  if (value.schedule.times.length !== expectedTimes.length
+    || !expectedTimes.every((time, index) => value.schedule.times[index] === time)) fail('invalid_response');
   const run = value.lastRun;
   if (!record(run) || run.id !== checkpoint.runId || !RUN_STATES.has(run.status) || run.status === 'running'
     || !timestamp(run.startedAt) || !timestamp(run.finishedAt)
@@ -195,15 +224,16 @@ function validateStatus(value, checkpoint) {
     observationCount: value.observationCount, historyBacklog: value.historyBacklog,
     lastCatalogueSyncAt: value.lastCatalogueSyncAt, latestNavDate: value.latestNavDate,
     lastHistorySyncAt: value.lastHistorySyncAt, runStatus: run.status,
-    processed: run.processed, failed: run.failed, warningCount: value.warnings.length };
+    processed: run.processed, failed: run.failed, warningCount: value.warnings.length, backfill };
 }
 
 function emptySummary(now) {
-  return { status: 'failed', stopReason: 'internal_error', source: 'mfapi.in',
+  return { status: 'failed', stopReason: 'internal_error', source: 'mfapi.in', mode: null,
     startedAt: new Date(now).toISOString(), finishedAt: null, batches: 0, requests: 0, retries: 0,
     checkpointed: false, readbackVerified: false, catalogueCount: null, archivedCount: null,
     observationCount: null, historyBacklog: null, lastCatalogueSyncAt: null, latestNavDate: null,
-    lastHistorySyncAt: null, runStatus: null, processed: null, failed: null, warningCount: null, httpStatus: null };
+    lastHistorySyncAt: null, runStatus: null, processed: null, failed: null, warningCount: null, httpStatus: null,
+    backfill: null, backfillComplete: false };
 }
 
 function safeFailure(summary, error) {
@@ -257,6 +287,7 @@ export async function runCloudSync(options = {}, runtime = {}) {
   let credentials;
   try {
     settings = validateOptions(options);
+    summary.mode = settings.mode;
     credentials = validateCredentials(settings.credentials);
   } catch (error) {
     summary.finishedAt = new Date(now()).toISOString();
@@ -319,19 +350,21 @@ export async function runCloudSync(options = {}, runtime = {}) {
     fail('internal_error');
   };
 
-  // Anchor to the most recent 05:37/17:37 UTC occurrence, so an earlier manual
-  // run cannot consume the next scheduled run. Keep this key fixed for retries.
-  const periodMs = 12 * 3600_000;
-  const morningOffsetMs = (5 * 60 + 37) * 60_000;
-  const occurrenceMs = Math.floor((began - morningOffsetMs) / periodMs) * periodMs + morningOffsetMs;
+  // Anchor to the most recent scheduled occurrence: hourly :37 for bulk import,
+  // or 05:37/17:37 UTC for routine refresh. Keep this key fixed across retries.
+  const isBackfill = settings.mode === 'backfill';
+  const periodMs = (isBackfill ? 1 : 12) * 3600_000;
+  const offsetMs = (isBackfill ? 37 : 5 * 60 + 37) * 60_000;
+  const occurrenceMs = Math.floor((began - offsetMs) / periodMs) * periodMs + offsetMs;
   const occurrence = new Date(occurrenceMs).toISOString();
-  const idempotencyKey = `fundscope:${occurrence.slice(0, 10)}:${occurrence.slice(11, 16).replace(':', '')}`;
+  const idempotencyKey = `fundscope:${isBackfill ? 'backfill:' : ''}${occurrence.slice(0, 10)}:${occurrence.slice(11, 16).replace(':', '')}`;
   const workDeadline = beganTick + settings.maxSeconds * 1000;
   let current = null;
   let workError = null;
   let stopReason = 'completed';
   try {
-    current = validateProgress(await request('/api/sync/start', { idempotencyKey }, workDeadline));
+    const start = isBackfill ? { idempotencyKey, mode: 'backfill' } : { idempotencyKey };
+    current = validateProgress(await request('/api/sync/start', start, workDeadline));
     let unchanged = 0;
     while (current.status === 'running' && current.pending > 0) {
       // Do not give a new server step a shortened timeout near the deadline:
@@ -360,10 +393,12 @@ export async function runCloudSync(options = {}, runtime = {}) {
     if (stopImmediately) throw workError ?? new RunnerError('internal_error');
     current = validateProgress(await request('/api/sync/finish', { runId: current.runId }, monotonicNow() + REQUEST_TIMEOUT_MS), current, true);
     summary.checkpointed = true;
-    const verified = validateStatus(await request('/api/data/status', null, monotonicNow() + REQUEST_TIMEOUT_MS), current);
+    const verified = validateStatus(await request('/api/data/status', null, monotonicNow() + REQUEST_TIMEOUT_MS), current, settings.mode);
     Object.assign(summary, verified, { readbackVerified: true });
     if (verified.runStatus === 'failed' || current.status === 'failed') fail('server_run_failed');
     if (verified.catalogueCount === 0 || verified.lastCatalogueSyncAt === null) fail('catalogue_unavailable');
+    summary.backfillComplete = isBackfill && verified.backfill !== null && !verified.backfill.active
+      && verified.backfill.remainingCount === 0 && verified.backfill.startedAt !== null && verified.backfill.completedAt !== null;
     const partial = verified.historyBacklog > 0 || current.pending > 0 || verified.failed > 0
       || current.failed > 0 || verified.runStatus === 'partial' || current.status === 'partial' || workError !== null;
     summary.status = partial ? 'partial' : 'completed';
@@ -378,7 +413,7 @@ export async function runCloudSync(options = {}, runtime = {}) {
 
 export async function main(args = process.argv.slice(2), input = process.stdin, output = process.stdout, errorOutput = process.stderr) {
   if (args.length === 1 && args[0] === '--help') {
-    output.write(`Usage: node --use-env-proxy scripts/sync-cloud.mjs [--site-url ${SITE_ORIGIN}] [--max-seconds 1..900] [--max-batches 0..100]\n`
+    output.write(`Usage: node --use-env-proxy scripts/sync-cloud.mjs [--site-url ${SITE_ORIGIN}] [--mode refresh|backfill] [--max-seconds 1..900] [--max-batches 0..100]\n`
       + 'Supply one credential JSON line on hidden stdin after readiness. Never use token flags or environment variables.\n');
     return 0;
   }
