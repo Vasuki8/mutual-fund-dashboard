@@ -12,7 +12,7 @@ const RETRYABLE = new Set([429, 502, 503, 504]);
 const RUN_STATES = new Set(['running', 'completed', 'partial', 'failed']);
 const DAILY_TIMES = ['05:37', '17:37'];
 const HOURLY_TIMES = Array.from({ length: 24 }, (_, hour) => `${String(hour).padStart(2, '0')}:37`);
-const defaults = { siteUrl: SITE_ORIGIN, mode: 'refresh', maxSeconds: 900, maxBatches: 100 };
+const defaults = { siteUrl: SITE_ORIGIN, mode: 'refresh', maxSeconds: 900, maxBatches: 100, backfillIntervalMinutes: 60 };
 
 class RunnerError extends Error {
   constructor(code, httpStatus = null) {
@@ -70,7 +70,9 @@ function validateOptions(options) {
   const settings = { ...defaults, ...options };
   if (!['refresh', 'backfill'].includes(settings.mode)
     || !Number.isInteger(settings.maxSeconds) || settings.maxSeconds < 1 || settings.maxSeconds > 900
-    || !Number.isInteger(settings.maxBatches) || settings.maxBatches < 0 || settings.maxBatches > 100) {
+    || !Number.isInteger(settings.maxBatches) || settings.maxBatches < 0 || settings.maxBatches > 100
+    || ![15, 60].includes(settings.backfillIntervalMinutes)
+    || (settings.mode !== 'backfill' && settings.backfillIntervalMinutes !== 60)) {
     fail('invalid_options');
   }
   return { ...settings, siteUrl: selectedOrigin(settings.siteUrl, settings.allowLocalhost) };
@@ -83,14 +85,16 @@ export function parseArgs(args) {
   for (let index = 0; index < args.length; index += 2) {
     const key = args[index];
     const value = args[index + 1];
-    if (!['--site-url', '--mode', '--max-seconds', '--max-batches'].includes(key)
+    if (!['--site-url', '--mode', '--max-seconds', '--max-batches', '--backfill-interval-minutes'].includes(key)
       || seen.has(key) || value === undefined) fail('invalid_options');
     seen.add(key);
     if (key === '--site-url') options.siteUrl = value;
     else if (key === '--mode') options.mode = value;
     else {
       if (!/^\d+$/.test(value)) fail('invalid_options');
-      options[key === '--max-seconds' ? 'maxSeconds' : 'maxBatches'] = Number(value);
+      const target = key === '--max-seconds' ? 'maxSeconds'
+        : key === '--max-batches' ? 'maxBatches' : 'backfillIntervalMinutes';
+      options[target] = Number(value);
     }
   }
   return validateOptions(options);
@@ -350,10 +354,11 @@ export async function runCloudSync(options = {}, runtime = {}) {
     fail('internal_error');
   };
 
-  // Anchor to the most recent scheduled occurrence: hourly :37 for bulk import,
+  // Anchor to the most recent scheduled occurrence: hourly :37 for the linked task,
+  // optionally :07/:22/:37/:52 for a separate 15-minute GitHub backfill runner,
   // or 05:37/17:37 UTC for routine refresh. Keep this key fixed across retries.
   const isBackfill = settings.mode === 'backfill';
-  const periodMs = (isBackfill ? 1 : 12) * 3600_000;
+  const periodMs = isBackfill ? settings.backfillIntervalMinutes * 60_000 : 12 * 3600_000;
   const offsetMs = (isBackfill ? 37 : 5 * 60 + 37) * 60_000;
   const occurrenceMs = Math.floor((began - offsetMs) / periodMs) * periodMs + offsetMs;
   const occurrence = new Date(occurrenceMs).toISOString();
@@ -413,7 +418,7 @@ export async function runCloudSync(options = {}, runtime = {}) {
 
 export async function main(args = process.argv.slice(2), input = process.stdin, output = process.stdout, errorOutput = process.stderr) {
   if (args.length === 1 && args[0] === '--help') {
-    output.write(`Usage: node --use-env-proxy scripts/sync-cloud.mjs [--site-url ${SITE_ORIGIN}] [--mode refresh|backfill] [--max-seconds 1..900] [--max-batches 0..100]\n`
+    output.write(`Usage: node --use-env-proxy scripts/sync-cloud.mjs [--site-url ${SITE_ORIGIN}] [--mode refresh|backfill] [--max-seconds 1..900] [--max-batches 0..100] [--backfill-interval-minutes 15|60]\n`
       + 'Supply one credential JSON line on hidden stdin after readiness. Never use token flags or environment variables.\n');
     return 0;
   }
