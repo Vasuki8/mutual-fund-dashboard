@@ -4,11 +4,6 @@ on:
   schedule:
     - cron: '7,22,37,52 * * * *'
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/github-history.yml'
-      - 'scripts/github-history.mjs'
 
 permissions:
   contents: write
@@ -19,7 +14,8 @@ concurrency:
 
 jobs:
   archive:
-    if: github.repository == 'Vasuki8/mutual-fund-dashboard'
+    # Public repository => Release assets are public. Enable only after data-use review.
+    if: github.repository == 'Vasuki8/mutual-fund-dashboard' && vars.FUNDSCOPE_GITHUB_ARCHIVE_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 14
     steps:
