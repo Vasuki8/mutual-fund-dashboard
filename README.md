@@ -81,6 +81,7 @@ All sync writes require `FUNDSCOPE_SYNC_TOKEN`. Credentials belong in the runtim
 ## Operations and releases
 
 - [Scheduled update runbook](docs/SYNC_OPERATIONS.md): fresh cloud access, idempotency, budgets, retry/recovery and verification.
+- [Independent GitHub-only archive](docs/GITHUB_ARCHIVE.md): a separate opt-in GitHub Actions and Releases full-history collector, without Site authentication. Public redistribution permission must be checked before activation.
 - [Deployment notes](docs/DEPLOYMENT.md): GitHub development and the supported Site publication flow.
 - [Capability roadmap](docs/ROADMAP.md): implemented features and future data-dependent work.
 - [Design and implementation plan](docs/superpowers/specs/2026-10-21-persistent-sync-design.md): persistent archive contract.
