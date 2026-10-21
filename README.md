@@ -1,12 +1,15 @@
 # FundScope — Mutual Fund Dashboard
 
-An Indian mutual fund research dashboard with the approved light FundScope interface, complete available MFAPI NAV histories, persistent shared market-data storage, and a scheduled cloud updater.
+An Indian mutual fund research dashboard with the approved light FundScope interface and analytics based on available MFAPI NAV histories.
 
-- **Application:** [fundscope-research.patelvasuki.chatgpt.site](https://fundscope-research.patelvasuki.chatgpt.site)
 - **Canonical development repository:** [Vasuki8/mutual-fund-dashboard](https://github.com/Vasuki8/mutual-fund-dashboard)
+- **Development direction:** GitHub only, as requested by the owner on 21 October 2026.
+- **GitHub website deployment:** not yet configured or verified. This repository currently contains the prior Worker application and a separate optional GitHub archive importer.
 - **Source:** [MFAPI](https://www.mfapi.in/) · [API documentation](https://www.mfapi.in/docs/)
 
-The live application retains its existing owner access. GitHub is the source of truth for development; publishing a release uses the supported Sites source and deployment workflow. GitHub pushes run CI. They do not automatically publish the Site.
+Development and scheduled imports for the former ChatGPT-hosted website have stopped. Its existing data has not been deleted or migrated. The linked import task is paused. Do not publish further releases to that host or restart its task without a later explicit request from the owner.
+
+The next deployment work is a standalone GitHub Pages build that reuses the approved interface. The current browser data and status calls still depend on the old server, so this requires an adapter and a verified deployment workflow. See [deployment status and next steps](docs/DEPLOYMENT.md). GitHub pushes currently run checks; they do not publish a website.
 
 ## What the application does
 
@@ -14,9 +17,9 @@ Search by scheme name or code, distinguish Direct/Regular and Growth/IDCW option
 
 `All` uses the entire history available for the selected scheme. There is no 1-, 3-, or 5-year storage cutoff. Provider data gaps are not filled with invented values. Distribution-paying options show raw NAV; total-return analytics require suitable data. [Calculation rules](docs/METHODOLOGY.md) document the financial assumptions and data-quality gates.
 
-## Persistent data, initial import, and regular updates
+## Previous hosted archive — scheduled imports paused
 
-The regular cloud updater runs at **05:37 and 17:37 UTC every day** — **11:07 AM and 11:07 PM IST** — without a visitor keeping the website open. During the requested initial full-history import, the same linked task runs **hourly at minute 37**, using bounded 15-minute tranches. It returns to the regular cadence after the bulk pass. Data writes do not redeploy the application. Historical release snapshots are recorded in the [release verification record](docs/RELEASE_VERIFICATION.md); the dashboard shows current coverage.
+The former hosted updater used bounded import tranches and was paused on 21 October 2026 at the owner's request. Its old hourly and twice-daily schedules must not be restored automatically. The behavior described in this section belongs to that retained implementation; it is not an active GitHub import or proof of a GitHub deployment. Historical release snapshots remain in the [release verification record](docs/RELEASE_VERIFICATION.md).
 
 Bulk import prioritizes schemes that have never been attempted, then retries schemes with no saved history up to three recorded attempts. It does not spend the initial sweep repeatedly refreshing already saved histories. Each tranche refreshes the catalogue, saves full available per-scheme histories, and keeps progress across interruptions. The completion report separates saved histories, unresolved saved data, and schemes with no usable history after three attempts. Those exceptions remain eligible for normal follow-up; completion of the bulk pass is not a claim that the source supplies every historical observation.
 
@@ -28,9 +31,9 @@ Bulk import prioritizes schemes that have never been attempted, then retries sch
 | Browsing cache | IndexedDB speeds repeat visits and supports a visible stale-data fallback. |
 | Personal research | Watchlist, comparison selections and assumptions stay in the browser. JSON export/restore provides a user-controlled backup. |
 
-**Archive coverage is explicit.** A successful catalogue refresh is not a claim that every historical NAV has been imported. The **Data status & backups** page shows schemes catalogued, histories archived, stored observation count, backlog, source dates, and run results. Opening a scheme fetches and archives its full available history on demand; the scheduled importer resumes the remaining universe in batches. A scheme that has never supplied usable NAVs cannot be represented as a complete history.
+**Archive coverage is explicit.** A successful catalogue refresh is not a claim that every historical NAV has been imported. In the retained hosted implementation, the **Data status & backups** page shows schemes catalogued, histories archived, stored observation count, backlog, source dates, and run results. Opening a scheme can fetch and archive its history on demand. Scheduled continuation is paused. A scheme that has never supplied usable NAVs cannot be represented as a complete history.
 
-The coverage bar measures schemes with saved histories. It does not indicate that an import is currently running. Each import stops after its work budget and retains its progress. Between runs the page shows a waiting state and the next planned update. Checking the status refreshes the displayed counts; opening a fund or running a scheduled import can add saved history.
+The old coverage bar measures schemes saved in the former hosted archive. The old page's planned update times do not reflect the external task's paused state. Do not transfer those counts or schedule claims into a GitHub Pages version without an independently verified data source.
 
 The source determines the earliest available observation. FundScope does not claim that MFAPI covers every observation since the legal inception of every Indian scheme.
 
@@ -47,13 +50,13 @@ pnpm run build
 pnpm run dev
 ```
 
-A clean clone uses the portable Vinext development environment. Managed Sites workspaces use the bundled setup/build helpers and execution profile. Install scripts approve only named build dependencies, use a pinned package manager, and enforce the committed release-age policy.
+A clean clone currently uses the portable Vinext development environment. These commands validate the retained application locally; they do not deploy it. Install scripts approve only named build dependencies, use a pinned package manager, and enforce the committed release-age policy.
 
-The browser calls same-origin `/api/mf` endpoints; no MFAPI key is required. Browser requests use the current Site session. Private cloud writes need the separate, supported service access described in [SYNC_OPERATIONS.md](docs/SYNC_OPERATIONS.md).
+The retained browser client calls same-origin `/api/mf` endpoints. A standalone GitHub Pages version still needs to replace this server dependency and its `/api/data/status` call. The former private sync procedure is archived in [SYNC_OPERATIONS.md](docs/SYNC_OPERATIONS.md) and must not be used for current development.
 
-### Database setup
+### Legacy database setup for local development
 
-The schema lives in `db/schema.ts`; generated, immutable migrations live in `drizzle/` with their Drizzle metadata. Use `pnpm run db:generate` after schema changes. The Site applies committed migrations during deployment. Never create tables in request handlers or edit an already-applied migration.
+The retained schema lives in `db/schema.ts`; generated, immutable migrations live in `drizzle/` with their Drizzle metadata. Use `pnpm run db:generate` after schema changes that still need the legacy server. Never create tables in request handlers or edit an already-applied migration. Do not deploy a migration to the former host as part of GitHub development.
 
 For a local production preview, build first, then apply each unapplied migration to the local D1 binding:
 
@@ -65,7 +68,7 @@ node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js \
 
 This command targets local preview state only; apply each migration once.
 
-### API surface
+### Retained server API surface
 
 | Method | Path | Purpose |
 | --- | --- | --- |
@@ -80,12 +83,13 @@ All sync writes require `FUNDSCOPE_SYNC_TOKEN`. Credentials belong in the runtim
 
 ## Operations and releases
 
-- [Scheduled update runbook](docs/SYNC_OPERATIONS.md): fresh cloud access, idempotency, budgets, retry/recovery and verification.
+- [Deployment status and next steps](docs/DEPLOYMENT.md): active GitHub development direction and standalone deployment requirements.
 - [Independent GitHub-only archive](docs/GITHUB_ARCHIVE.md): a separate opt-in GitHub Actions and Releases full-history collector, without Site authentication. Public redistribution permission must be checked before activation.
-- [Deployment notes](docs/DEPLOYMENT.md): GitHub development and the supported Site publication flow.
+- [Archived hosted update runbook](docs/SYNC_OPERATIONS.md): historical import and recovery details; the linked task is paused.
+- [Archived Site deployment notes](docs/LEGACY_SITE_DEPLOYMENT.md): retained for reference, not an active release procedure.
 - [Capability roadmap](docs/ROADMAP.md): implemented features and future data-dependent work.
 - [Design and implementation plan](docs/superpowers/specs/2026-10-21-persistent-sync-design.md): persistent archive contract.
 
 ## Verification record
 
-Release verification is recorded in `docs/RELEASE_VERIFICATION.md` after integration. CI runs typechecking, behavioral tests and the production build on main, feature branches and pull requests. The hosted writer must also be exercised and its persisted result read back before a new schedule is enabled.
+Historical release verification is recorded in `docs/RELEASE_VERIFICATION.md`. CI runs typechecking, behavioral tests and the current production build on main, feature branches and pull requests. A future GitHub website release must verify its own deployment and data path. A future GitHub updater must verify its own persisted results before its schedule is described as active.
