@@ -1,4 +1,8 @@
-# FundScope unattended market-data updates
+# Archived FundScope hosted update runbook
+
+> **Stopped by the owner on 21 October 2026.** Development now focuses on GitHub. The linked ChatGPT-hosted import task `Automation_877f445a130c8191bd2528a15c20952e` is paused. Do not obtain Site credentials, start another hosted tranche, publish to the former Site, or restore either old schedule without a later explicit request from the owner. Existing data is retained. Follow [DEPLOYMENT.md](DEPLOYMENT.md) for the active development direction.
+
+Everything below records the former hosted update procedure. It is not an instruction to run it. The prior initial-import authorization and automatic schedule-restoration rules below have been superseded by the owner's stop instruction.
 
 This runbook is sufficient for a fresh cloud task to refresh the existing FundScope Site. The runner calls the hosted application's authenticated endpoints; it does not build the UI, download the historical universe to the task machine, push Git commits, or redeploy the Site.
 
