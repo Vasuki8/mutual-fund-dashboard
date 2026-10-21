@@ -287,7 +287,7 @@ test('localhost is available only as an explicit programmatic test opt-in', asyn
 test('bounded CLI flags reject token options, duplicate values and out-of-range budgets', async () => {
   const { parseArgs } = await runner();
   assert.deepEqual(parseArgs(['--site-url', SITE, '--max-seconds', '2', '--max-batches', '0']),
-    { siteUrl: SITE, mode: 'refresh', maxSeconds: 2, maxBatches: 0 });
+    { siteUrl: SITE, mode: 'refresh', maxSeconds: 2, maxBatches: 0, backfillIntervalMinutes: 60 });
   for (const args of [['--token', SECRET], ['--max-seconds', '0'], ['--max-seconds', '901'],
     ['--max-batches', '101'], ['--max-seconds', 'NaN'], ['--max-seconds', '1.5'],
     ['--max-batches', '1', '--max-batches', '2'], ['--site-url']]) {
