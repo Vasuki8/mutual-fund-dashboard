@@ -599,4 +599,69 @@ if (module) {
       assert.equal((await (await h.request('/api/data/status')).json()).archivedCount, 0);
     }
   });
+
+  test('catalogue publication normalizes optional blank ISINs without dropping scheme identities', async () => {
+    const h = harness();
+    h.setFetch(async () => Response.json([
+      { ...latest([CODE])[0], isinGrowth: '', isinDivReinvestment: ' \t ' },
+      { ...latest([CODE + 1])[0], isinGrowth: undefined, isinDivReinvestment: undefined },
+      { ...latest([CODE + 2])[0], isinGrowth: 'INF879O01027', isinDivReinvestment: null },
+    ]));
+    const response = await h.request('/api/sync/start', { idempotencyKey: 'blank-isins' });
+    assert.equal(response.status, 200);
+    const progress = await response.json();
+    assert.equal(progress.catalogueCount, 3);
+    assert.equal(progress.pending, 3);
+    h.setFetch(async () => new Response('offline', { status: 503 }));
+    const blank = await (await h.request(`/api/mf/search?q=${CODE}`)).json();
+    assert.deepEqual(blank[0], { schemeCode: CODE, schemeName: NAME, isinGrowth: null, isinDivReinvestment: null });
+    const omitted = await (await h.request(`/api/mf/search?q=${CODE + 1}`)).json();
+    assert.equal(Object.hasOwn(omitted[0], 'isinGrowth'), false);
+    const valid = await (await h.request(`/api/mf/search?q=${CODE + 2}`)).json();
+    assert.equal(valid[0].isinGrowth, 'INF879O01027');
+    assert.equal(valid[0].isinDivReinvestment, null);
+  });
+
+  test('provider search normalizes optional blank ISINs into nullable metadata', async () => {
+    const h = harness();
+    h.setFetch(async () => Response.json([{ schemeCode: CODE, schemeName: NAME, isinGrowth: ' ', isinDivReinvestment: '' }]));
+    const response = await h.request('/api/mf/search?q=Parag');
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), [{ schemeCode: CODE, schemeName: NAME, isinGrowth: null, isinDivReinvestment: null }]);
+  });
+
+  test('full history with optional blank ISINs is archived with its identity and NAV precision intact', async () => {
+    const h = harness();
+    const payload = history();
+    h.setFetch(async () => Response.json({ ...payload, meta: { ...payload.meta, isin_growth: '', isin_div_reinvestment: ' \t ' } }));
+    const response = await h.request(`/api/mf/${CODE}`);
+    assert.equal(response.status, 200);
+    const result = await response.json();
+    assert.equal(result.meta.scheme_code, CODE);
+    assert.equal(result.meta.scheme_name, NAME);
+    assert.equal(result.meta.isin_growth, null);
+    assert.equal(result.meta.isin_div_reinvestment, null);
+    assert.equal(result.data[1].nav, '10.0000001');
+    assert.equal((await (await h.request(`/api/mf/${CODE}`)).json())._fundscope.fromArchive, true);
+  });
+
+  test('optional blank ISIN normalization does not relax required identity or malformed ISIN validation', async () => {
+    for (const override of [
+      { schemeName: '' }, { schemeName: ' \t ' }, { schemeCode: 0 }, { schemeCode: '122639' },
+      { isinGrowth: 123 }, { isinGrowth: false }, { isinGrowth: {} }, { isinGrowth: [] },
+      { isinGrowth: 'A'.repeat(65) }, { isinGrowth: ' '.repeat(65) },
+    ]) {
+      const h = harness();
+      h.setFetch(async () => Response.json([{ ...latest()[0], isinGrowth: '', isinDivReinvestment: '', ...override }]));
+      assert.equal((await h.request('/api/sync/start', { idempotencyKey: 'invalid-metadata' })).status, 502);
+      const status = await (await h.request('/api/data/status')).json();
+      assert.equal(status.catalogueCount, 0);
+      assert.equal(status.lastCatalogueSyncAt, null);
+    }
+    const h = harness();
+    const mismatched = history(CODE + 1);
+    h.setFetch(async () => Response.json({ ...mismatched, meta: { ...mismatched.meta, isin_growth: '', isin_div_reinvestment: '' } }));
+    assert.equal((await h.request(`/api/mf/${CODE}`)).status, 502);
+    assert.equal((await (await h.request('/api/data/status')).json()).archivedCount, 0);
+  });
 }

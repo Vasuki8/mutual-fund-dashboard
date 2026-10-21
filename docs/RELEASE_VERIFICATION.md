@@ -2,7 +2,7 @@
 
 ## Local integration
 
-Verified 21 October 2026: **139 behavioral tests passed**, TypeScript passed, and the production Worker build passed. Test counts: analytics 27; browser API 28; storage 21; chart data 3; app request races 1; server archive 27; sync runner 32.
+Verified 21 October 2026: **143 behavioral tests passed**, TypeScript passed, and the production Worker build passed. Test counts: analytics 27; browser API 28; storage 21; chart data 3; app request races 1; server archive 31; sync runner 32.
 
 The production Worker build and TypeScript checks cover the browser application, all six API routes, the D1/R2 archive, and the standalone updater. Behavioral tests run in separate Node processes to keep the browser-cache test hooks isolated.
 
@@ -17,3 +17,5 @@ The local preview applied the generated six-table migration successfully. The ne
 Production acceptance requires the published updater to perform an authenticated catalogue/history write and a separate status readback. The linked schedule is enabled only after that gate. Runtime coverage is available from `/api/data/status` and the dashboard's Data status page; it changes after each scheduled run and on-demand history request. A nonzero backlog remains explicitly incomplete.
 
 The first hosted import exposed a Cloudflare Worker compatibility issue: `redirect: 'error'` is rejected before network I/O. The provider now uses `redirect: 'manual'` and explicitly rejects every 3xx response without following its destination. Two added regressions verify successful history persistence with Worker-compatible options and rejection of external redirects without additional requests or archive writes. The isolated server suite passes all 27 tests. See the [Cloudflare Request documentation](https://developers.cloudflare.com/workers/runtime-apis/request/#parameters).
+
+Hosted full-history persistence was verified for scheme 122639: 3,295 observations from 2013-05-28 through 2026-10-19, followed by a second response served from the shared archive. The real bulk catalogue exposed four empty optional dividend-reinvestment ISIN fields (schemes 135681–135684). Empty or whitespace-only optional identifiers now normalize to null within the existing length limit; required identity checks remain strict. The unchanged 37,982-row source snapshot passes catalogue validation. Four added regressions cover catalogue, search, history and invalid-input controls, bringing the server suite to 31 tests.
