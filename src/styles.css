@@ -682,3 +682,15 @@ svg { flex-shrink: 0; }
   .note-entry-actions { justify-content: flex-start; }
   .note-entry-actions .button { min-height: 40px; }
 }
+
+/* Analyst SIP research: retain Graphite typography and responsive range controls. */
+.sip-controls { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 12px; }
+.sip-amount { display: flex; flex-direction: column; gap: 6px; color: var(--muted); font-size: 11px; }
+.sip-amount > span { display: flex; align-items: center; gap: 4px; width: 170px; max-width: 100%; padding: 7px 9px; border: 1px solid var(--line); border-radius: 4px; color: var(--text); background: var(--graphite-background); font-size: 13px; }
+.sip-amount input { min-width: 0; width: 100%; border: 0; background: transparent; color: var(--text); font: 13px var(--graphite-numeric-font); }
+.sip-metrics { padding: 0 12px; }
+.sip-summary { display: flex; flex-wrap: wrap; gap: 8px 20px; padding: 10px 12px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+.sip-summary strong { color: var(--text); font-weight: 500; }
+.sip-simulator .table-scroll { margin: 0; }
+.sip-simulator .table-scroll table { min-width: 580px; }
+@media (max-width: 600px) { .sip-controls { align-items: flex-start; } .sip-controls .analysis-range-controls { width: 100%; flex-basis: 100%; align-items: flex-start; } .sip-amount input { font-size: 16px; } }

@@ -149,3 +149,53 @@ Fund pages have a **Personal research notes** section on Overview. Notes are use
 Notes remain in the browser's version-1 ResearchSettings and are included in the existing portable **Data & backups** JSON export/import. Existing version-1 backups without a `fundNotes` field restore normally. Import validates unique note IDs, valid scheme codes, non-empty note bodies up to **3,000 characters**, an overall maximum of **120 notes**, valid UTC timestamps, and updated time no earlier than creation; invalid notes cause the entire backup restore to fail rather than partly overwrite stored research. A note edit reuses its identity instead of creating a second copy. A delete requires in-app confirmation.
 
 Browser localStorage is not cloud synchronization or a guaranteed permanent backup. Clearing browsing data or changing browsers may remove research notes. The GitHub archive, historical NAV data, collector workflows and other website visitors never receive these personal notes.
+
+
+## Historical SIP cash-flow illustration
+
+The **Returns → Historical SIP simulation** panel is a hypothetical historical scenario, not a
+personal transaction ledger or an investment recommendation. Only confirmed Growth
+options with resolved material NAV-quality warnings are eligible. The user controls
+the monthly rupee contribution (₹100–₹1 crore) and a preset or custom simulation
+period, separately from the full-history rolling-return chart. The most recently
+reported NAV inside the requested period is used for valuation; future NAVs are
+never substituted.
+
+One contribution is scheduled at the requested starting date and each successive
+calendar-month anniversary. Day-of-month stays anchored to the original requested
+start, with month-end clamping (for example 31 January → 29 February in a leap
+year → 31 March). For each scheduled date, the contribution buys hypothetical
+fractional units at the **first reported NAV on or after that date**, no more than
+seven calendar days later. Missing dates beyond seven days are skipped, visibly
+counted and exported as missing—not valued with a preceding NAV or imputed
+future observation. A custom chart baseline preceding its requested start cannot
+become a simulated SIP purchase. The sample stops on the last reported NAV on
+or before the requested ending date.
+
+For a fixed monthly contribution C and an observed eligible NAV P_i, the
+hypothetical units purchased are U_i = C/P_i. Contributions accumulate as
+I = sum(C); units accumulate as U = sum(U_i). Valuation on the last observed
+NAV date T is V = U × P_T; gain is V − I and the simple gain share is
+(V − I)/I. This simple gain share is **not** a CAGR or annualized cash-flow return.
+The chart shows invested capital and hypothetical NAV value on observed dates only.
+
+A **money-weighted annual XIRR** is shown only when at least 365 calendar days
+elapsed between the first executed contribution and the valuation NAV. It solves
+the actual dated-cash-flow future-value equation
+
+    V = sum_i C_i × (1 + r)^((T − t_i in calendar days)/365)
+
+for r > −1 by bounded bisection; unavailable or non-finite roots are shown as
+unavailable. Missing contributions are not silently backfilled. XIRR uses the
+timing of these hypothetical cash flows and is not the fund's NAV CAGR.
+No transaction execution, real allotment or exact fractional-unit rounding
+is claimed. Taxes, exit loads, transaction charges, inflation and cash
+distributions are excluded; normal fund operating costs are already reflected
+in published NAV and are not charged again.
+
+The detailed CSV includes the MFAPI source URL, NAV retrieval time, requested
+and actual observation dates, scheduled/observed contribution dates including
+those without valid NAV, contribution INR, NAV INR per unit, hypothetical
+fractional units, number of available NAV observations, invested and terminal
+value, and the formula/assumptions used. The chart and table follow exactly
+the same simulation result and never fabricate a missing observation.
