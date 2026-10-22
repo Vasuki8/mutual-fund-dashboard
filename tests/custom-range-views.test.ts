@@ -89,6 +89,7 @@ function view(name: 'FundDetail' | 'Comparison', overrides: Record<string, unkno
     './SipSimulator.tsx': { SipSimulator: () => null },
     './SelectedPeers.tsx': { SelectedPeers: () => null },
     './ReturnCorrelation.tsx': { ReturnCorrelation: () => null },
+    './PlanComparison.tsx': { PlanComparison: () => null },
     './AnalysisRangePicker.tsx': { RangePicker: pickerType, RangeNotice: noticeType },
     './FundDetail.tsx': { RangePicker: pickerType },
   };
