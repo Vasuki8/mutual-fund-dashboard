@@ -95,7 +95,7 @@ export default function App() {
       return true;
     }catch(error){notify(error instanceof Error?error.message:'Comparison could not be saved.');return false;}
   },[notify,updateSettings]);
-  const loadNamedComparison=useCallback((item:SavedComparison)=>{
+  const loadNamedComparison=useCallback((item:SavedComparison):boolean=>{
     try{
       updateSettings(old=>{
         const record=(old.savedComparisons??[]).find(entry=>entry.id===item.id);
@@ -103,7 +103,8 @@ export default function App() {
         return {...old,compared:structuredClone(record.schemes)};
       });
       notify('Saved fund selection and date range loaded; results use the currently available NAV history.');
-    }catch(error){notify(error instanceof Error?error.message:'Could not load saved comparison.');}
+      return true;
+    }catch(error){notify(error instanceof Error?error.message:'Could not load saved comparison.');return false;}
   },[notify,updateSettings]);
   const removeNamedComparison=useCallback((id:string)=>{
     try{

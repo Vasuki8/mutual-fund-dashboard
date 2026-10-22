@@ -11,7 +11,7 @@ import { SelectedPeers } from './SelectedPeers.tsx';
 import { ReturnCorrelation } from './ReturnCorrelation.tsx';
 import { SavedComparisons } from './SavedComparisons.tsx';
 
-interface Props { schemes:Scheme[]; funds:Record<number,FundData>; errors:Record<number,string>; ensureFund:(code:number,force?:boolean)=>Promise<void>; toggleCompare:(scheme:Scheme)=>void; browse:()=>void; openFund:(scheme:Scheme)=>void; riskFreeRate:number; savedComparisons?:SavedComparison[]; onSaveComparison?:(name:string,schemes:Scheme[],range:AnalysisRange)=>boolean; onLoadComparison?:(item:SavedComparison)=>void; onRemoveComparison?:(id:string)=>void }
+interface Props { schemes:Scheme[]; funds:Record<number,FundData>; errors:Record<number,string>; ensureFund:(code:number,force?:boolean)=>Promise<void>; toggleCompare:(scheme:Scheme)=>void; browse:()=>void; openFund:(scheme:Scheme)=>void; riskFreeRate:number; savedComparisons?:SavedComparison[]; onSaveComparison?:(name:string,schemes:Scheme[],range:AnalysisRange)=>boolean; onLoadComparison?:(item:SavedComparison)=>boolean; onRemoveComparison?:(id:string)=>void }
 function reconcileHiddenSchemes(hidden:number[], schemes:Scheme[]):number[] {
   const selected = new Set(schemes.map(s=>s.schemeCode));
   const remaining = hidden.filter(code=>selected.has(code));
@@ -49,7 +49,7 @@ export function Comparison(props:Props) {
     <div className="comparison-selection">{props.schemes.map((s,i)=><div className="selected-fund" key={s.schemeCode}><span className="series-marker" style={{background:CHART_COLORS[i]}}/><div><button onClick={()=>props.openFund(s)}>{shortName(s.schemeName)}</button><small>{planLabel(s.schemeName)}</small></div><button className="icon-button" aria-label={`Remove ${shortName(s.schemeName)} from comparison`} onClick={()=>props.toggleCompare(s)}><X size={15}/></button></div>)}{props.schemes.length<4&&<div className="add-fund"><Search size={17}/><input type="search" autoComplete="off" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Add a fund to compare" aria-label="Search funds for comparison"/>{busy?<Loader2 className="spin" size={16}/>:<Plus size={17}/>}</div>}</div>
     <SavedComparisons schemes={props.schemes} range={range} saved={props.savedComparisons??[]}
       onSave={props.onSaveComparison??(()=>false)}
-      onLoad={item=>{props.onLoadComparison?.(item);setRange(item.range);}}
+      onLoad={item=>{if(props.onLoadComparison?.(item))setRange(item.range);}}
       onRemove={props.onRemoveComparison??(()=>{})}/>
     {query&&<div className="compare-search-results panel" role="region" aria-label="Comparison search results" aria-live="polite">{busy?<p>Searching MFAPI…</p>:error?<p role="alert">{error}</p>:!results.length?<p>No Direct Growth funds found.</p>:results.map(s=><button key={s.schemeCode} disabled={props.schemes.some(v=>v.schemeCode===s.schemeCode)} onClick={()=>{props.toggleCompare(s);setQuery('');}}><span>{shortName(s.schemeName)}<small>{planLabel(s.schemeName)} · {s.schemeCode}</small></span><Plus size={17}/></button>)}</div>}
     {valid&&<><div className="analysis-toolbar"><div><span className="label">ACTUAL COMMON NAV DATES</span><span>{dateLabel(aligned.start,true)} <span className="muted">—</span> {dateLabel(aligned.end,true)}</span></div><RangePicker value={range} onChange={setRange} defaultStart={aligned.start??common.start??undefined} defaultEnd={aligned.end??common.end??undefined}/></div><RangeNotice value={range} actualStart={aligned.start} actualEnd={aligned.end} presetEnd={common.end??undefined}/></>}
