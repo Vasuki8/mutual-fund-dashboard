@@ -1,6 +1,6 @@
 import type { AnalysisRange, DateRange, NavPoint, Period } from './types.ts';
 
-export const CALCULATION_VERSION = '1.0.0';
+export const CALCULATION_VERSION = '1.1.0';
 
 const MILLISECONDS_PER_DAY = 86_400_000;
 const MAX_PRECEDING_DAYS = 7;
@@ -249,7 +249,7 @@ export function monthlyReturns(points: NavPoint[], throughDate?: string): { year
   return returns;
 }
 
-export function riskStats(points: NavPoint[], annualRiskFreeRate = 0, throughDate?: string): {
+export function riskStats(points: NavPoint[], annualRiskFreeRate = 0, throughDate?: string, annualTargetRate = annualRiskFreeRate): {
   volatility: number | null; sharpe: number | null; sortino: number | null;
   monthlyCount: number; positiveMonths: number; bestMonth: number | null; worstMonth: number | null;
 } {
@@ -265,18 +265,23 @@ export function riskStats(points: NavPoint[], annualRiskFreeRate = 0, throughDat
   const mean = returns.reduce((sum, value) => sum + value, 0) / monthlyCount;
   const variance = returns.reduce((sum, value) => sum + (value - mean) ** 2, 0) / (monthlyCount - 1);
   const volatility = Math.sqrt(variance * 12);
-  if (!Number.isFinite(annualRiskFreeRate) || annualRiskFreeRate < -1) {
-    return { volatility, sharpe: null, sortino: null, ...summaries };
-  }
-  const target = Math.pow(1 + annualRiskFreeRate, 1 / 12) - 1;
-  const annualExcess = (mean - target) * 12;
-  // All monthly observations enter the downside denominator, including zero shortfalls.
-  const downsideVariance = returns.reduce((sum, value) => sum + Math.min(0, value - target) ** 2, 0) / monthlyCount;
-  const annualDownside = Math.sqrt(downsideVariance * 12);
+  const validRiskFree = Number.isFinite(annualRiskFreeRate) && annualRiskFreeRate >= -1;
+  const validTarget = Number.isFinite(annualTargetRate) && annualTargetRate >= -1;
+  const riskFreeMonthly = validRiskFree ? Math.pow(1 + annualRiskFreeRate, 1 / 12) - 1 : null;
+  const targetMonthly = validTarget ? Math.pow(1 + annualTargetRate, 1 / 12) - 1 : null;
+  // Sharpe uses the risk-free assumption. Sortino uses its independently stated target.
+  // Monthly arithmetic excess returns are annualized by multiplying the mean by 12.
+  const sharpe = riskFreeMonthly !== null && volatility > 0
+    ? finiteOrNull((mean - riskFreeMonthly) * 12 / volatility) : null;
+  // All eligible months enter the downside denominator, including zero shortfalls.
+  const downsideVariance = targetMonthly === null ? null
+    : returns.reduce((sum, value) => sum + Math.min(0, value - targetMonthly) ** 2, 0) / monthlyCount;
+  const annualDownside = downsideVariance === null ? null : Math.sqrt(downsideVariance * 12);
   return {
     volatility,
-    sharpe: volatility > 0 ? finiteOrNull(annualExcess / volatility) : null,
-    sortino: annualDownside > 0 ? finiteOrNull(annualExcess / annualDownside) : null,
+    sharpe,
+    sortino: targetMonthly !== null && annualDownside !== null && annualDownside > 0
+      ? finiteOrNull((mean - targetMonthly) * 12 / annualDownside) : null,
     ...summaries,
   };
 }
@@ -294,6 +299,40 @@ export function rollingReturns(points: NavPoint[], years: number): { start: stri
     if (value !== null) returns.push({ start: start.date, end: end.date, value });
   }
   return returns;
+}
+
+
+export interface RollingReturnSummary {
+  count: number;
+  min: number | null;
+  p10: number | null;
+  median: number | null;
+  max: number | null;
+  positiveShare: number | null;
+  firstStart: string | null;
+  lastStart: string | null;
+}
+
+/** Empirical window summary: the windows overlap and must not be treated as independent trials. */
+export function rollingReturnSummary(returns: ReturnType<typeof rollingReturns>): RollingReturnSummary {
+  const ordered = returns.map(item => item.value).filter(Number.isFinite).sort((a, b) => a - b);
+  const count = ordered.length;
+  const percentile = (p: number): number | null => {
+    if (!count) return null;
+    const index = (count - 1) * p;
+    const lower = Math.floor(index), upper = Math.ceil(index);
+    return ordered[lower] + (ordered[upper] - ordered[lower]) * (index - lower);
+  };
+  return {
+    count,
+    min: count ? ordered[0] : null,
+    p10: percentile(0.10),
+    median: percentile(0.50),
+    max: count ? ordered[count - 1] : null,
+    positiveShare: count ? ordered.filter(value => value > 0).length / count : null,
+    firstStart: returns.length ? returns[0].start : null,
+    lastStart: returns.length ? returns[returns.length - 1].start : null,
+  };
 }
 
 export function alignFunds(series: NavPoint[][], period: AnalysisRange): {

@@ -14,6 +14,7 @@ import {
   periodStart,
   riskStats,
   rollingReturns,
+  rollingReturnSummary,
   selectPeriod,
   trailingReturn,
 } from '../src/lib/analytics.ts';
@@ -35,7 +36,7 @@ function monthlyHistory(returns: number[]): NavPoint[] {
 }
 
 test('exports the calculation contract version', () => {
-  assert.equal(CALCULATION_VERSION, '1.0.0');
+  assert.equal(CALCULATION_VERSION, '1.1.0');
 });
 
 test('parses provider dates as real calendar dates and rejects overflow', () => {
@@ -259,4 +260,48 @@ test('Growth classification rejects IDCW and dividend options before accepting G
   assert.equal(isGrowthScheme('Example Fund - Payout of Income Distribution cum Capital Withdrawal'), false);
   assert.equal(isGrowthScheme('Example Growthful Fund - Direct Plan'), false);
   assert.equal(isGrowthScheme('Example Fund - Direct Plan'), false);
+});
+
+test('rolling percentile interpolates ordered overlapping outcomes without changing their order', () => {
+  const input = [
+    {start:'2020-01-01',end:'2021-01-01',value:0.40},
+    {start:'2020-01-02',end:'2021-01-02',value:-0.20},
+    {start:'2020-01-03',end:'2021-01-03',value:0},
+    {start:'2020-01-04',end:'2021-01-04',value:0.10},
+    {start:'2020-01-05',end:'2021-01-05',value:0.20},
+  ];
+  const original = structuredClone(input);
+  const summary = rollingReturnSummary(input);
+  assert.equal(summary.count, 5);
+  close(summary.min, -0.2);
+  close(summary.p10, -0.12);
+  close(summary.median, 0.1);
+  close(summary.max, 0.4);
+  close(summary.positiveShare, 0.6);
+  assert.equal(summary.firstStart, '2020-01-01');
+  assert.equal(summary.lastStart, '2020-01-05');
+  assert.deepEqual(input, original);
+});
+
+test('rolling consistency exposes insufficient observations without an invented success percentage', () => {
+  assert.deepEqual(rollingReturnSummary([]), {count:0,min:null,p10:null,median:null,max:null,
+    positiveShare:null,firstStart:null,lastStart:null});
+  const one = rollingReturnSummary([{start:'2024-01-01',end:'2025-01-01',value:-0.05}]);
+  assert.equal(one.count, 1);
+  close(one.p10, -0.05);
+  assert.equal(one.positiveShare, 0);
+});
+
+test('Sortino target is independent of the Sharpe risk-free assumption', () => {
+  const points = monthlyHistory(Array.from({length:12}, (_,index)=>index%2===0?0.10:-0.10));
+  const combined = riskStats(points, 0.06, undefined, 0);
+  const sameTarget = riskStats(points, 0.06);
+  close(combined.sharpe, sameTarget.sharpe!);
+  assert.notEqual(combined.sortino, sameTarget.sortino);
+  const invalidRiskFree = riskStats(points, -1.1, undefined, 0);
+  assert.equal(invalidRiskFree.sharpe, null);
+  assert.notEqual(invalidRiskFree.sortino, null);
+  const invalidTarget = riskStats(points, 0, undefined, Number.NaN);
+  assert.notEqual(invalidTarget.sharpe, null);
+  assert.equal(invalidTarget.sortino, null);
 });

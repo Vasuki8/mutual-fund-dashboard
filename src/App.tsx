@@ -16,7 +16,7 @@ import { GlobalSearch } from './components/GlobalSearch.tsx';
 interface Route { page:string; code?:number; tab?:string; query?:string }
 function readRoute():Route {
   const [path,query='']=window.location.hash.slice(1).split('?');const parts=path.split('/');const params=new URLSearchParams(query);
-  if(parts[0]==='fund'&&/^\d+$/.test(parts[1]??'')) return {page:'fund',code:Number(parts[1]),tab:['overview','risk','holding','monthly'].includes(params.get('tab')??'')?params.get('tab')!:'overview'};
+  if(parts[0]==='fund'&&/^\d+$/.test(parts[1]??'')) return {page:'fund',code:Number(parts[1]),tab:['overview','returns','risk','holding','portfolio','costs','monthly'].includes(params.get('tab')??'')?params.get('tab')!:'overview'};
   return {page:['compare','watchlist','methodology','data'].includes(parts[0])?parts[0]:'explore',query:params.get('q')??undefined};
 }
 export default function App() {
