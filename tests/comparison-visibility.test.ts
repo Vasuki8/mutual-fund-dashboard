@@ -20,8 +20,9 @@ type Element = { type: unknown; props: { children?: unknown; [key: string]: any 
 
 // Run the component's real visibility transitions and financial transformations.
 // Only React's mounting boundary and unrelated rendering/network components are replaced.
-function comparison(initial = schemes) {
+function comparison(initial = schemes, selectedFunds: Record<number, FundData> = funds) {
   const chartType = Symbol('Chart');
+  const correlationType = Symbol('ReturnCorrelation');
   const states: unknown[] = [];
   const effects: { deps: unknown[]; cleanup?: () => void }[] = [];
   let stateIndex = 0, effectIndex = 0, dirty = false;
@@ -58,7 +59,7 @@ function comparison(initial = schemes) {
     './Chart.tsx': { Chart: chartType, CHART_COLORS: ['one', 'two', 'three', 'four'] },
     './AnalysisRangePicker.tsx': {},
     './SelectedPeers.tsx': { SelectedPeers: () => null },
-    './ReturnCorrelation.tsx': { ReturnCorrelation: () => null },
+    './ReturnCorrelation.tsx': { ReturnCorrelation: correlationType },
   };
   const exports: { Comparison?: (props: unknown) => Element } = {};
   new Function('require', 'exports', compiled)(
@@ -66,7 +67,7 @@ function comparison(initial = schemes) {
     exports,
   );
   const props = {
-    funds, errors: {}, riskFreeRate: .06,
+    funds: selectedFunds, errors: {}, riskFreeRate: .06,
     ensureFund: async () => {}, browse() {}, openFund() {},
     toggleCompare(scheme: Scheme) {
       selection = selection.some(s => s.schemeCode === scheme.schemeCode)
@@ -112,6 +113,7 @@ function comparison(initial = schemes) {
       render();
     },
     visible: () => (find(node => node.type === chartType, tree)?.props.series ?? []).map((series: { name: string }) => series.name),
+    correlationVisible: () => Boolean(find(node => node.type === correlationType, tree)),
     series: () => find(node => node.type === chartType, tree)?.props.series,
     unmount: () => effects.forEach(effect => effect.cleanup?.()),
   };
@@ -152,5 +154,30 @@ test('visibility is reconciled even when removal leaves only one selected fund',
   assert.deepEqual(view.visible(), ['Alpha', 'Beta']);
   view.hide('Alpha'); view.hide('Beta');
   assert.deepEqual(view.visible(), ['Beta'], 'The legend must retain one visible series.');
+  view.unmount();
+});
+
+
+test('correlation panel remains accessible when monthly matches exist but daily NAV dates do not coincide', () => {
+  const pair = schemes.slice(0, 2);
+  const shifted: Record<number, FundData> = {};
+  pair.forEach((scheme, index) => {
+    const points: {date:string;nav:number}[] = [];
+    let nav = 100;
+    for (let month = 0; month <= 12; month++) {
+      const day = new Date(Date.UTC(2023, month + 1, 0));
+      if (index === 1) day.setUTCDate(day.getUTCDate() - 1);
+      if (month > 0) nav *= month % 2 ? 1.06 : 0.98;
+      points.push({date:day.toISOString().slice(0,10),nav});
+    }
+    shifted[scheme.schemeCode] = {
+      meta: {...scheme, fundHouse: 'Example', schemeType: 'Open Ended', schemeCategory: 'Equity'},
+      points, fetchedAt: '2024-02-01T00:00:00Z', source: 'mfapi.in',
+      fromCache: false, stale: false, warnings: [],
+    };
+  });
+  const view = comparison(pair, shifted);
+  assert.deepEqual(view.visible(), [], 'No daily NAV dates intersect for a chart.');
+  assert.equal(view.correlationVisible(), true, 'Calendar-month return comparison must remain reachable.');
   view.unmount();
 });
