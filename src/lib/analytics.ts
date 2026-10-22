@@ -1,6 +1,6 @@
 import type { AnalysisRange, DateRange, NavPoint, Period } from './types.ts';
 
-export const CALCULATION_VERSION = '1.2.0';
+export const CALCULATION_VERSION = '1.3.0';
 
 const MILLISECONDS_PER_DAY = 86_400_000;
 const MAX_PRECEDING_DAYS = 7;
