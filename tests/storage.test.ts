@@ -387,3 +387,74 @@ test('an aborted restore preserves old settings and every cached fund', async t 
   const exported = JSON.parse(await local.exportBackup());
   assert.deepEqual(exported.funds.map((item: FundData) => item.meta.schemeCode), [120716, 122639]);
 });
+
+
+test('dated fund notes survive version-1 backup and restore without changing legacy settings', async () => {
+  const createdAt = '2026-10-21T10:30:00.000Z';
+  const updatedAt = '2026-10-22T09:45:00.000Z';
+  const note = { id: 'test-note-1', schemeCode: 122639,
+    body: 'Watch drawdown after the next monthly NAV update.', createdAt, updatedAt };
+  const settings = { ...defaults(), fundNotes: [note] };
+  saveSettings(settings);
+  const read = getSettings();
+  assert.deepEqual(read.fundNotes, [note]);
+  read.fundNotes![0].body = 'mutated';
+  assert.deepEqual(getSettings().fundNotes, [note], 'Read callers must not mutate saved personal research.');
+  const portable = await exportBackup();
+  assert.deepEqual(JSON.parse(portable).settings.fundNotes, [note]);
+  await importBackup(JSON.stringify(backup()));
+  assert.deepEqual(getSettings(), defaults(), 'Older version-1 backups stay usable without a notes field.');
+  await importBackup(portable);
+  assert.deepEqual(getSettings().fundNotes, [note]);
+});
+
+test('fund note validation rejects duplicate IDs, invalid schemes, excessive text and wrong dates', () => {
+  const note = { id: 'note_100', schemeCode: 122639, body: 'Research context',
+    createdAt: '2026-10-21T10:30:00.000Z', updatedAt: '2026-10-22T10:30:00.000Z' };
+  const attempts = [
+    [note, note],
+    [{ ...note, id: 'bad id' }],
+    [{ ...note, schemeCode: 0 }],
+    [{ ...note, body: '' }],
+    [{ ...note, body: ' '.repeat(3001) }],
+    [{ ...note, body: 'x'.repeat(3001) }],
+    [{ ...note, updatedAt: '2026-10-20T10:30:00.000Z' }],
+    [{ ...note, createdAt: 'not-a-date' }],
+    Array.from({ length: 121 }, (_, i) => ({ ...note, id: 'note_' + i })),
+  ];
+  for (const fundNotes of attempts) {
+    assert.throws(() => saveSettings({ ...defaults(), fundNotes }), /note|date|timestamp|duplicate/i);
+    assert.deepEqual(getSettings(), defaults());
+  }
+});
+
+test('invalid notes in a portable backup reject the entire restore without changing current settings', async () => {
+  const note = { id: 'note-1', schemeCode: 122639, body: 'Retain this research',
+    createdAt: '2026-10-22T10:00:00.000Z', updatedAt: '2026-10-22T10:00:00.000Z' };
+  const original = { ...defaults(), fundNotes: [note] };
+  await importBackup(JSON.stringify(backup([fund()], original)));
+  const saved = await exportBackup();
+  const badNote = { ...note, schemeCode: Number.NaN, body: 'bad' };
+  await assert.rejects(importBackup(JSON.stringify(backup([], { ...defaults(), fundNotes: [badNote] }))), /note|invalid/i);
+  assert.deepEqual(getSettings(), original);
+  assert.deepEqual(JSON.parse(await exportBackup()).funds, JSON.parse(saved).funds);
+});
+
+test('changing a fund note via the same ID preserves a single logical note across backups', async () => {
+  const earlier = '2026-10-20T08:30:00.000Z';
+  const later = '2026-10-22T12:00:00.000Z';
+  saveSettings({ ...defaults(), fundNotes: [{
+    id: 'memo-1', schemeCode: 122639, body: 'Initial thesis', createdAt: earlier, updatedAt: earlier,
+  }] });
+  const previous = getSettings().fundNotes![0];
+  saveSettings({ ...getSettings(), fundNotes: [{
+    ...previous, body: 'Revised thesis', updatedAt: later,
+  }] });
+  assert.equal(getSettings().fundNotes?.length, 1);
+  assert.equal(getSettings().fundNotes?.[0].createdAt, earlier);
+  assert.equal(getSettings().fundNotes?.[0].updatedAt, later);
+  const exported = await exportBackup();
+  await importBackup(exported);
+  assert.equal(getSettings().fundNotes?.length, 1);
+  assert.equal(getSettings().fundNotes?.[0].body, 'Revised thesis');
+});

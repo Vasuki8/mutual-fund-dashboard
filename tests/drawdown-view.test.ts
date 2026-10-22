@@ -27,9 +27,11 @@ function component(file: string): Record<string, React.ComponentType<any>> {
     '../lib/format.ts': format,
     '../lib/chart-data.ts': chartData,
     './Chart.tsx': { Chart: () => null },
+    '../lib/storage.ts': { MAX_FUND_NOTES: 120, MAX_FUND_NOTE_LENGTH: 3000 },
   };
   new Function('require', 'exports', compiled)((name: string) => {
     if (name === './DrawdownEpisodes.tsx') return component('DrawdownEpisodes.tsx');
+    if (name === './FundNotes.tsx') return component('FundNotes.tsx');
     if (name === './AnalysisRangePicker.tsx') return component('AnalysisRangePicker.tsx');
     return name in dependencies ? dependencies[name] : require(name);
   }, exports);

@@ -25,10 +25,20 @@ export interface FundData {
 export type Period = '1M' | '3M' | '6M' | '1Y' | '3Y' | '5Y' | 'MAX';
 export interface DateRange { start: string; end: string }
 export type AnalysisRange = Period | DateRange;
+export interface FundNote {
+  id: string;
+  schemeCode: number;
+  body: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ResearchSettings {
   version: 1;
   watchlist: Scheme[];
   compared: Scheme[];
   riskFreeRate: number;
   lastFund: Scheme | null;
+  // Optional for backwards compatibility with version-1 settings and backups.
+  fundNotes?: FundNote[];
 }

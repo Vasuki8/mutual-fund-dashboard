@@ -1,4 +1,4 @@
-import type { FundData, FundMeta, NavPoint, ResearchSettings, Scheme } from './types.ts';
+import type { FundData, FundMeta, FundNote, NavPoint, ResearchSettings, Scheme } from './types.ts';
 import { validateArchiveProvenance } from './provenance.ts';
 
 const DATABASE = 'fundscope-research-v1';
@@ -8,6 +8,8 @@ const MAX_FUNDS = 500;
 const MAX_POINTS = 20_000;
 const MAX_TOTAL_POINTS = 500_000;
 const MAX_SEARCHES = 200;
+export const MAX_FUND_NOTES = 120;
+export const MAX_FUND_NOTE_LENGTH = 3000;
 
 type JsonObject = Record<string, unknown>;
 export interface SearchCache { schemes: Scheme[]; fetchedAt: string }
@@ -215,6 +217,25 @@ function schemeList(value: unknown, limit: number, label: string): Scheme[] {
   });
 }
 
+function validateFundNotes(value: unknown): FundNote[] {
+  if (!Array.isArray(value) || value.length > MAX_FUND_NOTES) {
+    throw new Error('Invalid fund notes: maximum 120 notes.');
+  }
+  const ids = new Set<string>();
+  return value.map(raw => {
+    const note = object(raw, 'fund note');
+    const id = text(note.id, 'fund note ID', 64);
+    if (!/^[A-Za-z0-9_-]+$/.test(id) || ids.has(id)) throw new Error('Duplicate or invalid fund note ID.');
+    ids.add(id);
+    if (!validSchemeCode(note.schemeCode)) throw new Error('Invalid fund note scheme code.');
+    const body = text(note.body, 'fund note body', MAX_FUND_NOTE_LENGTH);
+    const createdAt = timestamp(note.createdAt, 'fund note creation');
+    const updatedAt = timestamp(note.updatedAt, 'fund note update');
+    if (createdAt > updatedAt) throw new Error('Fund note update predates creation.');
+    return { id, schemeCode: note.schemeCode, body, createdAt, updatedAt };
+  });
+}
+
 function validateSettings(value: unknown): ResearchSettings {
   const item = object(value, 'research settings');
   if (item.version !== 1) throw new Error('Unsupported settings version.');
@@ -222,7 +243,8 @@ function validateSettings(value: unknown): ResearchSettings {
     throw new Error('The assumed annual risk-free rate must be finite, greater than -1, and at most 1.');
   }
   return { version: 1, watchlist: schemeList(item.watchlist, 100, 'watchlist'), compared: schemeList(item.compared, 4, 'comparisons'),
-    riskFreeRate: item.riskFreeRate, lastFund: item.lastFund === null ? null : validateScheme(item.lastFund) };
+    riskFreeRate: item.riskFreeRate, lastFund: item.lastFund === null ? null : validateScheme(item.lastFund),
+    ...(item.fundNotes !== undefined ? { fundNotes: validateFundNotes(item.fundNotes) } : {}) };
 }
 
 function defaultSettings(): ResearchSettings {
