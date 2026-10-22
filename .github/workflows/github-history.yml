@@ -1,13 +1,36 @@
 name: FundScope GitHub-only MFAPI archive
+run-name: FundScope archive · ${{ inputs.root_run_id || github.run_id }} · ${{ inputs.chain_position || '1' }}/12
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/github-history.yml'
   schedule:
     - cron: '7,22,37,52 * * * *'
   workflow_dispatch:
+    inputs:
+      root_run_id:
+        description: 'Internal continuation root; leave all inputs empty for a new bounded chain.'
+        type: string
+        default: ''
+      parent_run_id:
+        description: 'Internal predecessor run ID.'
+        type: string
+        default: ''
+      chain_position:
+        description: 'Internal continuation position (2–12).'
+        type: string
+        default: ''
+      expected_sequence:
+        description: 'Internal verified predecessor checkpoint sequence.'
+        type: string
+        default: ''
 
 permissions: {}
 
 concurrency:
+  # One writer across cron, bootstrap pushes, manual runs and all continuation chains.
   group: fundscope-github-history-v2
   cancel-in-progress: false
 
@@ -16,21 +39,34 @@ jobs:
     # Public repository => Release assets are public. Enable only after data-use review.
     if: github.repository == 'Vasuki8/mutual-fund-dashboard' && github.ref == 'refs/heads/main' && vars.FUNDSCOPE_GITHUB_ARCHIVE_ENABLED == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 14
+    # Includes at most 15 minutes of pacing; collection retains its nine-minute deadline.
+    timeout-minutes: 30
     permissions:
       contents: write
+      actions: read
     outputs:
       changed: ${{ steps.collect.outputs.changed }}
+      result: ${{ steps.collect.outputs.result }}
+      context: ${{ steps.prepare.outputs.context }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version: '24'
-      - name: Archive one bounded tranche using public MFAPI and GitHub Releases
-        id: collect
+      - name: Validate continuation and pace against the saved checkpoint
+        id: prepare
         env:
           GITHUB_TOKEN: ${{ github.token }}
           FUNDSCOPE_GITHUB_ARCHIVE_ENABLED: ${{ vars.FUNDSCOPE_GITHUB_ARCHIVE_ENABLED }}
+          BACKFILL_INPUTS: ${{ toJSON(inputs) }}
+        run: node --experimental-strip-types scripts/backfill-control.ts prepare
+      - name: Archive one bounded tranche using public MFAPI and GitHub Releases
+        id: collect
+        if: steps.prepare.outputs.collect == 'true'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          FUNDSCOPE_GITHUB_ARCHIVE_ENABLED: ${{ vars.FUNDSCOPE_GITHUB_ARCHIVE_ENABLED }}
+          EXPECTED_SEQUENCE: ${{ steps.prepare.outputs.expected_sequence }}
         run: node --experimental-strip-types scripts/github-history-v2.ts
 
   publish:
@@ -41,3 +77,24 @@ jobs:
       pages: write
       id-token: write
     uses: ./.github/workflows/pages.yml
+
+  continue:
+    needs: [archive, publish]
+    if: needs.archive.outputs.changed == 'true' && needs.publish.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Verify the live checkpoint and request one bounded successor
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          FUNDSCOPE_GITHUB_ARCHIVE_ENABLED: ${{ vars.FUNDSCOPE_GITHUB_ARCHIVE_ENABLED }}
+          BACKFILL_CONTEXT: ${{ needs.archive.outputs.context }}
+          BACKFILL_RESULT: ${{ needs.archive.outputs.result }}
+        run: node --experimental-strip-types scripts/backfill-control.ts continue

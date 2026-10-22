@@ -8,19 +8,35 @@ The collector stays disabled until the repository Actions variable `FUNDSCOPE_GI
 
 **Keep the existing public-data review:** this repository and its Release assets are public. MFAPI documents keyless access and encourages response caching, but the official documentation and OpenAPI specification reviewed on 21 October 2026 do not include an explicit grant for complete-dataset public redistribution. Confirm that the intended publication is permitted before enabling it, or use an approved storage/serving destination. Do not substitute AMFI scraping. This is unresolved permission evidence, not a claim that MFAPI has prohibited the project.
 
-GitHub supplies the workflow's short-lived `GITHUB_TOKEN`. No manually issued personal access token, MFAPI key, former-host credential, or browser secret is needed. The Pages build has read permissions; only the collector has repository contents-write permission.
+GitHub supplies the workflow's short-lived `GITHUB_TOKEN`. No manually issued personal access token, MFAPI key, former-host credential, or browser secret is needed. The Pages build has read permissions; only the collector has repository contents-write permission. The collector also reads Actions run metadata to validate a continuation's ancestry. A separate final job has `contents: read` and `actions: write` solely to verify the published checkpoint and dispatch one successor; it cannot write archive contents.
 
 ## What runs, and when
 
 | Work | Behavior |
 | --- | --- |
 | Catalogue and latest-NAV discovery | `GET https://api.mfapi.in/mf/latest` is checked in the two daily UTC slots beginning **07:00 and 19:00**. This identifies new schemes and changed latest dates. |
-| Bounded history collection | The existing off-peak schedule runs at **:07, :22, :37, and :52 UTC**. Each run handles at most **512 schemes in 16 stable shards**, with **two** source workers and a **nine-minute** overall budget that reserves the last two minutes for persistence. |
+| Bounded history collection | Cron requests starts at **:07, :22, :37, and :52 UTC**; this is not an observed-start guarantee. A main-branch change to the archive workflow also seeds a chain. Each run handles at most **512 schemes in 16 stable shards**, with **two** source workers and a **nine-minute** overall collection budget that reserves the last two minutes for persistence. |
+| Automatic first-pass continuation | After successful collection, publication, and live-manifest verification, the final job may dispatch one successor. A chain has at most **12 runs including its root**, with collection admitted only when a full nine-minute budget remains within **four hours of the root's GitHub-recorded creation time**. Publication and cleanup may finish afterward. |
+| Shared pacing | Every entrant, including a new cron/manual root, waits until at least **15 minutes after the latest checkpoint's `updatedAt`** before starting collection. Publication time counts toward that interval. This is a minimum gap, not an exact start cadence. |
 | Full available history | `GET https://api.mfapi.in/mf/{schemeCode}` supplies the full available source response. There is no fixed year cutoff. A latest-NAV row is never presented as a full historical import. |
 | Follow-up | First attempts have priority, followed by new latest dates, retryable source/quality problems, and full-history reconciliation after seven days. Failed histories use increasing backoff. Unstarted work does not consume an attempt. |
 | Website publication | A changed, verified checkpoint calls the reusable Pages workflow. Pushes to main, manual dispatch, and **07:17/19:17 UTC** also offer publication opportunities. Every build loads the latest verified snapshot. |
 
 The twice-daily schedule concerns catalogue/latest-NAV discovery and website publication. Full-history reconciliation continues in bounded tranches and may lag; the manifest reports that backlog. GitHub schedules can be delayed or skipped and may be disabled after inactivity. Actual saved timestamps, source NAV dates and deployed checkpoint sequences are the evidence of freshness.
+
+### Continuation bounds and recovery
+
+The existing workflow-wide `fundscope-github-history-v2` concurrency group remains the single-writer lock across every trigger and chain. A successor waits for its parent to finish, then validates the parent/root repository, workflow, main branch, chain position, successful first attempt, and expected checkpoint sequence. Partial or malformed continuation inputs never become a new root. The collector checks the starting sequence again before its first source request. A duplicate or superseded child therefore cannot replay an old tranche.
+
+A successor requires actual first-attempt progress, newly saved histories, remaining first attempts, and no source pause or catalogue error. Updating metadata, retrying old quality issues, or merely emitting `changed=true` is insufficient. Chaining stops on the run/window cap, a rerun, first-pass completion, failed collection/publication/verification, a source cooldown, or no eligible progress. Source gaps and quality issues remain visible after the first pass; it is not a claim of full coverage.
+
+Before dispatch, the final job reloads the verified durable checkpoint and checks the live Pages manifest against that exact snapshot. Public manifest reads have bounded retries for propagation. Dispatch uses one POST with no blind retry after a lost response, because GitHub might already have created the child. A child of a failed/uncertain parent stops before collection. Logs identify the root, position, checkpoint, stop reason, and successor run ID when GitHub returns it.
+
+GitHub's default concurrency queue keeps one pending run. A newer cron, push, or successor may replace an older pending run. Every surviving entrant resumes from the authoritative checkpoint; a stale child exits. A later cron wake or a new manual run with all continuation inputs empty can resume an interrupted chain. A rerun can recover an eligible operation but does not renew or extend an automatic chain. This design reduces dependence on cron delivery; it does not promise uninterrupted service if GitHub stops delivering all triggers, rejects dispatch, or stops providing runners.
+
+The pacing wait happens before the collector's existing nine-minute deadline. The archive job allows 30 minutes for at most 15 minutes of waiting, validation, and collection. The verification/dispatch job has a five-minute timeout. The MFAPI worker count, request pacing, two-attempt HTTP retry limit, persistent backoff, and storage format remain unchanged. A chain's absolute maximum is 6,144 selected scheme operations, with at most two HTTP attempts each; time, shard, progress, and cooldown limits normally reduce this substantially.
+
+No external infrastructure or long-lived credential is added. Standard GitHub-hosted runners are free for this public repository under GitHub's documented public-repository policy. Continuations nevertheless consume runner time, API requests, publication bandwidth, and retained archive/artifact storage. Making the repository private or choosing larger runners changes the cost assessment. The finite chain cap and shared pacing prevent a rapid, unbounded self-dispatch loop.
 
 Every HTTP 429 pauses requests across the source; absent or invalid retry instructions use a 15-minute pause. Positive Retry-After values on HTTP 429/503 are retained in the checkpoint and honored by later runs. Before the first catalogue exists, a requested pause can only be reported in the failed run's logs and summary; no universe checkpoint exists yet.
 
@@ -80,10 +96,10 @@ The static browser verifies and decompresses same-origin assets under `/mutual-f
 1. Finish the public-data review above. Do not change the former hosted task.
 2. Keep the already configured **Settings → Pages → Source = GitHub Actions** setting. No additional hosting credential is needed.
 3. Set the repository Actions variable `FUNDSCOPE_GITHUB_ARCHIVE_ENABLED` to `true`.
-4. Manually run **FundScope GitHub-only MFAPI archive** on `main`.
+4. Allow cron or a main-branch archive-workflow change to seed the chain, or manually run **FundScope GitHub-only MFAPI archive** on `main` with all continuation inputs empty.
 5. Inspect the final `phase: verified` log, checkpoint sequence, attempted/deferred counts, saved coverage and source gaps. Verify the control Release points at the new checkpoint.
 6. Confirm its Pages publication succeeded, then check the live `archive/manifest.json` sequence and counts. A successful archive write and a successful website publication are separate results.
-7. Let bounded continuations run. A completed first pass does not require changing the workflow: the same collector discovers new schemes and performs subsequent refresh work. Keep unresolved failures visible.
+7. Verify at least two automatic successor runs advance the saved checkpoint and publish the matching live manifest. A dispatch response, green deployment, or successful manually triggered tranche alone does not verify automatic collection. A completed first pass stops chaining; the same scheduled collector continues discovering new schemes and performing refresh work. Keep unresolved failures visible.
 8. To pause collection, set the variable to false. Keep the immutable assets and control pointer intact; ordinary UI deploys will continue serving them.
 
 If an upload or checkpoint readback fails, rerun normally after the transient fault clears. Never advance counters manually or delete a prior good asset to make a retry pass. A failed website build leaves the previous deployment live; fix the reported validation/capacity problem and rerun Pages.
@@ -92,10 +108,29 @@ Each Pages build names its temporary workflow artifact with the run ID and build
 
 Runs created before this naming fix retain the older workflow definition. If one fails with `Multiple artifacts named "github-pages"`, start a new **Deploy FundScope to GitHub Pages** run on current `main` (a new main-branch push also starts one). That build reads the latest verified archive checkpoint. Repeatedly retrying the old deployment will not resolve its duplicate artifact names; no historical data needs to be deleted or reimported.
 
+## Trigger investigation: 21–22 October 2026
+
+At **02:07 UTC on 22 October**, workflow `391380370` was `active`, the repository was public and active with default branch `main`, and the workflow's cron remained `7,22,37,52 * * * *`. The complete repository run listing contained six archive runs, four with event `schedule`, and no queued/in-progress archive run. The durable checkpoint and live manifest both reported sequence **6**, with **1,478 / 37,982** histories saved, **36,457** first attempts pending, **47** source gaps, and **466** saved quality issues. The checkpoint's source cooldown and catalogue error were both null. The immutable checkpoint's SHA-256 and compressed/expanded lengths were checked.
+
+| Scheduled run | Run created (UTC, 21 October) | What actually happened |
+| --- | --- | --- |
+| [39599567731](https://github.com/Vasuki8/mutual-fund-dashboard/actions/runs/39599567731) | 12:26:11 | Archive job skipped before the collector was enabled. This is a created-but-skipped run, not a missing trigger. |
+| [39645475912](https://github.com/Vasuki8/mutual-fund-dashboard/actions/runs/39645475912) | 17:37:42 | Archive job skipped before activation. |
+| [39674533543](https://github.com/Vasuki8/mutual-fund-dashboard/actions/runs/39674533543) | 20:55:47 | First attempt collected and published successfully. Its later second attempt collected successfully but failed Pages publication on duplicate `github-pages` artifacts, the known issue fixed by [PR 11](https://github.com/Vasuki8/mutual-fund-dashboard/pull/11). |
+| [39696830999](https://github.com/Vasuki8/mutual-fund-dashboard/actions/runs/39696830999) | 23:58:46 | Collector started within seconds, saved checkpoint 6, and published it successfully by 00:01:20 on 22 October. |
+
+The last two scheduled run records were created **3 hours 2 minutes 59 seconds** apart. Earlier gaps were 5:11:31 and 3:18:05. No later archive run record existed at the initial 02:07 check. Run/job timestamps distinguish this from runner queueing: created jobs began within seconds. For rerun IDs, the top-level `run_started_at` describes the latest attempt; comparing it with the original `created_at` incorrectly turns the time between attempts into apparent queue delay. All-attempt jobs and attempt-one records were checked separately.
+
+The last scheduled collector's logs show the enable variable true and effective contents-write permission; its Pages jobs had the required read/deployment permissions. It reported 294 source attempts, verified checkpoint 6, no catalogue error and no source-wide cooldown. The final manifest was later republished by an ordinary UI deployment, which changed `generatedAt` but did not advance the archive. That is publication activity, not evidence of new collection.
+
+**Supported diagnosis:** scheduled run creation was sparse before any visible job ran. Collector source errors, the enable gate, the archive concurrency lock, and the fixed Pages artifact bug do not explain absent run records. The repository compounded that dependency by performing exactly one tranche per wake with no automatic continuation. GitHub's public API cannot identify the intended cron slot of an absent event or establish whether it was dropped versus still delayed; its internal scheduler cause remains unconfirmed.
+
+GitHub reported an [Actions/workflow-status incident](https://www.githubstatus.com/incidents/nms1dpzmh9d9) earlier on 21 October, resolved at 19:22 UTC; Actions was listed operational during the later investigation. That incident does not establish the cause of the gap after 23:58. The documented possibility of delayed/dropped schedules is a platform limitation, not proof of the specific internal cause here. The bounded continuation addresses the demonstrated dependency without changing the archive, increasing source concurrency, or restarting the former hosted importer.
+
 ## Verification commands
 
 ```sh
-node --experimental-strip-types --test tests/github-history-v2.test.ts tests/archive-store.test.ts tests/publish-archive.test.ts tests/shared-archive.test.ts
+node --experimental-strip-types --test tests/backfill-control.test.ts tests/github-history-v2.test.ts tests/archive-store.test.ts tests/publish-archive.test.ts tests/shared-archive.test.ts
 pnpm test
 pnpm run typecheck
 pnpm run build:pages
@@ -110,4 +145,6 @@ Tests use synthetic source fixtures and in-memory GitHub adapters or temporary f
 - [GitHub Release asset limits](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases): 1,000 assets per release and less than 2 GiB per asset.
 - [GitHub Pages limits](https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits): published site limit of 1 GB, deployment timeout and bandwidth guidance.
 - [Scheduled workflow behavior](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule).
+- [GITHUB_TOKEN workflow-dispatch exception](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow) and [dispatch API permissions](https://docs.github.com/en/rest/actions/workflows#create-a-workflow-dispatch-event).
+- [Concurrency queue behavior](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#concurrency) and [public-runner billing](https://docs.github.com/en/billing/concepts/product-billing/github-actions).
 - [Reusable workflows](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows).

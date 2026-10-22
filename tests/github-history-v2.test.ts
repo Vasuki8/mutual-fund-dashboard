@@ -56,9 +56,11 @@ test('catalogue refresh slots cover both daily UTC windows and midnight', () => 
 
 test('deadline deferral saves the catalogue without consuming source attempts', async () => {
   const store = new MemoryStore(); let time = START; const requested: string[] = [];
-  await runTranche({ store, now: () => time, deadline: START + 2000, reserveMs: 1000, minCatalogueSize: 1,
+  const result = await runTranche({ store, now: () => time, deadline: START + 2000, reserveMs: 1000, minCatalogueSize: 1,
     source: async path => { requested.push(path); time += 1500; return rawCatalogue(); } });
   assert.deepEqual(requested, ['/mf/latest']);
+  assert.equal(result.firstAttempted, 0);
+  assert.equal(result.historiesAdded, 0);
   assert.equal(store.snapshot!.checkpoint.states[CODE].attempts, 0);
   assert.deepEqual(store.snapshot!.checkpoint.counts, { total: 1, attempted: 0, saved: 0, clean: 0,
     qualityIssues: 0, sourceGaps: 0, pending: 1, refreshPending: 0, bulkPassComplete: false, coverageComplete: false });
@@ -83,17 +85,52 @@ test('a saved short refresh retains history and applies corrections without rest
 
 test('source failure is durable, backs off, and cannot claim complete coverage', async () => {
   const store = new MemoryStore();
-  await runTranche({ store, now: () => START, minCatalogueSize: 1, source: async path => {
+  const result = await runTranche({ store, now: () => START, minCatalogueSize: 1, source: async path => {
     if (path === '/mf/latest') return rawCatalogue();
     throw new Error('untrusted URL token=should-not-appear');
   } });
   const state = store.snapshot!.checkpoint.states[CODE];
   assert.equal(state.attempts, 1); assert.equal(state.status, 'source-error');
+  assert.equal(result.firstAttempted, 1);
+  assert.equal(result.historiesAdded, 0);
   assert.ok(Date.parse(state.nextAttemptAt!) > START);
   assert.equal(state.lastError, 'source_unavailable');
   assert.equal(store.snapshot!.checkpoint.counts.bulkPassComplete, true);
   assert.equal(store.snapshot!.checkpoint.counts.coverageComplete, false);
   assert.equal(selectWork(store.snapshot!.catalogue, store.snapshot!.checkpoint.states, START + 1000).length, 0);
+});
+
+test('continuation progress distinguishes newly saved first attempts from refreshes and no-ops', async () => {
+  const store = new MemoryStore();
+  const first = await runTranche({ store, now: () => START, minCatalogueSize: 1,
+    source: async path => path === '/mf/latest' ? rawCatalogue([CODE, CODE + 1]) : history(Number(path.split('/').at(-1))) });
+  assert.equal(first.firstAttempted, 2);
+  assert.equal(first.historiesAdded, 2);
+  const noop = await runTranche({ store, now: () => START + 1000, source: async () => { throw new Error('unexpected request'); } });
+  assert.equal(noop.firstAttempted, 0);
+  assert.equal(noop.historiesAdded, 0);
+  const refresh = await runTranche({ store, now: () => START + 12 * 3600_000, minCatalogueSize: 1,
+    source: async path => path === '/mf/latest' ? rawCatalogue([CODE, CODE + 1], '22-10-2026')
+      : history(Number(path.split('/').at(-1)), [{ date: '22-10-2026', nav: '11.00' }, { date: '21-10-2026', nav: '11.00' }]) });
+  assert.equal(refresh.attempted, 2);
+  assert.equal(refresh.firstAttempted, 0);
+  assert.equal(refresh.historiesAdded, 0);
+});
+
+test('a stale continuation checkpoint fence stops before any source request or write', async () => {
+  const store = new MemoryStore();
+  await runTranche({ store, now: () => START, minCatalogueSize: 1,
+    source: async path => path === '/mf/latest' ? rawCatalogue() : history() });
+  const previous = structuredClone(store.snapshot); let requests = 0;
+  await assert.rejects(runTranche({ store, expectedSequence: null, now: () => START + 12 * 3600_000,
+    minCatalogueSize: 1, source: async () => { requests += 1; return rawCatalogue(); } }), /checkpoint_conflict/);
+  assert.equal(requests, 0);
+  assert.equal(store.commits, 1);
+  assert.deepEqual(store.snapshot, previous);
+  const accepted = await runTranche({ store, expectedSequence: 1, now: () => START + 1000,
+    source: async () => { requests += 1; throw new Error('unexpected request'); } });
+  assert.equal(accepted.changed, false);
+  assert.equal(requests, 0);
 });
 
 test('new and disappeared schemes retain stable history buckets and join the queue', async () => {
