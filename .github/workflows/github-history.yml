@@ -8,6 +8,8 @@ on:
       - '.github/workflows/github-history.yml'
       # A reviewed controller fix should also restart one bounded chain.
       - 'scripts/backfill-control.ts'
+      # Recover safely after a reviewed GitHub Release asset transport fix.
+      - 'scripts/archive-store.ts'
   schedule:
     - cron: '7,22,37,52 * * * *'
   workflow_dispatch:

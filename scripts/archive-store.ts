@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { gzipSync, gunzipSync } from 'node:zlib';
+import { setTimeout as sleep } from 'node:timers/promises';
 import { MAX_COMPRESSED_BYTES, MAX_METADATA_EXPANDED_BYTES, MAX_SHARD_EXPANDED_BYTES,
   validateAssetRef, validateCatalogue, validateCheckpoint, validateHistoryShard,
   type ArchiveAssetRef, type ArchiveCheckpoint, type ArchiveSnapshot, type HistoryShard } from './archive-model.ts';
@@ -22,6 +23,7 @@ interface StoreOptions {
   now?: () => number;
   deadline?: number;
   generationLimit?: number;
+  wait?: (milliseconds: number) => Promise<unknown>;
 }
 interface Release { id: number; tag_name: string; body: string | null }
 interface Asset { id: number; name: string; size: number; state: string; digest: string; browser_download_url: string }
@@ -54,6 +56,7 @@ export function createGitHubStore(options: StoreOptions): ArchiveStore {
   requireValue(typeof options.token === 'string' && options.token.length > 0, 'github_token_missing');
   const request = options.fetch ?? globalThis.fetch;
   const now = options.now ?? Date.now;
+  const wait = options.wait ?? sleep;
   const deadline = options.deadline ?? Infinity;
   const generationLimit = options.generationLimit ?? 880;
   requireValue(Number.isSafeInteger(generationLimit) && generationLimit >= 2 && generationLimit < 900, 'generation_limit_invalid');
@@ -134,9 +137,9 @@ export function createGitHubStore(options: StoreOptions): ArchiveStore {
     return validateAssetRef({ id: asset.id, releaseTag: release.tag_name, name: asset.name,
       url: asset.browser_download_url, sha256: digest, bytes, expandedBytes });
   }
-  async function readAssetBytes(value: ArchiveAssetRef): Promise<Uint8Array> {
-    const ref = validateAssetRef(value);
-    requireValue(ref.url === `https://github.com/${repository}/releases/download/${ref.releaseTag}/${ref.name}`, 'asset_url_invalid');
+  async function readAssetBytesOnce(ref: ArchiveAssetRef): Promise<Uint8Array> {
+    // Signed Release redirects can change between requests. Every attempt must
+    // start at the canonical GitHub URL and revalidate all redirect hosts.
     let url = new URL(ref.url);
     for (let redirects = 0; redirects <= 3; redirects++) {
       requireValue(url.protocol === 'https:' && !url.port && !url.username && !url.password && !url.hash
@@ -150,12 +153,34 @@ export function createGitHubStore(options: StoreOptions): ArchiveStore {
         const location = response.headers.get('location'); requireValue(location && redirects < 3, 'asset_redirect_invalid');
         await response.body?.cancel(); url = new URL(location, url); continue;
       }
-      requireValue(response.ok, `asset_http_${response.status}`);
+      if (!response.ok) {
+        await response.body?.cancel().catch(() => {});
+        throw new Error(`asset_http_${response.status}`);
+      }
       const bytes = await readLimited(response, Math.min(ref.bytes, MAX_COMPRESSED_BYTES));
       requireValue(bytes.length === ref.bytes, 'asset_size_invalid');
       requireValue(sha256(bytes) === ref.sha256, 'asset_digest_invalid'); return bytes;
     }
     throw new Error('asset_redirect_invalid');
+  }
+  async function readAssetBytes(value: ArchiveAssetRef): Promise<Uint8Array> {
+    const ref = validateAssetRef(value);
+    requireValue(ref.url === `https://github.com/${repository}/releases/download/${ref.releaseTag}/${ref.name}`, 'asset_url_invalid');
+    const retryDelays = [750, 1500] as const;
+    for (let attempt = 0; attempt <= retryDelays.length; attempt++) {
+      try { return await readAssetBytesOnce(ref); }
+      catch (error) {
+        const code = error instanceof Error ? error.message : '';
+        // GETs are safe to repeat; uploads and control-pointer updates are not.
+        // Never retry missing assets, rate limits, malformed redirects or bad bytes.
+        const transient = code === 'asset_transport' || /^asset_http_(?:408|425|500|502|503|504)$/.test(code);
+        if (!transient || attempt === retryDelays.length) throw error;
+        const delay = retryDelays[attempt];
+        if (now() + delay + 1000 >= deadline) throw error;
+        await wait(delay);
+      }
+    }
+    throw new Error('asset_download_failed');
   }
   async function readJSON(ref: ArchiveAssetRef, maximum = MAX_METADATA_EXPANDED_BYTES): Promise<unknown> {
     requireValue(ref.expandedBytes <= maximum, 'asset_expanded_size_invalid');
