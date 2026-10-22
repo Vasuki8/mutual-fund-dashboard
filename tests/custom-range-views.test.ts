@@ -196,7 +196,7 @@ test('comparison date controls remain usable for zero or one common observations
   for (const range of [{ start: '2020-01-01', end: '2020-12-31' }, { start: '2024-01-26', end: '2024-01-31' }]) {
     page.range(range);
     assert.equal(page.chart(), undefined);
-    assert.match(page.content(), /not have enough common reported NAV dates/);
+    assert.match(page.content(), /not have enough identical reported NAV dates for a shared daily chart/);
   }
   page.range('MAX');
   assert.equal(page.chart()!.series[0].data.length, observations.length - 1);
