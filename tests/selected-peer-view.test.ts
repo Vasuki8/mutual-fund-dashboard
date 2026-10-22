@@ -60,7 +60,7 @@ function render(funds: FundData[]) {
 test('eligible selected peers show a labeled median, shared observation count and exportable source metadata', () => {
   const view = render([first(100001, 120), first(100002, 110)]);
   assert.match(view.text, /Selected peer context/);
-  assert.match(view.text, /Peer median CAGR/);
+  assert.match(view.text, /Peer median\s+CAGR/);
   assert.match(view.text, /Eligible peer count/);
   assert.match(view.text, /Shared NAV observations/);
   assert.match(view.text, /Selected-set percentile/);
