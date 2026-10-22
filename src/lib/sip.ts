@@ -27,6 +27,7 @@ export interface SipSimulation {
   navObservations: number;
   scheduledCount: number;
   skippedCount: number;
+  skippedDates: string[];
   contributions: SipContribution[];
   timeline: SipSnapshot[];
   invested: number;
@@ -38,7 +39,7 @@ export interface SipSimulation {
 }
 function empty(reason: string, start: string | null = null, end: string | null = null): SipSimulation {
   return { reason, requestedStart: start, requestedEnd: end, actualStart: null,
-    valuationDate: null, navObservations: 0, scheduledCount: 0, skippedCount: 0,
+    valuationDate: null, navObservations: 0, scheduledCount: 0, skippedCount: 0, skippedDates: [],
     contributions: [], timeline: [], invested: 0, units: 0,
     endingValue: null, gain: null, gainShare: null, annualizedXirr: null };
 }
@@ -119,13 +120,16 @@ export function simulateSip(points: NavPoint[], range: AnalysisRange, monthlyAmo
   }
   const actualEnd = selected[selected.length - 1].date;
   const contributions: SipContribution[] = [];
+  const skippedDates: string[] = [];
   let scheduledCount = 0;
   for (let i = 0; i < MAX_SCHEDULED_MONTHS; i++) {
     const scheduledDate = monthAt(requestedStart, i);
     if (scheduledDate > actualEnd) break;
     scheduledCount++;
     const executed = firstOnOrAfter(selected, scheduledDate);
-    if (!executed || daysBetween(scheduledDate, executed.date) > MAX_DELAY_DAYS) continue;
+    if (!executed || daysBetween(scheduledDate, executed.date) > MAX_DELAY_DAYS) {
+      skippedDates.push(scheduledDate); continue;
+    }
     contributions.push({ scheduledDate, navDate: executed.date, nav: executed.nav,
       amount: monthlyAmount, units: monthlyAmount / executed.nav });
   }
@@ -148,12 +152,12 @@ export function simulateSip(points: NavPoint[], range: AnalysisRange, monthlyAmo
   if (!contributions.length) {
     return { ...empty('None of the scheduled dates could be valued within seven days.', requestedStart, requestedEnd),
       actualStart: selected[0].date, valuationDate: actualEnd, navObservations: selected.length,
-      scheduledCount, skippedCount: scheduledCount, timeline };
+      scheduledCount, skippedCount: scheduledCount, skippedDates, timeline };
   }
   const gain = endingValue - invested;
   return { reason: null, requestedStart, requestedEnd,
     actualStart: selected[0].date, valuationDate: actualEnd, navObservations: selected.length,
-    scheduledCount, skippedCount: scheduledCount - contributions.length,
+    scheduledCount, skippedCount: skippedDates.length, skippedDates,
     contributions, timeline, invested, units, endingValue, gain,
     gainShare: invested > 0 ? gain / invested : null,
     annualizedXirr: moneyWeightedXirr(contributions, endingValue, actualEnd) };
