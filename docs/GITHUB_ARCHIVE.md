@@ -148,3 +148,17 @@ Tests use synthetic source fixtures and in-memory GitHub adapters or temporary f
 - [GITHUB_TOKEN workflow-dispatch exception](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow) and [dispatch API permissions](https://docs.github.com/en/rest/actions/workflows#create-a-workflow-dispatch-event).
 - [Concurrency queue behavior](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#concurrency) and [public-runner billing](https://docs.github.com/en/billing/concepts/product-billing/github-actions).
 - [Reusable workflows](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows).
+
+## Duplicate prevention and safe replay
+
+The published archive is a **logical snapshot**, not a count of every HTTP request or every immutable release asset ever written:
+
+- **Scheme identity:** a numerical MFAPI scheme code is the unique record key. A Direct and a Regular plan, or Growth and IDCW options, may legitimately have different codes; similar fund names are not proof of duplicate schemes.
+- **NAV identity:** within each code, observations are keyed by normalized calendar date. Repeated equivalent source dates are consolidated. Different NAV values reported for the same code/date are deterministically resolved for raw inspection and **flagged as an unresolved quality conflict**; affected analytics are blocked.
+- **Repeat runs:** a successful history replaces its previous record in the stable `floor(schemeCode / 32)` shard rather than appending another copy. On a refresh, previously saved dates not returned by the provider are retained; overlapping dates do not grow the observation count.
+- **Counts:** `attempted`, `saved`, `clean`, `qualityIssues`, and `pending` are recalculated from the distinct catalogue codes and their checkpoint states. Refresh attempts never increment the number of distinct saved histories.
+- **Concurrent work:** one workflow-wide GitHub Actions concurrency group covers collection, publication, and continuation. Each collector validates its expected durable checkpoint sequence before any source requests, and the checkpoint writer rejects a changed predecessor before advancing the control pointer.
+- **Publication:** the Pages build verifies the catalogue, each referenced shard, its content hash, the absence of duplicate scheme records, exact observation normalization (no repeated dates), and consistency with checkpoint counts and state metadata. Invalid files prevent a new publication; previous verified checkpoints remain available.
+- **Old assets:** versioned GitHub Releases may retain older immutable shard copies for recovery. They are *not additional rows* in the current manifest: the current checkpoint points to exactly one asset per active shard bucket.
+
+Duplicate-focused regression tests cover repeated source NAV dates, conflicting same-date NAV values, catalogue identity duplication, duplicate shard documents, and restarting from a saved checkpoint followed by a normal refresh. Re-fetching a scheme for an eligible update is not itself a duplicate import.

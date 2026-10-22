@@ -331,3 +331,138 @@ test('a deadline blocking a retry retains the attempt for the HTTP request that 
   assert.equal(store.snapshot!.checkpoint.counts.pending, 0);
   assert.equal(store.snapshot!.checkpoint.counts.coverageComplete, false);
 });
+
+
+test('a restarted backfill reuses scheme identities and consolidates repeated provider NAV dates', async () => {
+  const store = new MemoryStore();
+  const codes = [CODE, CODE + 1];
+  const duplicateDates = (code: number) => history(code, [
+    { date: '21-10-2026', nav: '11.00' },
+    { date: '21-10-2026', nav: '11.0' },
+    { date: '20-10-2026', nav: '10.00' },
+  ]);
+  const firstRequests: string[] = [];
+  const initial = await runTranche({
+    store, now: () => START, minCatalogueSize: 1,
+    source: async path => {
+      firstRequests.push(path);
+      return path === '/mf/latest' ? rawCatalogue(codes) : duplicateDates(Number(path.split('/').at(-1)));
+    },
+  });
+  assert.deepEqual(firstRequests.filter(path => path !== '/mf/latest').sort(),
+    codes.map(code => '/mf/' + code).sort(), 'Each scheme is fetched only once during its first pass.');
+  assert.equal(initial.sequence, 1);
+  assert.equal(initial.firstAttempted, 2);
+  assert.equal(initial.historiesAdded, 2);
+  assert.equal(initial.counts?.saved, 2);
+  assert.equal(initial.counts?.attempted, 2);
+  assert.equal(initial.counts?.clean, 2);
+  assert.equal(initial.counts?.pending, 0);
+
+  const bucket = String(Math.floor(CODE / 32));
+  const checkRecords = async (active: MemoryStore, expectedAttempts: number) => {
+    const snapshot = active.snapshot!;
+    const shard = await active.readShard(snapshot.checkpoint.shards[bucket], bucket);
+    assert.equal(shard.records.length, 2, 'Only one record per distinct scheme code may be stored.');
+    assert.deepEqual(shard.records.map(record => record.schemeCode), codes);
+    for (const record of shard.records) {
+      assert.equal(record.payload.data.length, 2);
+      assert.equal(new Set(record.payload.data.map(point => point.date)).size, 2,
+        'Identical date rows from MFAPI must not be appended to stored NAV history.');
+      assert.match(record.warnings.join(' '), /Identical duplicate NAV dates were consolidated/);
+      assert.equal(snapshot.checkpoint.states[record.schemeCode].observationCount, 2);
+      assert.equal(snapshot.checkpoint.states[record.schemeCode].attempts, expectedAttempts);
+    }
+  };
+  await checkRecords(store, 1);
+
+  const beforeReplay = structuredClone(store.snapshot);
+  const unchanged = await runTranche({
+    store, now: () => START + 1000, expectedSequence: 1, minCatalogueSize: 1,
+    source: async () => { throw new Error('An up-to-date checkpoint should not re-fetch these schemes.'); },
+  });
+  assert.equal(unchanged.changed, false);
+  assert.equal(unchanged.historiesAdded, 0);
+  assert.equal(unchanged.firstAttempted, 0);
+  assert.equal(store.commits, 1);
+  assert.deepEqual(store.snapshot, beforeReplay);
+
+  // Simulate a new Actions runner: the process has no private collector state,
+  // only the durable release checkpoint and previously written content assets.
+  const restarted = new MemoryStore();
+  restarted.snapshot = structuredClone(store.snapshot);
+  restarted.assets = new Map(store.assets);
+  const later = START + 8 * 86_400_000;
+  const refreshRequests: string[] = [];
+  const refreshed = await runTranche({
+    store: restarted, now: () => later, expectedSequence: 1, minCatalogueSize: 1,
+    source: async path => {
+      refreshRequests.push(path);
+      return path === '/mf/latest' ? rawCatalogue(codes) : duplicateDates(Number(path.split('/').at(-1)));
+    },
+  });
+  assert.deepEqual(refreshRequests.filter(path => path !== '/mf/latest').sort(),
+    codes.map(code => '/mf/' + code).sort());
+  assert.equal(refreshed.sequence, 2);
+  assert.equal(refreshed.attempted, 2);
+  assert.equal(refreshed.firstAttempted, 0);
+  assert.equal(refreshed.historiesAdded, 0, 'A routine refresh must not count the same fund again.');
+  assert.equal(refreshed.counts?.saved, 2);
+  assert.equal(refreshed.counts?.attempted, 2);
+  assert.equal(refreshed.counts?.clean, 2);
+  assert.equal(restarted.snapshot!.checkpoint.sequence, 2);
+  await checkRecords(restarted, 2);
+});
+
+test('duplicate catalogue scheme codes are rejected before publishing a new archive', async () => {
+  const store = new MemoryStore();
+  const requested: string[] = [];
+  const duplicated = [...rawCatalogue(), ...rawCatalogue()];
+  await assert.rejects(runTranche({
+    store, now: () => START, minCatalogueSize: 1,
+    source: async path => { requested.push(path); return duplicated; },
+  }), /source_catalogue_invalid/);
+  assert.deepEqual(requested, ['/mf/latest'], 'A bad catalogue must not trigger per-scheme requests.');
+  assert.equal(store.snapshot, null);
+  assert.equal(store.commits, 0);
+});
+
+test('shard validation rejects duplicated scheme records and duplicated stored NAV dates', async () => {
+  const store = new MemoryStore();
+  await runTranche({
+    store, now: () => START, minCatalogueSize: 1,
+    source: async path => path === '/mf/latest' ? rawCatalogue() : history(),
+  });
+  const bucket = String(Math.floor(CODE / 32));
+  const shard = await store.readShard(store.snapshot!.checkpoint.shards[bucket], bucket);
+  const repeatedScheme = structuredClone(shard);
+  repeatedScheme.records.push(structuredClone(shard.records[0]));
+  assert.throws(() => validateHistoryShard(repeatedScheme, bucket), /history_document_invalid/);
+  const repeatedDate = structuredClone(shard);
+  repeatedDate.records[0].payload.data.push(structuredClone(shard.records[0].payload.data[0]));
+  assert.throws(() => validateHistoryShard(repeatedDate, bucket), /history_observations_invalid/);
+  assert.equal(store.snapshot!.checkpoint.counts.saved, 1);
+  assert.equal(store.commits, 1);
+});
+
+test('conflicting source NAV values for one date are never counted as two observations', async () => {
+  const store = new MemoryStore();
+  await runTranche({
+    store, now: () => START, minCatalogueSize: 1,
+    source: async path => path === '/mf/latest' ? rawCatalogue() : history(CODE, [
+      { date: '21-10-2026', nav: '11.00' },
+      { date: '21-10-2026', nav: '11.25' },
+      { date: '20-10-2026', nav: '10.00' },
+    ]),
+  });
+  const snapshot = store.snapshot!;
+  const bucket = String(Math.floor(CODE / 32));
+  const shard = await store.readShard(snapshot.checkpoint.shards[bucket], bucket);
+  assert.equal(shard.records.length, 1);
+  assert.equal(shard.records[0].payload.data.length, 2);
+  assert.equal(shard.records[0].unresolved, true);
+  assert.match(shard.records[0].warnings.join(' '), /Conflicting NAV values/);
+  assert.equal(snapshot.checkpoint.counts.saved, 1);
+  assert.equal(snapshot.checkpoint.counts.clean, 0);
+  assert.equal(snapshot.checkpoint.counts.qualityIssues, 1);
+});
