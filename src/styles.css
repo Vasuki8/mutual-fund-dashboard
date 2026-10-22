@@ -332,6 +332,13 @@ svg { flex-shrink: 0; }
 .chart-controls strong { margin-left: 4px; color: var(--text); font: 12px var(--graphite-numeric-font); }
 .two-column { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; margin-bottom: 12px; }
 .simple-table { min-width: 360px; }
+.drawdown-episodes { margin-bottom: 12px; }
+.episode-table { min-width: 890px; }
+.episode-table td { white-space: nowrap; }
+.episode-unrecovered { background: rgba(240,164,164,.04); }
+.episode-status { font-size: 11px; }
+.episode-duration-note { color: var(--muted); font-family: var(--graphite-font); font-size: 11px; }
+.episode-scope-note { padding-top: 0; }
 .panel:has(> .simple-table) { overflow-x: auto; }
 .detail-list { margin: 0; padding: 0 12px; }
 .detail-list > div { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.4fr); gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--graphite-grid); font-size: 11px; }

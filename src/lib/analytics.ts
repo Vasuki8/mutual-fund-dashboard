@@ -141,6 +141,61 @@ export function drawdownStats(points: NavPoint[]): {
   return { maxDrawdown, currentDrawdown, peakDate, troughDate, recoveryDate };
 }
 
+export interface DrawdownEpisode {
+  peakDate: string;
+  troughDate: string;
+  recoveryDate: string | null;
+  endDate: string;
+  drawdown: number;
+  declineDays: number;
+  recoveryDays: number | null;
+  underwaterDays: number;
+}
+
+function summarizeDrawdownEpisode(peak: NavPoint, trough: NavPoint, end: NavPoint, recovered: boolean): DrawdownEpisode {
+  return {
+    peakDate: peak.date,
+    troughDate: trough.date,
+    recoveryDate: recovered ? end.date : null,
+    endDate: end.date,
+    drawdown: trough.nav / peak.nav - 1,
+    declineDays: daysBetween(peak.date, trough.date),
+    recoveryDays: recovered ? daysBetween(trough.date, end.date) : null,
+    underwaterDays: daysBetween(peak.date, end.date),
+  };
+}
+
+/** Non-overlapping observed declines, measured from the supplied window's running high. */
+export function drawdownEpisodes(points: NavPoint[]): DrawdownEpisode[] {
+  if (points.length < 2) return [];
+  const episodes: DrawdownEpisode[] = [];
+  let peak = points[0];
+  let trough: NavPoint | null = null;
+  for (const point of points) {
+    if (point.nav >= peak.nav) {
+      if (trough !== null) episodes.push(summarizeDrawdownEpisode(peak, trough, point, true));
+      // The latest equal high anchors a subsequent decline, matching drawdownStats.
+      peak = point;
+      trough = null;
+    } else if (trough === null || point.nav < trough.nav) {
+      trough = point;
+    }
+  }
+  if (trough !== null) {
+    episodes.push(summarizeDrawdownEpisode(peak, trough, points[points.length - 1], false));
+  }
+  return episodes;
+}
+
+/** Deepest first, retaining the ongoing decline even when it falls outside the limit. */
+export function selectDrawdownEpisodes(episodes: DrawdownEpisode[], limit = 5): DrawdownEpisode[] {
+  const ranked = [...episodes].sort((a, b) => a.drawdown - b.drawdown || a.peakDate.localeCompare(b.peakDate));
+  const selected = ranked.slice(0, limit);
+  const ongoing = ranked.find(episode => episode.recoveryDate === null);
+  if (ongoing && !selected.includes(ongoing)) selected.push(ongoing);
+  return selected;
+}
+
 export function monthlyReturns(points: NavPoint[]): { year: number; month: number; date: string; value: number }[] {
   if (points.length < 2) return [];
   const lastInMonth = new Map<number, NavPoint>();
