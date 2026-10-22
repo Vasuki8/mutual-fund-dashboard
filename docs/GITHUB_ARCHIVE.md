@@ -179,3 +179,27 @@ The published archive is a **logical snapshot**, not a count of every HTTP reque
 - **Old assets:** versioned GitHub Releases may retain older immutable shard copies for recovery. They are *not additional rows* in the current manifest: the current checkpoint points to exactly one asset per active shard bucket.
 
 Duplicate-focused regression tests cover repeated source NAV dates, conflicting same-date NAV values, catalogue identity duplication, duplicate shard documents, and restarting from a saved checkpoint followed by a normal refresh. Re-fetching a scheme for an eligible update is not itself a duplicate import.
+
+## Transient GitHub Release asset downloads
+
+The collector reads immutable Release assets through the canonical GitHub URL and
+validates every redirect host, compressed size and SHA-256 before decoding history.
+GitHub or its asset CDN may sometimes return HTTP 502 while a shard is being
+read back after upload. A single transient download error must not cause an
+otherwise completed MFAPI tranche to be re-fetched.
+
+Archive **GET** reads retry at most twice (three attempts total) after 750 ms
+and 1,500 ms for transport errors and transient HTTP 408/425/500/502/503/504.
+Each retry starts at the original canonical URL, obtains a fresh signed redirect,
+never forwards the GitHub token to asset hosts, and respects the existing work
+deadline. HTTP 403/404/429, invalid redirects, wrong compressed length,
+checksum mismatches and malformed data do **not** receive retries. Uploads,
+checkpoint writes and pointer changes retain their existing reconciliation and
+verification safeguards; no blind upload or publication retry is introduced.
+
+A merge that changes the reviewed `scripts/archive-store.ts` source seeds one
+new bounded backfill chain on `main`. It resumes from the durable checkpoint.
+If all three read attempts fail, the collector stops without advancing the
+checkpoint or changing previously saved histories; the next successful root
+retries the same pending schemes. These reads are bounded and do not raise
+the MFAPI concurrency or source request budget.
