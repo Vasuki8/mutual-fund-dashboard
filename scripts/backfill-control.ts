@@ -11,6 +11,8 @@ const REPOSITORY = 'Vasuki8/mutual-fund-dashboard';
 const WORKFLOW = '.github/workflows/github-history.yml';
 const MANIFEST = 'https://vasuki8.github.io/mutual-fund-dashboard/archive/manifest.json';
 const MAX_RUNS = 12, WINDOW_MS = 4 * 3600_000, PACE_MS = 15 * 60_000, WORK_MS = 9 * 60_000;
+// A successor can start before the parent's dispatching job has closed its workflow.
+const LINEAGE_WAIT_MS = 3 * 60_000, LINEAGE_POLL_MS = 15_000;
 const MAX_JSON_BYTES = 4 * 1024 * 1024;
 type Environment = Record<string, string | undefined>;
 interface Options {
@@ -87,8 +89,8 @@ export async function prepareBackfill(options: Options): Promise<Prepared> {
   if (!enabled(options.env)) return finish(false, 'disabled');
   const runId = String(inputNumber(options.env.GITHUB_RUN_ID)); const runAttempt = inputNumber(options.env.GITHUB_RUN_ATTEMPT);
   const api = transport(options); const cache = new Map<string, Metadata>();
-  const loadRun = async (id: string, workflowId?: unknown) => {
-    if (!cache.has(id)) { const response = await api.github(`/actions/runs/${id}`);
+  const loadRun = async (id: string, workflowId?: unknown, refresh = false) => {
+    if (refresh || !cache.has(id)) { const response = await api.github(`/actions/runs/${id}`);
       requireValue(response.ok, `github_run_http_${response.status}`); cache.set(id, metadata(await api.json(response), id, workflowId)); }
     return metadata(cache.get(id), id, workflowId);
   };
@@ -110,13 +112,34 @@ export async function prepareBackfill(options: Options): Promise<Prepared> {
   if (provided) {
     requireValue(current.event === 'workflow_dispatch' && position >= 2 && position <= MAX_RUNS
       && rootRunId !== runId && parentRunId !== runId && (position !== 2 || parentRunId === rootRunId), 'backfill_lineage_invalid');
-    root = await loadRun(rootRunId, current.workflow_id); const parent = await loadRun(parentRunId!, current.workflow_id);
-    requireValue(['schedule', 'push', 'workflow_dispatch'].includes(String(root.event)) && root.display_title === title(rootRunId, 1)
-      && root.status === 'completed' && root.conclusion === 'success' && root.run_attempt === 1,
-      'backfill_root_invalid');
-    requireValue(parent.status === 'completed' && parent.conclusion === 'success' && parent.run_attempt === 1
-      && parent.display_title === title(rootRunId, position - 1)
-      && (position === 2 || parent.event === 'workflow_dispatch'), 'backfill_parent_invalid');
+    // The continuing parent dispatches a successor *before* its own final job
+    // exits. GitHub may start the child and still report the parent as running.
+    // Wait only for the specific, correctly identified first-attempt ancestor;
+    // never collect on an unfinished, failed or cancelled parent.
+    const lineageDeadline = now() + LINEAGE_WAIT_MS;
+    const successfulAncestor = async (id: string, expectedTitle: string, events: string[], failure: string) => {
+      let ancestor = await loadRun(id, current.workflow_id);
+      while (true) {
+        requireValue(ancestor.run_attempt === 1 && ancestor.display_title === expectedTitle
+          && events.includes(String(ancestor.event)), failure);
+        if (ancestor.status === 'completed' && ancestor.conclusion !== null) {
+          requireValue(ancestor.conclusion === 'success', failure);
+          return ancestor;
+        }
+        requireValue(['queued', 'in_progress', 'completed'].includes(String(ancestor.status))
+          && ancestor.conclusion === null, failure);
+        const remaining = lineageDeadline - now();
+        requireValue(remaining > 0, failure + '_timeout');
+        log({ phase: 'backfill_lineage_wait', runId, ancestorId: id,
+          ancestorStatus: ancestor.status, position, remainingMs: remaining });
+        await wait(Math.min(LINEAGE_POLL_MS, remaining));
+        ancestor = await loadRun(id, current.workflow_id, true);
+      }
+    };
+    root = await successfulAncestor(rootRunId, title(rootRunId, 1),
+      ['schedule', 'push', 'workflow_dispatch'], 'backfill_root_invalid');
+    const parent = parentRunId === rootRunId ? root : await successfulAncestor(parentRunId!,
+      title(rootRunId, position - 1), ['workflow_dispatch'], 'backfill_parent_invalid');
     requireValue(instant(root.created_at) <= instant(parent.created_at)
       && instant(parent.created_at) <= instant(current.created_at), 'backfill_lineage_time_invalid');
   } else requireValue(['schedule', 'push', 'workflow_dispatch'].includes(String(current.event)), 'backfill_root_event_invalid');
