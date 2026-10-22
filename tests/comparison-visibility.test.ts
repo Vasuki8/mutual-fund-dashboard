@@ -58,6 +58,7 @@ function comparison(initial = schemes) {
     './Chart.tsx': { Chart: chartType, CHART_COLORS: ['one', 'two', 'three', 'four'] },
     './AnalysisRangePicker.tsx': {},
     './SelectedPeers.tsx': { SelectedPeers: () => null },
+    './ReturnCorrelation.tsx': { ReturnCorrelation: () => null },
   };
   const exports: { Comparison?: (props: unknown) => Element } = {};
   new Function('require', 'exports', compiled)(
