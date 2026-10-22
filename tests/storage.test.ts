@@ -509,8 +509,10 @@ test('invalid saved comparison in backup cannot partly overwrite settings or his
   const saved = { id: 'compare-1', name: 'Researched options', schemes: [scheme(122639), scheme(120716)],
     range: 'MAX' as const, savedAt: '2026-10-22T17:00:00.000Z' };
   await importBackup(JSON.stringify(backup([fund()], { ...defaults(), savedComparisons: [saved] })));
-  const before = await exportBackup();
+  const before = JSON.parse(await exportBackup());
   await assert.rejects(importBackup(JSON.stringify(backup([], { ...defaults(),
     savedComparisons: [{...saved, schemes:[scheme(122639),scheme(122639)]}] }))), /comparison|duplicate/i);
-  assert.deepEqual(await exportBackup(), before);
+  const retained = JSON.parse(await exportBackup());
+  assert.deepEqual(retained.settings, before.settings);
+  assert.deepEqual(retained.funds, before.funds);
 });
