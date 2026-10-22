@@ -85,6 +85,7 @@ function view(name: 'FundDetail' | 'Comparison', overrides: Record<string, unkno
     '../lib/catalog.ts': { STARTER_FUNDS: [] },
     './Chart.tsx': { Chart: chartType, CHART_COLORS: ['one', 'two'] },
     './DrawdownEpisodes.tsx': { DrawdownEpisodes: episodesType },
+    './SelectedPeers.tsx': { SelectedPeers: () => null },
     './AnalysisRangePicker.tsx': { RangePicker: pickerType, RangeNotice: noticeType },
     './FundDetail.tsx': { RangePicker: pickerType },
   };
