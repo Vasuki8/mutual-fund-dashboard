@@ -1,6 +1,6 @@
 # FundScope methodology
 
-Calculation version: **1.0.0**, defined in `src/lib/analytics.ts`. This document describes the current implementation. It is a reproducibility reference for NAV-based research, not a suitability assessment or a forecast.
+Calculation version: **1.1.0**, defined in `src/lib/analytics.ts`. This document describes the current implementation. It is a reproducibility reference for NAV-based research, not a suitability assessment or a forecast.
 
 ## Data and source matrix
 
@@ -8,19 +8,19 @@ MFAPI is the sole financial-data provider. The client uses the production base U
 
 | Information | Exact origin | Current treatment |
 | --- | --- | --- |
-| Name-search scheme identity | `GET /mf/search?q={encodedQuery}` → `schemeCode`, `schemeName`, optional ISIN fields | Preserve scheme code and full provider name; name search does not return fund history. |
-| Exact numeric-code lookup | `GET /mf/{schemeCode}` | Validate response identity against the requested code and reuse the history response. |
+| Name-search scheme identity | Verified published catalogue of MFAPI identities, with `GET /mf/search?q={encodedQuery}` fallback | Search all available published scheme names, including those whose histories are pending; provider search responses can be limited. |
+| Exact numeric-code lookup | Verified published catalogue first, then `GET /mf/{schemeCode}` when needed | Match the exact scheme code, verify the response identity, and distinguish name discovery from historical NAV coverage. |
 | Fund name, AMC, classification | `meta.scheme_code`, `scheme_name`, `fund_house`, `scheme_type`, `scheme_category` in the history response | Display provider metadata; abbreviations are presentation only. |
 | ISINs | `meta.isin_growth`, `meta.isin_div_reinvestment` | Optional metadata; absence is shown as not supplied. |
 | Dated NAV history | `data[].date` and `data[].nav` in `GET /mf/{schemeCode}` | Parse `DD-MM-YYYY`; retain validated positive finite NAVs as ISO dates in ascending order. |
 | Latest shown NAV and first available date | Last and first validated observations in that history | Latest means latest returned observation. First available NAV is not a verified inception date. |
 | Retrieval/cache state | Client retrieval timestamp, stored history, and request outcome | Distinct from the provider observation date; no live-price claim. |
 | Returns, wealth, drawdown, monthly risk, rolling outcomes | Local calculations over the validated observations | No provider ranking, benchmark series, or risk rating is inferred. |
-| Risk-free/target rate and starting investment | Explicit local user assumptions | Default annual target 6%; default illustrated starting amount ₹10,000. Neither is fetched market data. |
+| Risk-free/target rate and starting investment | Explicit local user assumptions | Sharpe assumed risk-free rate defaults to 6% annually; independent Sortino target defaults to 0%; illustrated starting amount defaults to ₹10,000. Neither risk assumption is a fetched historical series. |
 | Watchlist, comparison, last opened fund | Local research settings | User selections, not portfolio holdings or transaction records. |
 | AUM, TER, managers, holdings, verified inception, benchmarks | No integrated source | Unavailable in this release; do not infer them from NAV, category, or name. |
 
-The application does not use the provider's full-directory or latest-NAV endpoints to fabricate a market ranking. Six explicit scheme examples are maintained in `src/lib/catalog.ts`. Documentation examples are not an identity authority; always validate actual response metadata for the requested code.
+The published scheme catalogue supports full-name discovery, including funds whose histories are not yet saved. This catalogue does not establish complete historical coverage or a verified market ranking. Six explicit starter schemes are maintained in `src/lib/catalog.ts`. Documentation examples are not an identity authority; always validate actual response metadata for the requested code.
 
 ## Input quality and scheme eligibility
 
@@ -123,3 +123,13 @@ Comparison intersects exact reported dates across every selected fund first, the
 ## Reproducibility
 
 Retain the exact scheme code, provider history, retrieval timestamp, calculation version, selected dates, target-rate assumption, and backup version when reproducing a result. Provider corrections and new observations can change later calculations. See [README.md](../README.md) for run/test commands, cache and backup limits, and the final release verification record.
+
+## Selected comparison peers
+
+The **Selected peer context** panel describes only the two to four funds deliberately placed into Compare. It is not a complete category peer universe, a survivorship-bias-adjusted sample, a market ranking, or a suitability recommendation. It is unavailable if the selections have differing normalized MFAPI `scheme_category` or `scheme_type`, an ambiguous or mismatched Direct/Regular plan, a dividend/IDCW option, unresolved NAV-quality warnings, duplicate scheme codes, or apparent duplicate share-class variants of the same underlying fund. It does not silently drop ineligible selections to manufacture a sample.
+
+All eligible peers share the intersection of **exactly reported NAV dates** in the applied analysis period, with no forward fill or artificial zeros. Peer total return is ending NAV divided by starting NAV minus one; it is called **absolute return** for periods shorter than 365 calendar days, and **ACT/365 CAGR** for periods of at least 365 days. The panel shows common actual dates, common NAV observation count, eligible peer count, and unweighted median across the selected schemes.
+
+Percentile is an empirical **midrank within the selected set**: `100 × (number of fund returns below the observation + 0.5 × number tied at the observation) / eligible fund count`. Two funds with identical returns both receive 50/100. With two to four selected funds, percentile values are descriptive only and do not represent category-wide standing. The panel reports cached/stale source data separately. Its CSV export includes scheme codes, names, decimal returns, percentile values, period bounds, source, measure, and cohort limits.
+
+**Index benchmark data remains unconnected.** NSE Indices publishes TRI reports but [requires prior approval and potentially fees for index benchmarking uses](https://www.nseindia.com/static/nse-indices/index-licensing). FundScope does not redistribute an index history or assume a universal Nifty 50 benchmark. A source-specific approval and verified total-return series would be needed before benchmark excess returns, capture ratios or tracking statistics are shown.

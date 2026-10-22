@@ -57,6 +57,7 @@ function comparison(initial = schemes) {
     '../lib/catalog.ts': { STARTER_FUNDS: schemes },
     './Chart.tsx': { Chart: chartType, CHART_COLORS: ['one', 'two', 'three', 'four'] },
     './AnalysisRangePicker.tsx': {},
+    './SelectedPeers.tsx': { SelectedPeers: () => null },
   };
   const exports: { Comparison?: (props: unknown) => Element } = {};
   new Function('require', 'exports', compiled)(
