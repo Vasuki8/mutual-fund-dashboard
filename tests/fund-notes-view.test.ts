@@ -46,28 +46,31 @@ function view(notes: FundNote[] = [], shouldSave = true) {
       onRemove: (id: string) => removed.push(id),
     });
   };
-  const find = (pred: (node: Element) => boolean, current: unknown = tree): Element | undefined => {
+  const findIn = (pred: (node: Element) => boolean, current: unknown): Element | undefined => {
     if (Array.isArray(current)) {
-      for (const child of current) { const match = find(pred, child); if (match) return match; }
+      for (const child of current) { const match = findIn(pred, child); if (match) return match; }
     } else if (current && typeof current === 'object' && 'props' in current) {
       const n = current as Element;
-      return pred(n) ? n : find(pred, n.props.children);
+      return pred(n) ? n : findIn(pred, n.props.children);
     }
     return undefined;
   };
-  const all = (current: unknown = tree): Element[] => {
-    if (Array.isArray(current)) return current.flatMap(all);
+  const find = (pred: (node: Element) => boolean): Element | undefined => findIn(pred, tree);
+  const allIn = (current: unknown): Element[] => {
+    if (Array.isArray(current)) return current.flatMap(allIn);
     if (current && typeof current === 'object' && 'props' in current) {
       const n = current as Element;
-      return [n, ...all(n.props.children)];
+      return [n, ...allIn(n.props.children)];
     }
     return [];
   };
-  const text = (current: unknown = tree): string => {
-    if (Array.isArray(current)) return current.map(text).join(' ');
-    if (current && typeof current === 'object' && 'props' in current) return text((current as Element).props.children);
+  const all = (): Element[] => allIn(tree);
+  const textIn = (current: unknown): string => {
+    if (Array.isArray(current)) return current.map(textIn).join(' ');
+    if (current && typeof current === 'object' && 'props' in current) return textIn((current as Element).props.children);
     return typeof current === 'string' || typeof current === 'number' ? String(current) : '';
   };
+  const text = (): string => textIn(tree);
   const click = (description: string) => {
     const button = find(node => node.type === 'button' && node.props['aria-label'] === description);
     assert.ok(button, 'Missing control: ' + description);
