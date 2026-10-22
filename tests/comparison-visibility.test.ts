@@ -60,6 +60,7 @@ function comparison(initial = schemes, selectedFunds: Record<number, FundData> =
     './AnalysisRangePicker.tsx': {},
     './SelectedPeers.tsx': { SelectedPeers: () => null },
     './ReturnCorrelation.tsx': { ReturnCorrelation: correlationType },
+    './PlanComparison.tsx': { PlanComparison: () => null },
   };
   const exports: { Comparison?: (props: unknown) => Element } = {};
   new Function('require', 'exports', compiled)(

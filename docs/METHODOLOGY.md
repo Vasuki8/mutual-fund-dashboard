@@ -1,6 +1,6 @@
 # FundScope methodology
 
-Calculation version: **1.2.0**, defined in `src/lib/analytics.ts`. This document describes the current implementation. It is a reproducibility reference for NAV-based research, not a suitability assessment or a forecast.
+Calculation version: **1.3.0**, defined in `src/lib/analytics.ts`. This document describes the current implementation. It is a reproducibility reference for NAV-based research, not a suitability assessment or a forecast.
 
 ## Data and source matrix
 
@@ -149,6 +149,18 @@ Compare also reports descriptive **pairwise Pearson correlations** of complete c
 Each fund first uses the currently selected analysis range. Its monthly returns use valid NAV points near each completed month end, with an uninterrupted previous completed month for each return. For each pair, return months are matched by calendar year and month, not by requiring identical month-end NAV observation dates. Missing or incomplete months are excluded rather than assigned zero. A pair needs at least **12 matched complete monthly returns**. Zero variance, dividend/IDCW options, duplicate selected codes or unresolved quality issues yield unavailable coefficients.
 
 For paired returns x and y, Pearson correlation is the sum of demeaned products divided by the geometric mean of the two demeaned sums of squares. Values are dimensionless from −1 to +1. Different cells can have different paired calendar-month sets. The CSV includes the actual first and last matched month, matched count, source, return basis and unavailable reasons. This statistic does not prove diversification, predict future correlation or estimate holdings overlap.
+
+## User-selected Direct versus Regular Growth plan comparison
+
+The **Direct vs Regular plan** panel appears on Compare when **exactly two different scheme codes** have one explicitly identified Direct scheme and one Regular scheme. This is a comparison of their **observed NAV returns**, not an attempt to determine expenses from NAV. Compare search includes both explicitly named Direct Plan and Regular Plan Growth schemes; the general two-to-four-fund comparison, selected-peer context and monthly correlation remain separate.
+
+Eligibility requires confirmed Growth options, no unresolved source NAV-quality warnings, exactly one explicit `Direct Plan` and `Regular Plan` label, and matching normalized MFAPI fund house, scheme category and scheme type. The scheme names must match after removing only the explicit plan labels, incidental punctuation/spacing, historical `(erstwhile ...)` notes, and normalizing `Growth Option` or `Growth Plan` wording to `Growth`. Strategy names are otherwise retained. This deliberately rejects ambiguous names and may exclude genuine plan pairs. **MFAPI does not supply an explicit scheme-pair mapping or certify same-strategy variants**; even a matching name and metadata require independent confirmation from the asset management company (AMC) documents. No fee, holdings, management-company approval or official matching source is inferred.
+
+Financial results use **the exact common dated NAV observations and applied date range already used by Compare**. There must be at least two shared, ascending, valid actual reported observations. Each plan's starting wealth is fixed at ₹10,000, and terminal value is ₹10,000 × (ending NAV / starting NAV). Each plan's return is **absolute NAV return** when the observed interval is shorter than 365 calendar days, or **ACT/365 CAGR** when it spans 365 days or more. The reported **Direct − Regular return gap** is the difference between those two returns, in *percentage points (pp)*, not a compounded relative fee rate. The **ending-value gap in INR** is the difference between the two normalized ₹10,000 terminal wealth values. For a partial-year interval no annualized gap is shown. Raw NAV levels of two share classes must never be subtracted, because their unit prices are not comparable.
+
+The panel is omitted for unrelated same-plan fund selections. When a Direct/Regular selection fails identity, quality or coverage checks, it explains why instead of producing values; no series are silently removed. A source refresh failure is shown as stale provenance rather than automatically invalidating previously verified data. The downloadable CSV records both scheme codes, names, MFAPI history URLs, retrieval timestamps, requested and actual ranges, calculation basis, percentage-point and rupee outcomes, and every shared actual NAV date with each plan's NAV and normalized wealth. It never inserts missing-date prices.
+
+Fund operating expenses are reflected in reported NAV, but observed plan return differences also depend on other NAV and operational effects. The difference is **not a stated or inferred total expense ratio (TER)**, exact fee saving, transaction cost, guaranteed future spread, or investor recommendation. Taxes, loads and distributions are not separately modeled. Dated TER research and automatic verified plan matching require additional rights-cleared sources.
 
 ## Personal research notes
 
