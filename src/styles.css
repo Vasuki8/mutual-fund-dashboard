@@ -682,3 +682,29 @@ svg { flex-shrink: 0; }
   .note-entry-actions { justify-content: flex-start; }
   .note-entry-actions .button { min-height: 40px; }
 }
+
+
+/* Named, browser-local comparison presets. Kept compact on the analysis page. */
+.saved-comparisons .panel-heading h2 { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+.saved-comparisons-content { display: grid; gap: 0; }
+.save-comparison-form { display: grid; gap: 7px; padding: 12px; border-bottom: 1px solid var(--line); }
+.save-comparison-form label { color: var(--muted); font-size: 11px; font-weight: 600; }
+.save-comparison-form small { color: var(--muted); font-size: 11px; }
+.save-comparison-input { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.save-comparison-input input { flex: 1 1 200px; }
+.saved-comparison-list { display: grid; }
+.saved-comparison-entry { padding: 11px 12px; display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--graphite-grid); }
+.saved-comparison-entry:last-child { border-bottom: 0; }
+.saved-comparison-description { flex: 1 1 270px; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.saved-comparison-description strong { font-size: 12px; font-weight: 600; overflow-wrap: anywhere; }
+.saved-comparison-description small, .saved-comparison-description > span { color: var(--muted); font-size: 11px; line-height: 1.5; overflow-wrap: anywhere; }
+.saved-comparison-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; }
+.saved-comparison-actions > span { font-size: 11px; }
+@media (max-width: 600px) {
+  .save-comparison-form { padding: 10px; }
+  .save-comparison-input input { flex-basis: 100%; min-height: 44px; }
+  .save-comparison-input .button { width: 100%; }
+  .saved-comparison-entry { padding: 10px; }
+  .saved-comparison-actions { width: 100%; }
+  .saved-comparison-actions .button { min-height: 40px; }
+}

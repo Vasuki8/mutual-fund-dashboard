@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import ts from 'typescript';
 import * as analytics from '../src/lib/analytics.ts';
 import * as format from '../src/lib/format.ts';
-import type { FundData, Scheme } from '../src/lib/types.ts';
+import type { FundData, SavedComparison, Scheme } from '../src/lib/types.ts';
 
 const source = readFileSync(new URL('../src/components/Comparison.tsx', import.meta.url), 'utf8');
 const compiled = ts.transpileModule(source, {
@@ -20,9 +20,10 @@ type Element = { type: unknown; props: { children?: unknown; [key: string]: any 
 
 // Run the component's real visibility transitions and financial transformations.
 // Only React's mounting boundary and unrelated rendering/network components are replaced.
-function comparison(initial = schemes, selectedFunds: Record<number, FundData> = funds) {
+function comparison(initial = schemes, selectedFunds: Record<number, FundData> = funds, savedComparisons: SavedComparison[] = []) {
   const chartType = Symbol('Chart');
   const correlationType = Symbol('ReturnCorrelation');
+  const savedType = Symbol('SavedComparisons');
   const states: unknown[] = [];
   const effects: { deps: unknown[]; cleanup?: () => void }[] = [];
   let stateIndex = 0, effectIndex = 0, dirty = false;
@@ -60,6 +61,7 @@ function comparison(initial = schemes, selectedFunds: Record<number, FundData> =
     './AnalysisRangePicker.tsx': {},
     './SelectedPeers.tsx': { SelectedPeers: () => null },
     './ReturnCorrelation.tsx': { ReturnCorrelation: correlationType },
+    './SavedComparisons.tsx': { SavedComparisons: savedType },
   };
   const exports: { Comparison?: (props: unknown) => Element } = {};
   new Function('require', 'exports', compiled)(
@@ -67,7 +69,8 @@ function comparison(initial = schemes, selectedFunds: Record<number, FundData> =
     exports,
   );
   const props = {
-    funds: selectedFunds, errors: {}, riskFreeRate: .06,
+    funds: selectedFunds, savedComparisons, errors: {}, riskFreeRate: .06,
+    onLoadComparison(item: SavedComparison) {selection = item.schemes;return true;},
     ensureFund: async () => {}, browse() {}, openFund() {},
     toggleCompare(scheme: Scheme) {
       selection = selection.some(s => s.schemeCode === scheme.schemeCode)
@@ -114,6 +117,14 @@ function comparison(initial = schemes, selectedFunds: Record<number, FundData> =
     },
     visible: () => (find(node => node.type === chartType, tree)?.props.series ?? []).map((series: { name: string }) => series.name),
     correlationVisible: () => Boolean(find(node => node.type === correlationType, tree)),
+    loadSaved(item: SavedComparison) {
+      const panel = find(node => node.type === savedType, tree);
+      assert.ok(panel);
+      panel.props.onLoad(item);
+      render();
+    },
+    selectedCodes: () => selection.map(scheme => scheme.schemeCode),
+    requestedRange: () => find(node => node.type === savedType, tree)?.props.range,
     series: () => find(node => node.type === chartType, tree)?.props.series,
     unmount: () => effects.forEach(effect => effect.cleanup?.()),
   };
@@ -179,5 +190,21 @@ test('correlation panel remains accessible when monthly matches exist but daily 
   const view = comparison(pair, shifted);
   assert.deepEqual(view.visible(), [], 'No daily NAV dates intersect for a chart.');
   assert.equal(view.correlationVisible(), true, 'Calendar-month return comparison must remain reachable.');
+  view.unmount();
+});
+
+
+test('loading a named comparison restores both scheme identities and the requested custom period', () => {
+  const saved: SavedComparison = {
+    id: 'compare-1', name: 'Two fund scenario', schemes: schemes.slice(0, 2),
+    range: {start: '2024-01-01', end: '2025-01-01'}, savedAt: '2026-10-22T12:00:00.000Z',
+  };
+  const view = comparison(schemes, funds, [saved]);
+  assert.deepEqual(view.selectedCodes(), [1, 2, 3]);
+  assert.equal(view.requestedRange(), '3Y');
+  view.loadSaved(saved);
+  assert.deepEqual(view.selectedCodes(), [1, 2]);
+  assert.deepEqual(view.requestedRange(), saved.range);
+  assert.deepEqual(view.visible(), ['Alpha', 'Beta']);
   view.unmount();
 });

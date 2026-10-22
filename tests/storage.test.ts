@@ -458,3 +458,61 @@ test('changing a fund note via the same ID preserves a single logical note acros
   assert.equal(getSettings().fundNotes?.length, 1);
   assert.equal(getSettings().fundNotes?.[0].body, 'Revised thesis');
 });
+
+
+test('named saved comparisons preserve scheme identities, requested ranges, and UTC dates in portable backups', async () => {
+  const saved = { id: 'set-one', name: 'Flexi cap alternatives',
+    schemes: [scheme(122639), scheme(120716)],
+    range: { start: '2021-01-01', end: '2026-10-20' },
+    savedAt: '2026-10-22T17:00:00.000Z' };
+  const settings = { ...defaults(), savedComparisons: [saved] };
+  saveSettings(settings);
+  const loaded = getSettings();
+  assert.deepEqual(loaded.savedComparisons, [saved]);
+  loaded.savedComparisons![0].schemes[0].schemeCode = 99;
+  assert.equal(getSettings().savedComparisons![0].schemes[0].schemeCode, 122639);
+  const backupText = await exportBackup();
+  assert.deepEqual(JSON.parse(backupText).settings.savedComparisons, [saved]);
+  await importBackup(JSON.stringify(backup()));
+  assert.deepEqual(getSettings(), defaults(), 'Older backups without comparisons remain fully compatible.');
+  await importBackup(backupText);
+  assert.deepEqual(getSettings().savedComparisons, [saved]);
+});
+
+test('saved comparison validation rejects duplicate names/codes/IDs, malformed ranges and bad timestamps', () => {
+  const saved = { id: 'compare-1', name: 'My matched funds',
+    schemes: [scheme(122639), scheme(120716)],
+    range: '3Y' as const, savedAt: '2026-10-22T17:00:00.000Z' };
+  const invalid = [
+    [saved, saved],
+    [saved, { ...saved, id: 'compare-2', name: 'my matched funds' }],
+    [{ ...saved, id: 'not a safe id' }],
+    [{ ...saved, name: '' }],
+    [{ ...saved, name: 'x'.repeat(81) }],
+    [{ ...saved, name: 'Leading space ' }],
+    [{ ...saved, schemes: [scheme(122639), scheme(122639)] }],
+    [{ ...saved, schemes: [scheme(122639)] }],
+    [{ ...saved, range: '2Y' }],
+    [{ ...saved, range: { start: '2026-02-30', end: '2026-10-01' } }],
+    [{ ...saved, range: { start: '2026-10-02', end: '2026-10-01' } }],
+    [{ ...saved, range: { start: '2026-01-01', end: '2026-10-01', extra: 'x' } }],
+    [{ ...saved, savedAt: 'tomorrow' }],
+    Array.from({ length: 25 }, (_, i) => ({ ...saved, id: 'compare-' + i, name: 'Set ' + i })),
+  ];
+  for (const savedComparisons of invalid) {
+    assert.throws(() => saveSettings({ ...defaults(), savedComparisons }), /comparison|scheme|date|timestamp|duplicate/i);
+    assert.deepEqual(getSettings(), defaults());
+  }
+});
+
+test('invalid saved comparison in backup cannot partly overwrite settings or history', async () => {
+  const saved = { id: 'compare-1', name: 'Researched options', schemes: [scheme(122639), scheme(120716)],
+    range: 'MAX' as const, savedAt: '2026-10-22T17:00:00.000Z' };
+  await importBackup(JSON.stringify(backup([fund()], { ...defaults(), savedComparisons: [saved] })));
+  const before = JSON.parse(await exportBackup());
+  await assert.rejects(importBackup(JSON.stringify(backup([], { ...defaults(),
+    savedComparisons: [{...saved, schemes:[scheme(122639),scheme(122639)]}] }))), /comparison|duplicate/i);
+  const retained = JSON.parse(await exportBackup());
+  assert.deepEqual(retained.settings, before.settings);
+  assert.deepEqual(retained.funds, before.funds);
+});
