@@ -3,7 +3,8 @@ import { createHash } from 'node:crypto';
 import { gzipSync } from 'node:zlib';
 import { afterEach, beforeEach, test } from 'node:test';
 import { getFund, searchSchemes } from '../src/lib/api.ts';
-import { exportBackup, importBackup } from '../src/lib/storage.ts';
+import { exportBackup, importBackup, putCachedSearch } from '../src/lib/storage.ts';
+import type { Scheme } from '../src/lib/types.ts';
 import type { TestContext } from 'node:test';
 
 const runtimeGlobal = globalThis as typeof globalThis & { __FUNDSCOPE_STATIC__?: boolean };
@@ -34,6 +35,8 @@ afterEach(() => {
 });
 
 function install(t: TestContext, options: { fetchedAt?: string; source?: (url: URL) => Response | Promise<Response>;
+  pending?: Scheme[]; manifest?: () => Response | Promise<Response>;
+  catalogue?: (bytes: Buffer) => Response | Promise<Response>;
   shard?: (bytes: Buffer) => Response | Promise<Response> } = {}) {
   const now = new Date().toISOString();
   const fetchedAt = options.fetchedAt ?? now;
@@ -45,6 +48,7 @@ function install(t: TestContext, options: { fetchedAt?: string; source?: (url: U
   }
   const catalogue = compressed({ version: 1, fetchedAt: now, warnings: [], entries: [
     { schemeCode: CODE, schemeName: 'Example Direct Growth', latestDate: '2026-10-20', nav: '10.1', current: true },
+    ...(options.pending ?? []).map(scheme => ({ ...scheme, latestDate: null, nav: null, current: true })),
   ] }, 'catalogue');
   const shard = compressed({ version: 2, bucket: BUCKET, records: [
     { version: 1, schemeCode: CODE, fetchedAt, archivedAt: fetchedAt, coverageStart: '2026-10-19', coverageEnd: '2026-10-20',
@@ -52,8 +56,8 @@ function install(t: TestContext, options: { fetchedAt?: string; source?: (url: U
   ] }, 'shard');
   const manifest = { version: 2, source: 'mfapi.in', status: 'ready', collectionEnabled: true, sequence: 1, generatedAt: now, checkpointAt: now,
     catalogueFetchedAt: now, latestNavDate: '2026-10-20', catalogue: catalogue.descriptor, shards: { [BUCKET]: shard.descriptor },
-    issues: [], warnings: [], counts: { total: 1, attempted: 1, saved: 1, clean: 1, qualityIssues: 0, sourceGaps: 0,
-      pending: 0, refreshPending: 0, bulkPassComplete: true, coverageComplete: true } };
+    issues: [], warnings: [], counts: { total: 1 + (options.pending?.length ?? 0), attempted: 1, saved: 1, clean: 1, qualityIssues: 0, sourceGaps: 0,
+      pending: options.pending?.length ?? 0, refreshPending: 0, bulkPassComplete: !options.pending?.length, coverageComplete: !options.pending?.length } };
   let sourceRequests = 0;
   const requests: string[] = [];
   t.mock.method(globalThis, 'fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -62,8 +66,8 @@ function install(t: TestContext, options: { fetchedAt?: string; source?: (url: U
     requests.push(url.href);
     if (url.origin === 'https://api.mfapi.in') { sourceRequests += 1; return options.source?.(url) ?? Response.json(source()); }
     assert.equal(url.origin, base.origin);
-    if (url.pathname.endsWith('/manifest.json')) return Response.json(manifest);
-    if (url.pathname.endsWith('/catalogue.json.gz')) return new Response(new Uint8Array(catalogue.bytes));
+    if (url.pathname.endsWith('/manifest.json')) return options.manifest?.() ?? Response.json(manifest);
+    if (url.pathname.endsWith('/catalogue.json.gz')) return options.catalogue?.(catalogue.bytes) ?? new Response(new Uint8Array(catalogue.bytes));
     if (url.pathname.endsWith('/shard.json.gz')) return options.shard?.(shard.bytes) ?? new Response(new Uint8Array(shard.bytes));
     return new Response('', { status: 404 });
   });
@@ -117,11 +121,103 @@ test('corrupt shared files fall back to MFAPI without admitting the bad archive 
   assert.equal(f.sourceRequests(), 1);
 });
 
-test('shared catalogue search is the fallback when source search fails', async t => {
+test('shared catalogue search resolves a name without source or history requests', async t => {
   const f = install(t, { source: () => new Response('', { status: 400 }) });
   assert.deepEqual(await searchSchemes('Example Direct'), [{ schemeCode: CODE, schemeName: 'Example Direct Growth' }]);
-  assert.equal(f.sourceRequests(), 1);
+  assert.equal(f.sourceRequests(), 0);
   assert.equal(f.requests.some(url => url.includes('/shard.json.gz')), false);
+});
+
+const pendingScheme: Scheme = { schemeCode: 234567, schemeName: 'Example Small Cap - Direct Plan - Growth' };
+const limitedSourceResults: Scheme[] = Array.from({ length: 15 }, (_, index) => ({
+  schemeCode: 100000 + index, schemeName: `Example Legacy Plan ${index} - Regular - Growth`,
+}));
+
+test('a complete catalogue finds direct plans omitted from a successful limited provider response', async t => {
+  const f = install(t, { pending: [pendingScheme], source: () => Response.json(limitedSourceResults) });
+  assert.deepEqual(await searchSchemes('Example'), [
+    { schemeCode: CODE, schemeName: 'Example Direct Growth' }, pendingScheme,
+  ]);
+  assert.equal(f.sourceRequests(), 0);
+  assert.equal(f.requests.some(url => url.includes('/shard.json.gz')), false,
+    'Discovery must include a pending history without downloading any history shards.');
+});
+
+test('a previously cached limited search cannot hide current catalogue matches', async t => {
+  const f = install(t, { pending: [pendingScheme], source: () => Response.json(limitedSourceResults) });
+  await putCachedSearch('example', limitedSourceResults);
+  assert.deepEqual(await searchSchemes('  EXAMPLE  '), [
+    { schemeCode: CODE, schemeName: 'Example Direct Growth' }, pendingScheme,
+  ]);
+  assert.equal(f.sourceRequests(), 0);
+});
+
+test('numeric catalogue search resolves an exact pending scheme without validating its history', async t => {
+  const similar: Scheme = { schemeCode: 2345670, schemeName: 'Another Direct Growth' };
+  const f = install(t, { pending: [pendingScheme, similar], source: () => new Response('', { status: 400 }) });
+  assert.deepEqual(await searchSchemes('00234567'), [pendingScheme]);
+  assert.equal(f.sourceRequests(), 0);
+  assert.equal(f.requests.some(url => url.includes('/shard.json.gz')), false);
+});
+
+test('a partial numeric catalogue match does not replace the exact requested scheme', async t => {
+  const requestedCode = 12345;
+  const f = install(t, { source: url => {
+    assert.equal(url.pathname, `/mf/${requestedCode}`);
+    return Response.json({ ...source(), meta: { ...source().meta, scheme_code: requestedCode } });
+  } });
+  assert.deepEqual(await searchSchemes(String(requestedCode)), [
+    { schemeCode: requestedCode, schemeName: 'Example Direct Growth' },
+  ]);
+  assert.equal(f.sourceRequests(), 1);
+});
+
+test('a scheme absent from the catalogue can still be found through provider search', async t => {
+  const newest: Scheme = { schemeCode: 345678, schemeName: 'New House Direct Growth' };
+  const f = install(t, { source: url => {
+    assert.equal(url.searchParams.get('q'), 'New House');
+    return Response.json([newest]);
+  } });
+  assert.deepEqual(await searchSchemes('New House'), [newest]);
+  assert.equal(f.sourceRequests(), 1);
+});
+
+test('an unavailable shared manifest falls back to provider search', async t => {
+  const f = install(t, { manifest: () => new Response('', { status: 404 }), source: () => Response.json([pendingScheme]) });
+  assert.deepEqual(await searchSchemes('Example Small Cap'), [pendingScheme]);
+  assert.equal(f.sourceRequests(), 1);
+});
+
+test('a corrupt catalogue falls back without using its unverified names', async t => {
+  const f = install(t, { catalogue: () => new Response('corrupt'), source: () => Response.json([pendingScheme]) });
+  assert.deepEqual(await searchSchemes('Example Small Cap'), [pendingScheme]);
+  assert.equal(f.sourceRequests(), 1);
+});
+
+test('concurrent catalogue searches share reads and return independent results', async t => {
+  const f = install(t, { pending: [pendingScheme], source: () => Response.json(limitedSourceResults) });
+  const [first, second] = await Promise.all([searchSchemes('Example'), searchSchemes(' example ')]);
+  assert.deepEqual(first, [{ schemeCode: CODE, schemeName: 'Example Direct Growth' }, pendingScheme]);
+  first[0].schemeName = 'Changed by caller';
+  assert.equal(second[0].schemeName, 'Example Direct Growth');
+  assert.equal(f.requests.filter(url => url.includes('/catalogue.json.gz')).length, 1);
+  assert.equal(f.sourceRequests(), 0);
+});
+
+test('a backup restore supersedes a search waiting for the shared catalogue', async t => {
+  let release!: () => void;
+  let started!: () => void;
+  const began = new Promise<void>(resolve => { started = resolve; });
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  const f = install(t, { source: () => new Response('', { status: 400 }), catalogue: async bytes => {
+    started(); await gate; return new Response(new Uint8Array(bytes));
+  } });
+  const pending = searchSchemes('Example').then(value => ({ value, error: null }), error => ({ value: null, error }));
+  await began;
+  await importBackup(backup());
+  release();
+  assert.match((await pending).error?.message ?? '', /superseded|restore/i);
+  assert.equal(f.sourceRequests(), 0, 'An obsolete catalogue read must not start a provider fallback.');
 });
 
 test('restoring a backup supersedes a history request waiting on a shared shard', async t => {

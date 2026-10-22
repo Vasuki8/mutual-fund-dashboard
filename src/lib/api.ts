@@ -230,11 +230,8 @@ export async function searchSchemes(query: string): Promise<Scheme[]> {
   const trimmed = query.trim().replace(/\s+/g, ' ');
   if (!trimmed) return [];
   if (trimmed.length > 200) throw new Error('Search query exceeds the 200-character limit.');
-  if (/^\d+$/.test(trimmed)) {
-    const { meta } = await getFund(Number(trimmed));
-    assertStorageGeneration(generation);
-    return [validateScheme(meta)];
-  }
+  const numericCode = /^\d+$/.test(trimmed) ? Number(trimmed) : null;
+  if (numericCode !== null && !validSchemeCode(numericCode)) throw new Error('Invalid requested scheme code.');
   const key = trimmed.toLowerCase();
   const requestKey = `${generation}:${key}`;
   const running = pendingSearches.get(requestKey);
@@ -243,25 +240,30 @@ export async function searchSchemes(query: string): Promise<Scheme[]> {
     assertStorageGeneration(generation);
     return structuredClone(results);
   }
-  const cached = await getCachedSearch(key, generation);
-  assertStorageGeneration(generation);
-  if (cached && fresh(cached.fetchedAt, SEARCH_TTL)) return structuredClone(cached.schemes);
-  const pending = pendingSearches.get(requestKey);
-  if (pending) {
-    const results = await pending;
-    assertStorageGeneration(generation);
-    return structuredClone(results);
-  }
   const request = (async () => {
+    let shared: Scheme[] | null = null;
+    if (isStaticRuntime()) {
+      // The published directory includes schemes whose histories are still pending.
+      // Consult it before old query caches or the provider's limited search results.
+      try { shared = await searchSharedCatalogue(numericCode === null ? trimmed : String(numericCode)); }
+      catch { assertStorageGeneration(generation); }
+      assertStorageGeneration(generation);
+      if (numericCode !== null && shared) shared = shared.filter(scheme => scheme.schemeCode === numericCode);
+      if (shared?.length) return shared;
+    }
+    if (numericCode !== null) {
+      const { meta } = await getFund(numericCode);
+      assertStorageGeneration(generation);
+      return [validateScheme(meta)];
+    }
+    const cached = await getCachedSearch(key, generation);
+    assertStorageGeneration(generation);
+    if (cached && fresh(cached.fetchedAt, SEARCH_TTL)) return cached.schemes;
     let results: Scheme[];
     try { results = searchResults(await requestJson(`/mf/search?q=${encodeURIComponent(trimmed)}`, generation)); }
     catch (error) {
       assertStorageGeneration(generation);
-      if (!isStaticRuntime()) throw error;
-      let shared: Scheme[] | null = null;
-      try { shared = await searchSharedCatalogue(trimmed); } catch { assertStorageGeneration(generation); }
-      assertStorageGeneration(generation);
-      if (!shared) throw error;
+      if (shared === null) throw error;
       results = shared;
     }
     assertStorageGeneration(generation);
