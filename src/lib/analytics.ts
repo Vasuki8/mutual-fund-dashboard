@@ -1,6 +1,6 @@
 import type { AnalysisRange, DateRange, NavPoint, Period } from './types.ts';
 
-export const CALCULATION_VERSION = '1.1.0';
+export const CALCULATION_VERSION = '1.2.0';
 
 const MILLISECONDS_PER_DAY = 86_400_000;
 const MAX_PRECEDING_DAYS = 7;
@@ -247,6 +247,67 @@ export function monthlyReturns(points: NavPoint[], throughDate?: string): { year
     returns.push({ year, month: index - year * 12 + 1, date: point.date, value: point.nav / previous.nav - 1 });
   }
   return returns;
+}
+
+/** Descriptive downside outcomes from completed, non-bridged monthly NAV returns. */
+export type MonthlyReturn = ReturnType<typeof monthlyReturns>[number];
+
+export interface MonthlyDownsideStats {
+  monthlyCount: number;
+  lossMonths: number;
+  lossShare: number | null;
+  longestLossStreak: number | null;
+  percentile5: number | null;
+  tailMean: number | null;
+  tailCount: number;
+  worstMonths: MonthlyReturn[];
+}
+
+/**
+ * At least 12 eligible months are required for loss share/streak and 60 for
+ * 5th-percentile/tail summaries. These are observed frequencies, not forecasts.
+ */
+export function monthlyDownsideStats(returns: MonthlyReturn[]): MonthlyDownsideStats {
+  const empty: MonthlyDownsideStats = { monthlyCount: returns.length, lossMonths: 0,
+    lossShare: null, longestLossStreak: null, percentile5: null, tailMean: null,
+    tailCount: 0, worstMonths: [] };
+  // The normal caller uses monthlyReturns(). Reject corrupt inputs instead of
+  // silently omitting extreme, duplicated, or non-finite monthly observations.
+  const monthKeys = returns.map(item => item.year * 12 + item.month - 1);
+  if (returns.some(item => !Number.isFinite(item.value) || item.value <= -1
+    || !Number.isSafeInteger(item.year) || !Number.isInteger(item.month)
+    || item.month < 1 || item.month > 12)
+    || new Set(monthKeys).size !== returns.length) return empty;
+
+  const chronological = [...returns].sort((a, b) => a.year * 12 + a.month - b.year * 12 - b.month);
+  let losses = 0, currentStreak = 0, longestStreak = 0, priorMonth: number | null = null;
+  for (const item of chronological) {
+    const key = item.year * 12 + item.month - 1;
+    if (item.value < 0) {
+      losses++;
+      currentStreak = priorMonth !== null && key === priorMonth + 1 ? currentStreak + 1 : 1;
+      longestStreak = Math.max(longestStreak, currentStreak);
+    } else currentStreak = 0;
+    priorMonth = key;
+  }
+  if (returns.length < 12) return { ...empty, lossMonths: losses };
+
+  const ranked = [...returns].sort((a, b) => a.value - b.value || a.date.localeCompare(b.date));
+  let percentile5: number | null = null, tailMean: number | null = null, tailCount = 0;
+  if (returns.length >= 60) {
+    // R-7 linear interpolation: fractional rank (n-1) * 0.05.
+    const position = (ranked.length - 1) * 0.05;
+    const lower = Math.floor(position), upper = Math.ceil(position);
+    percentile5 = finiteOrNull(ranked[lower].value +
+      (ranked[upper].value - ranked[lower].value) * (position - lower));
+    // Include a whole number of actual observations, never invented returns.
+    tailCount = Math.ceil(ranked.length * 0.05);
+    tailMean = finiteOrNull(ranked.slice(0, tailCount)
+      .reduce((sum, item) => sum + item.value, 0) / tailCount);
+  }
+  return { monthlyCount: returns.length, lossMonths: losses, lossShare: losses / returns.length,
+    longestLossStreak: longestStreak, percentile5, tailMean, tailCount,
+    worstMonths: ranked.slice(0, 5) };
 }
 
 export function riskStats(points: NavPoint[], annualRiskFreeRate = 0, throughDate?: string, annualTargetRate = annualRiskFreeRate): {

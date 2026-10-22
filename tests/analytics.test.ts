@@ -36,7 +36,7 @@ function monthlyHistory(returns: number[]): NavPoint[] {
 }
 
 test('exports the calculation contract version', () => {
-  assert.equal(CALCULATION_VERSION, '1.1.0');
+  assert.equal(CALCULATION_VERSION, '1.2.0');
 });
 
 test('parses provider dates as real calendar dates and rejects overflow', () => {
