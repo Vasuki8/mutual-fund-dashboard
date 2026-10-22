@@ -658,3 +658,27 @@ svg { flex-shrink: 0; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
+
+
+/* Browser-local analyst notes: deliberately understated, and no raw HTML interpretation. */
+.fund-notes .panel-heading h2 { display: flex; align-items: center; gap: 7px; }
+.note-composer { display: grid; gap: 8px; padding: 12px; border-bottom: 1px solid var(--line); }
+.note-composer label { color: var(--muted); font-size: 11px; font-weight: 600; }
+.note-composer textarea { width: 100%; min-height: 90px; padding: 9px 10px; line-height: 1.55; resize: vertical; }
+.note-composer-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
+.note-composer-actions small { margin-right: auto; color: var(--muted); }
+.note-list { display: grid; gap: 0; }
+.note-entry { padding: 12px; border-bottom: 1px solid var(--graphite-grid); }
+.note-entry:last-child { border-bottom: 0; }
+.note-entry-heading { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 7px; }
+.note-entry-heading time, .note-entry > small { color: var(--muted); font-size: 11px; }
+.note-entry-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 5px; }
+.note-entry-actions > span { font-size: 11px; }
+.note-content { font-size: 12px; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
+@media (max-width: 600px) {
+  .note-composer { padding: 10px; }
+  .note-entry { padding: 10px; }
+  .note-entry-heading time { flex-basis: 100%; }
+  .note-entry-actions { justify-content: flex-start; }
+  .note-entry-actions .button { min-height: 40px; }
+}

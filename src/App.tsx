@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { MouseEvent, ReactNode } from 'react';
 import { ArrowRight, ArrowUpRight, Bookmark, Check, CircleHelp, Database, GitCompareArrows, Menu, Search, X } from 'lucide-react';
 import type { FundData, ResearchSettings, Scheme } from './lib/types.ts';
+import { MAX_FUND_NOTES, MAX_FUND_NOTE_LENGTH } from './lib/storage.ts';
 import { getFund } from './lib/api.ts';
 import { getSettings, getStorageGeneration, saveSettings, storageWarning } from './lib/storage.ts';
 import { BRAND } from './lib/catalog.ts';
@@ -53,6 +54,31 @@ export default function App() {
   const openFund=useCallback((scheme:Scheme,tab='overview')=>{updateSettings(old=>({...old,lastFund:scheme}));navigate(`fund/${scheme.schemeCode}?tab=${tab}`);},[navigate,updateSettings]);
   const toggleWatch=useCallback((scheme:Scheme)=>{const exists=settings.watchlist.some(s=>s.schemeCode===scheme.schemeCode);if(!exists&&settings.watchlist.length>=100){notify('Your watchlist can hold up to 100 funds.');return;}updateSettings(old=>({...old,watchlist:exists?old.watchlist.filter(s=>s.schemeCode!==scheme.schemeCode):[...old.watchlist,scheme]}));notify(storageWarning()?'Watchlist updated. Storage needs attention; keep a backup.':exists?'Fund removed from your watchlist.':'Fund saved to your watchlist.');},[settings.watchlist,updateSettings,notify]);
   const toggleCompare=useCallback((scheme:Scheme)=>{const exists=settings.compared.some(s=>s.schemeCode===scheme.schemeCode);if(!exists&&settings.compared.length>=4){notify('Compare up to four funds. Remove one to add another.');return;}updateSettings(old=>({...old,compared:exists?old.compared.filter(s=>s.schemeCode!==scheme.schemeCode):[...old.compared,scheme]}));if(!exists)notify(`${shortName(scheme.schemeName)} added to comparison.`);},[settings.compared,updateSettings,notify]);
+  const saveNote=useCallback((code:number, body:string, editingId?:string):boolean=>{
+    const trimmed=body.trim();
+    if(!trimmed||trimmed.length>MAX_FUND_NOTE_LENGTH){notify('Notes must contain 1–'+MAX_FUND_NOTE_LENGTH+' characters.');return false;}
+    const now=new Date().toISOString();
+    try {
+      updateSettings(old=>{
+        const current=old.fundNotes??[];
+        if(editingId){
+          const existing=current.find(note=>note.id===editingId&&note.schemeCode===code);
+          if(!existing)throw new Error('The original note is no longer available.');
+          return {...old,fundNotes:current.map(note=>note.id===editingId?{...note,body:trimmed,updatedAt:now}:note)};
+        }
+        if(current.length>=MAX_FUND_NOTES)throw new Error('Your browser workspace can store up to '+MAX_FUND_NOTES+' fund notes.');
+        return {...old,fundNotes:[{id:crypto.randomUUID(),schemeCode:code,body:trimmed,createdAt:now,updatedAt:now},...current]};
+      });
+      notify(storageWarning()?'Note saved in this session. Export a backup before reloading.':editingId?'Research note updated.':'Research note saved in this browser.');
+      return true;
+    }catch(error){notify(error instanceof Error?error.message:'Research note could not be saved.');return false;}
+  },[updateSettings,notify]);
+  const removeNote=useCallback((code:number,id:string)=>{
+    try{
+      updateSettings(old=>({...old,fundNotes:(old.fundNotes??[]).filter(note=>!(note.id===id&&note.schemeCode===code))}));
+      notify(storageWarning()?'Note removed for this session; back up your workspace.':'Research note removed.');
+    }catch(error){notify(error instanceof Error?error.message:'Research note could not be removed.');}
+  },[updateSettings,notify]);
   const restore=(value:ResearchSettings)=>{settingsRef.current=value;loaded.current={};failed.current.clear();inFlight.current.clear();setLoading([]);setFunds({});setErrors({});setSettings(value);};
   const browse=()=>navigate('explore');
   const tableProps={funds,errors,ensureFund,openFund,watchlist:settings.watchlist,compared:settings.compared,toggleWatch,toggleCompare};
@@ -86,7 +112,8 @@ export default function App() {
         {storageWarning()&&<div className="storage-banner" role="status"><span>{storageWarning()}</span><button onClick={()=>navigate('data')}>Back up your research <ArrowRight size={13}/></button></div>}
         <main id="main-content" className="main-content app-main" tabIndex={-1}>
       {(route.page==='explore'||route.page==='watchlist')&&<Home key={route.page} {...tableProps} savedOnly={route.page==='watchlist'} initialQuery={route.query} openCompare={()=>navigate('compare')} openResearch={openFund} browse={browse}/>}
-      {route.page==='fund'&&route.code&&<FundDetail key={route.code} code={route.code} fund={funds[route.code]} error={errors[route.code]} tab={route.tab??'overview'} setTab={tab=>navigate(`fund/${route.code}?tab=${tab}`)} back={browse} watchlist={settings.watchlist} compared={settings.compared} toggleWatch={toggleWatch} toggleCompare={toggleCompare} refresh={()=>void ensureFund(route.code!,true)} refreshing={loading.includes(route.code)} riskFreeRate={settings.riskFreeRate} setRiskFreeRate={rate=>updateSettings(old=>({...old,riskFreeRate:rate}))} openMethod={()=>navigate('methodology')}/>}
+      {route.page==='fund'&&route.code&&<FundDetail key={route.code} code={route.code} fund={funds[route.code]} error={errors[route.code]} tab={route.tab??'overview'} setTab={tab=>navigate(`fund/${route.code}?tab=${tab}`)} back={browse} watchlist={settings.watchlist} compared={settings.compared} toggleWatch={toggleWatch} toggleCompare={toggleCompare} refresh={()=>void ensureFund(route.code!,true)} refreshing={loading.includes(route.code)} riskFreeRate={settings.riskFreeRate} setRiskFreeRate={rate=>updateSettings(old=>({...old,riskFreeRate:rate}))} openMethod={()=>navigate('methodology')} fundNotes={settings.fundNotes??[]}
+        onSaveNote={(body,id)=>saveNote(route.code!,body,id)} onRemoveNote={id=>removeNote(route.code!,id)}/>}
       {route.page==='compare'&&<Comparison schemes={settings.compared} funds={funds} errors={errors} ensureFund={ensureFund} toggleCompare={toggleCompare} browse={browse} openFund={openFund} riskFreeRate={settings.riskFreeRate}/>}
       {(route.page==='methodology'||route.page==='data')&&<Methodology tab={route.page} back={browse} settings={settings} restore={restore} notify={notify} dataStatus={dataStatus}/>}
         </main>

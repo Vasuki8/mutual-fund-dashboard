@@ -30,6 +30,7 @@ function component(file: string): Record<string, React.ComponentType<any>> {
   };
   new Function('require', 'exports', compiled)((name: string) => {
     if (name === './DrawdownEpisodes.tsx') return component('DrawdownEpisodes.tsx');
+    if (name === './FundNotes.tsx') return component('FundNotes.tsx');
     if (name === './AnalysisRangePicker.tsx') return component('AnalysisRangePicker.tsx');
     return name in dependencies ? dependencies[name] : require(name);
   }, exports);
