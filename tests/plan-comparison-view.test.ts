@@ -64,7 +64,7 @@ test('paired Growth plans render source/eligibility caveats and a labeled percen
   assert.match(page.text,/Direct vs Regular plan/);
   assert.match(page.text,/Return gap \(Direct − Regular\)/);
   assert.match(page.text,/\+10\.00 pp/);
-  assert.match(page.text,/not an estimate of TER/i);
+  assert.match(page.text,/not\s+an estimate of TER/i);
   assert.match(page.text,/MFAPI does not expressly certify these as paired share classes/);
   assert.match(page.text,/365|3 identical NAV dates/);
 });
