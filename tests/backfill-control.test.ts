@@ -136,6 +136,70 @@ test('a valid child verifies its successful parent, root lineage and exact expec
   assert.ok(value.requests.some(request => request.url.endsWith('/actions/runs/100')));
 });
 
+test('a successor waits for the root dispatch workflow to finish instead of racing its final job', async () => {
+  const value = fixture(); child(value);
+  Object.assign(value.runs.get(100)!, { status: 'in_progress', conclusion: null });
+  let polls = 0;
+  const logs: Record<string, unknown>[] = [];
+  const result = await prepareBackfill({ ...value.options, log: row => logs.push(row),
+    sleep: async ms => {
+      await value.options.sleep(ms);
+      if (++polls === 2) Object.assign(value.runs.get(100)!, { status: 'completed', conclusion: 'success' });
+    },
+  });
+  assert.equal(result.collect, true);
+  assert.deepEqual(value.waits, [15_000, 15_000]);
+  assert.equal(result.context?.position, 2);
+  assert.equal(value.reads, 2);
+  assert.equal(logs.filter(row => row.phase === 'backfill_lineage_wait').length, 2);
+  assert.equal(value.requests.filter(request => request.url.endsWith('/actions/runs/100')).length, 3);
+});
+
+test('a third tranche only collects after its distinct parent has succeeded', async () => {
+  const value = fixture();
+  value.env.GITHUB_RUN_ID = '102';
+  value.env.BACKFILL_INPUTS = JSON.stringify({
+    root_run_id: '100', parent_run_id: '101', chain_position: '3', expected_sequence: '7',
+  });
+  value.runs.set(100, { ...run(100), status: 'completed', conclusion: 'success',
+    created_at: iso(START - 40 * 60_000) });
+  value.runs.set(101, { ...run(101, 2), status: 'queued', conclusion: null,
+    created_at: iso(START - 10 * 60_000) });
+  value.runs.set(102, { ...run(102, 3), status: 'in_progress', conclusion: null });
+  let polls = 0;
+  const prepared = await prepareBackfill({ ...value.options, sleep: async ms => {
+    await value.options.sleep(ms);
+    if (++polls === 3) Object.assign(value.runs.get(101)!, { status: 'completed', conclusion: 'success' });
+  } });
+  assert.equal(prepared.collect, true);
+  assert.equal(prepared.context?.parentRunId, '101');
+  assert.equal(prepared.context?.position, 3);
+  assert.deepEqual(value.waits, [15_000, 15_000, 15_000]);
+  assert.equal(value.requests.filter(request => request.url.endsWith('/actions/runs/101')).length, 4);
+});
+
+test('parent failure or cancellation during bounded lineage wait never authorizes collection', async () => {
+  for (const conclusion of ['failure', 'cancelled']) {
+    const value = fixture(); child(value);
+    Object.assign(value.runs.get(100)!, { status: 'in_progress', conclusion: null });
+    await assert.rejects(prepareBackfill({ ...value.options, sleep: async ms => {
+      await value.options.sleep(ms);
+      Object.assign(value.runs.get(100)!, { status: 'completed', conclusion });
+    } }), /backfill_root_invalid/);
+    assert.equal(value.reads, 0);
+    assert.deepEqual(value.waits, [15_000]);
+  }
+});
+
+test('a lineage that never finishes times out after three minutes without reading the archive', async () => {
+  const value = fixture(); child(value);
+  Object.assign(value.runs.get(100)!, { status: 'in_progress', conclusion: null });
+  await assert.rejects(prepareBackfill(value.options), /backfill_root_invalid_timeout/);
+  assert.equal(value.reads, 0);
+  assert.equal(value.waits.reduce((sum, duration) => sum + duration, 0), 180_000);
+  assert.ok(value.requests.every(request => request.method === 'GET'));
+});
+
 test('a third tranche retains the original root deadline and dispatches through its distinct parent lineage', async () => {
   const value = fixture(); value.env.GITHUB_RUN_ID = '102';
   value.env.BACKFILL_INPUTS = JSON.stringify({ root_run_id: '100', parent_run_id: '101', chain_position: '3', expected_sequence: '7' });
