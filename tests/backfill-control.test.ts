@@ -180,6 +180,45 @@ test('wrong parent conclusion, attempt, workflow, repository, branch or run-name
   }
 });
 
+test('GitHub queued workflow status is valid while a root collection job is executing', async () => {
+  for (const event of ['schedule', 'workflow_dispatch', 'push']) {
+    const value = fixture();
+    Object.assign(value.runs.get(100)!, { event, status: 'queued', conclusion: null });
+    if (event === 'schedule') value.env.BACKFILL_INPUTS = 'null';
+    const reported: Record<string, unknown>[] = [];
+    const prepared = await prepareBackfill({ ...value.options, log: row => reported.push(row) });
+    assert.equal(prepared.collect, true);
+    assert.equal(prepared.expectedSequence, 7);
+    assert.equal(value.reads, 2);
+    assert.ok(reported.some(row => row.phase === 'backfill_current_run_status'
+      && row.apiStatus === 'queued' && row.apiConclusion === null));
+  }
+});
+
+test('queued workflow status is also accepted for a verified automatic successor', async () => {
+  const value = fixture();
+  child(value);
+  Object.assign(value.runs.get(101)!, { status: 'queued', conclusion: null });
+  const prepared = await prepareBackfill(value.options);
+  assert.equal(prepared.collect, true);
+  assert.equal(prepared.context?.position, 2);
+  assert.equal(prepared.expectedSequence, 7);
+});
+
+test('status tolerance never permits completed or concluded current runs', async () => {
+  for (const patch of [
+    { status: 'completed', conclusion: null },
+    { status: 'queued', conclusion: 'success' },
+    { status: 'in_progress', conclusion: 'failure' },
+    { status: 'waiting', conclusion: null },
+  ]) {
+    const value = fixture();
+    Object.assign(value.runs.get(100)!, patch);
+    await assert.rejects(prepareBackfill(value.options), /backfill_current_run_invalid/);
+    assert.equal(value.reads, 0);
+  }
+});
+
 test('current metadata must match its environment and intended workflow', async () => {
   for (const patch of [{ id: 900 }, { run_attempt: 2 }, { event: 'pull_request' }, { head_branch: 'feature' },
     { path: '.github/workflows/other.yml' }, { status: 'completed', conclusion: 'success' }]) {

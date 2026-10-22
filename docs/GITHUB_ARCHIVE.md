@@ -149,6 +149,23 @@ Tests use synthetic source fixtures and in-memory GitHub adapters or temporary f
 - [Concurrency queue behavior](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#concurrency) and [public-runner billing](https://docs.github.com/en/billing/concepts/product-billing/github-actions).
 - [Reusable workflows](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows).
 
+## GitHub queued-run status and safe bootstrap
+
+A GitHub Actions workflow-run REST response can report `status: "queued"` even
+after its `archive` job begins executing, while dependent jobs are still waiting.
+The collector's preparation guard accepts only `queued` or `in_progress`
+with a null conclusion, matching run attempt, full run/workflow/repository
+identity and expected continuation lineage. It logs the observed workflow-run
+status (never its token) so a future metadata mismatch is diagnosable.
+
+Changes to `scripts/backfill-control.ts` on `main`, as well as changes to
+the workflow file itself, seed a new **bounded** chain automatically. Other
+application and documentation pushes do not trigger history collection.
+The single-writer concurrency group, checkpoint-sequence fence, per-source
+cooldowns, fifteen-minute pacing and 12-run/four-hour bounds remain unchanged.
+The new chain resumes from the current durable checkpoint; it cannot reset
+the archive or double-count schemes simply by rereading an old batch.
+
 ## Duplicate prevention and safe replay
 
 The published archive is a **logical snapshot**, not a count of every HTTP request or every immutable release asset ever written:
