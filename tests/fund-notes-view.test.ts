@@ -115,13 +115,13 @@ test('fund notes isolate scheme identities and support editing without accidenta
   assert.equal(research.all().filter(node => node.type === 'article').length, 1);
   const edit = research.all().find(node => node.type === 'button' && /^Edit note from/.test(node.props['aria-label']));
   assert.ok(edit);
-  edit.props.onClick();
+  research.click(String(edit.props['aria-label']));
   research.setText('Updated analysis after NAV publication.');
   research.submit();
   assert.deepEqual(research.saved, [{ body: 'Updated analysis after NAV publication.', id: 'one' }]);
   const remove = research.all().find(node => node.type === 'button' && /^Remove note from/.test(node.props['aria-label']));
   assert.ok(remove);
-  remove.props.onClick();
+  research.click(String(remove.props['aria-label']));
   research.click('Confirm remove note');
   assert.deepEqual(research.removed, ['one']);
 });
@@ -144,7 +144,7 @@ test('full note workspace disables new notes but leaves existing edits available
   assert.equal(research.find(node => node.type === 'textarea')?.props.disabled, true);
   const edit = research.all().find(node => node.type === 'button' && /^Edit note from/.test(node.props['aria-label']));
   assert.ok(edit);
-  edit.props.onClick();
+  research.click(String(edit.props['aria-label']));
   // Editing an existing item does not increase the workspace note count.
   const editor = research.find(node => node.type === 'textarea');
   assert.equal(editor?.props.disabled, false);
