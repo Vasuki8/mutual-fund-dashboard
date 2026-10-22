@@ -1,6 +1,6 @@
 # FundScope methodology
 
-Calculation version: **1.1.0**, defined in `src/lib/analytics.ts`. This document describes the current implementation. It is a reproducibility reference for NAV-based research, not a suitability assessment or a forecast.
+Calculation version: **1.2.0**, defined in `src/lib/analytics.ts`. This document describes the current implementation. It is a reproducibility reference for NAV-based research, not a suitability assessment or a forecast.
 
 ## Data and source matrix
 
@@ -111,6 +111,14 @@ Sortino's denominator includes **all monthly periods**, including those with no 
 The UI defaults to an editable **6% annual risk-free/target assumption**, saved in research settings. It is not a historical Treasury-bill or other risk-free time series. The standalone `riskStats` function defaults to zero when no rate is supplied; UI callers supply the stored assumption explicitly. Rates are decimal fractions internally.
 
 These measures describe observed NAV behavior. They do not capture every liquidity, credit, concentration, or valuation risk. Benchmark-dependent measures require a separate, suitable return series and are absent from this release.
+
+## Historical monthly downside (Risk tab)
+
+This section uses the same **complete, consecutive-month-end NAV returns** as the monthly heatmap and risk statistics, within the selected preset or applied custom date range. The existing confirmed Growth-option and unresolved history-quality gates also apply. A failed refresh alone does not invalidate otherwise validated saved data. The section does not use synthetic returns, fill missing months, or bridge gaps.
+
+At least **12 eligible complete monthly returns** are required to show the negative-month share, longest observed losing streak and five worst observed months. The negative-month share equals the number of returns strictly below zero divided by all eligible returns; zero returns are not losses. A losing streak counts consecutive eligible **calendar months** with negative returns. A missing intervening calendar month breaks the streak. It does not imply a market recovery. The displayed worst-five table is sorted by most negative return, with observation-date ties in ascending order.
+
+With at least **60 complete monthly returns**, the panel also displays the empirical fifth-percentile monthly return (ascending values, R-7 linear interpolation at index `(n−1) × 0.05`) and the arithmetic mean of the worst `ceil(0.05 × n)` **actual observed** monthly returns. The tail mean does not interpolate cash flows or monthly observations. For shorter samples these two measures are unavailable, rather than implying high precision from a handful of months. The sample may contain gaps and is not assumed independent or stationary. These are descriptive historical observations, **not** forward-looking value-at-risk, expected shortfall forecasts, probabilities of future losses, or suitability recommendations.
 
 ## Rolling holding periods and comparison
 
