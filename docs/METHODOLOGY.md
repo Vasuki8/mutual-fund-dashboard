@@ -58,6 +58,20 @@ Within the selected window, define \(H_t=\max_{s\le t}P_s\). Drawdown is \(P_t/H
 
 Peak and trough dates identify the deepest observed episode. Recovery is the first subsequent observation at or above that episode's peak; it remains unavailable if recovery is not observed within the selected window. A later deeper episode replaces the earlier maximum-drawdown episode. Drawdown values are zero or negative.
 
+### Drawdown episodes
+
+The Risk & drawdown view also lists the five deepest observed, non-overlapping decline episodes in the selected range. The current unrecovered episode is always included; when it falls outside the five deepest, the table has six rows. Episodes are ordered by percentage decline, deepest first, then by peak date for ties. A partial rebound below the original peak does not start a new episode.
+
+An episode starts from the most recent occurrence of the running peak before NAV falls below it. Equal highs before a decline therefore use the latest peak date. The trough is the first observation at the episode's lowest NAV. Recovery is the first reported NAV at or above the episode's peak; that observation can also establish the next episode's peak. Flat or rising histories have no decline episodes. Histories with fewer than two observations cannot establish an episode.
+
+All durations use actual calendar-day differences at UTC midnight, including weekends and leap days:
+
+- **Days to trough:** peak date to trough date.
+- **Days to recover:** trough date to recovery date. This is unavailable while the episode remains unrecovered.
+- **Days below peak:** peak date to recovery date, or peak date to the last available NAV date for an unrecovered episode. The latter is marked **so far** and never extends to the current wall-clock date.
+
+The episode table resets its peak at the beginning of the selected range, as the drawdown chart does. It does not import an earlier all-history peak or use observations after the range. Dates are observed source dates; gaps can hide a deeper decline or an earlier recovery. No missing NAVs or recovery dates are estimated. The existing confirmed-Growth and data-quality requirements apply. A failed refresh alone does not block validated retained history.
+
 ## Complete monthly returns
 
 For a calendar month, take its final reported NAV only if it is no more than seven calendar days before month end. Pair it with the immediately preceding eligible month-end observation. The return is the NAV ratio minus one; a missing or stale monthly bucket is never bridged.

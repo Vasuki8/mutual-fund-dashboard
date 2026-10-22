@@ -19,7 +19,7 @@ Pages builds verify the complete snapshot and its size before publishing it. Tur
 
 ## What the application does
 
-Search by scheme name or code, distinguish Direct/Regular and Growth/IDCW options, save a local watchlist, and compare up to four funds on common reported dates. Research includes NAV/wealth/drawdown charts, absolute and annualized returns, complete-month risk statistics, rolling holding periods, monthly heatmaps, and CSV/PNG exports.
+Search by scheme name or code, distinguish Direct/Regular and Growth/IDCW options, save a local watchlist, and compare up to four funds on common reported dates. Research includes NAV/wealth/drawdown charts, absolute and annualized returns, complete-month risk statistics, rolling holding periods, monthly heatmaps, and CSV/PNG exports. The Risk & drawdown tab lists the five deepest observed decline episodes plus any current unrecovered episode, with peak/trough/recovery dates and calendar-day durations over the selected range.
 
 `All` uses the entire history available for the selected scheme. There is no 1-, 3-, or 5-year storage cutoff. Provider data gaps are not filled with invented values. Distribution-paying options show raw NAV; total-return analytics require suitable data. [Calculation rules](docs/METHODOLOGY.md) document the financial assumptions and data-quality gates.
 
