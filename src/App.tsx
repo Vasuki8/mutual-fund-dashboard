@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { MouseEvent, ReactNode } from 'react';
 import { ArrowRight, ArrowUpRight, Bookmark, Check, CircleHelp, Database, GitCompareArrows, Menu, Search, X } from 'lucide-react';
-import type { FundData, ResearchSettings, Scheme } from './lib/types.ts';
-import { MAX_FUND_NOTES, MAX_FUND_NOTE_LENGTH } from './lib/storage.ts';
+import type { AnalysisRange, FundData, ResearchSettings, SavedComparison, Scheme } from './lib/types.ts';
+import { MAX_FUND_NOTES, MAX_FUND_NOTE_LENGTH, MAX_SAVED_COMPARISONS, MAX_COMPARISON_NAME_LENGTH } from './lib/storage.ts';
 import { getFund } from './lib/api.ts';
 import { getSettings, getStorageGeneration, saveSettings, storageWarning } from './lib/storage.ts';
 import { BRAND } from './lib/catalog.ts';
@@ -79,6 +79,38 @@ export default function App() {
       notify(storageWarning()?'Note removed for this session; back up your workspace.':'Research note removed.');
     }catch(error){notify(error instanceof Error?error.message:'Research note could not be removed.');}
   },[updateSettings,notify]);
+  const saveNamedComparison=useCallback((name:string,schemes:Scheme[],range:AnalysisRange):boolean=>{
+    const trimmed=name.trim();
+    if(!trimmed||trimmed.length>MAX_COMPARISON_NAME_LENGTH){notify('Use a name between 1 and '+MAX_COMPARISON_NAME_LENGTH+' characters.');return false;}
+    if(schemes.length<2||schemes.length>4){notify('Select two to four funds first.');return false;}
+    try{
+      updateSettings(old=>{
+        const current=old.savedComparisons??[];
+        if(current.length>=MAX_SAVED_COMPARISONS)throw new Error('Your browser can store up to '+MAX_SAVED_COMPARISONS+' saved comparisons.');
+        if(current.some(item=>item.name.toLocaleLowerCase('en-US')===trimmed.toLocaleLowerCase('en-US')))throw new Error('A saved comparison already uses this name.');
+        return {...old,savedComparisons:[{id:crypto.randomUUID(),name:trimmed,schemes:structuredClone(schemes),
+          range:structuredClone(range),savedAt:new Date().toISOString()},...current]};
+      });
+      notify(storageWarning()?'Comparison saved for this session. Export your workspace backup.':'Comparison saved in this browser.');
+      return true;
+    }catch(error){notify(error instanceof Error?error.message:'Comparison could not be saved.');return false;}
+  },[notify,updateSettings]);
+  const loadNamedComparison=useCallback((item:SavedComparison)=>{
+    try{
+      updateSettings(old=>{
+        const record=(old.savedComparisons??[]).find(entry=>entry.id===item.id);
+        if(!record)throw new Error('This saved comparison is no longer available.');
+        return {...old,compared:structuredClone(record.schemes)};
+      });
+      notify('Saved fund selection and date range loaded; results use the currently available NAV history.');
+    }catch(error){notify(error instanceof Error?error.message:'Could not load saved comparison.');}
+  },[notify,updateSettings]);
+  const removeNamedComparison=useCallback((id:string)=>{
+    try{
+      updateSettings(old=>({...old,savedComparisons:(old.savedComparisons??[]).filter(item=>item.id!==id)}));
+      notify('Saved comparison removed.');
+    }catch(error){notify(error instanceof Error?error.message:'Could not remove saved comparison.');}
+  },[notify,updateSettings]);
   const restore=(value:ResearchSettings)=>{settingsRef.current=value;loaded.current={};failed.current.clear();inFlight.current.clear();setLoading([]);setFunds({});setErrors({});setSettings(value);};
   const browse=()=>navigate('explore');
   const tableProps={funds,errors,ensureFund,openFund,watchlist:settings.watchlist,compared:settings.compared,toggleWatch,toggleCompare};
@@ -114,7 +146,9 @@ export default function App() {
       {(route.page==='explore'||route.page==='watchlist')&&<Home key={route.page} {...tableProps} savedOnly={route.page==='watchlist'} initialQuery={route.query} openCompare={()=>navigate('compare')} openResearch={openFund} browse={browse}/>}
       {route.page==='fund'&&route.code&&<FundDetail key={route.code} code={route.code} fund={funds[route.code]} error={errors[route.code]} tab={route.tab??'overview'} setTab={tab=>navigate(`fund/${route.code}?tab=${tab}`)} back={browse} watchlist={settings.watchlist} compared={settings.compared} toggleWatch={toggleWatch} toggleCompare={toggleCompare} refresh={()=>void ensureFund(route.code!,true)} refreshing={loading.includes(route.code)} riskFreeRate={settings.riskFreeRate} setRiskFreeRate={rate=>updateSettings(old=>({...old,riskFreeRate:rate}))} openMethod={()=>navigate('methodology')} fundNotes={settings.fundNotes??[]}
         onSaveNote={(body,id)=>saveNote(route.code!,body,id)} onRemoveNote={id=>removeNote(route.code!,id)}/>}
-      {route.page==='compare'&&<Comparison schemes={settings.compared} funds={funds} errors={errors} ensureFund={ensureFund} toggleCompare={toggleCompare} browse={browse} openFund={openFund} riskFreeRate={settings.riskFreeRate}/>}
+      {route.page==='compare'&&<Comparison schemes={settings.compared} funds={funds} errors={errors} ensureFund={ensureFund} toggleCompare={toggleCompare} browse={browse} openFund={openFund} riskFreeRate={settings.riskFreeRate} savedComparisons={settings.savedComparisons??[]}
+        onSaveComparison={saveNamedComparison} onLoadComparison={loadNamedComparison}
+        onRemoveComparison={removeNamedComparison}/>}
       {(route.page==='methodology'||route.page==='data')&&<Methodology tab={route.page} back={browse} settings={settings} restore={restore} notify={notify} dataStatus={dataStatus}/>}
         </main>
         <DataStatus state={dataStatus} compact onOpen={()=>navigate('data')}/>

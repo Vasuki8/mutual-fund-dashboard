@@ -88,6 +88,7 @@ function view(name: 'FundDetail' | 'Comparison', overrides: Record<string, unkno
     './FundNotes.tsx': { FundNotes: () => null },
     './SelectedPeers.tsx': { SelectedPeers: () => null },
     './ReturnCorrelation.tsx': { ReturnCorrelation: () => null },
+    './SavedComparisons.tsx': { SavedComparisons: () => null },
     './AnalysisRangePicker.tsx': { RangePicker: pickerType, RangeNotice: noticeType },
     './FundDetail.tsx': { RangePicker: pickerType },
   };
