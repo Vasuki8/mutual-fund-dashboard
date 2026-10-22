@@ -23,6 +23,8 @@ export interface FundData {
   archive?: ArchiveProvenance;
 }
 export type Period = '1M' | '3M' | '6M' | '1Y' | '3Y' | '5Y' | 'MAX';
+export interface DateRange { start: string; end: string }
+export type AnalysisRange = Period | DateRange;
 export interface ResearchSettings {
   version: 1;
   watchlist: Scheme[];

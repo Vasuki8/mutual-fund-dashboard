@@ -23,6 +23,8 @@ Search by scheme name or code, distinguish Direct/Regular and Growth/IDCW option
 
 `All` uses the entire history available for the selected scheme. There is no 1-, 3-, or 5-year storage cutoff. Provider data gaps are not filled with invented values. Distribution-paying options show raw NAV; total-return analytics require suitable data. [Calculation rules](docs/METHODOLOGY.md) document the financial assumptions and data-quality gates.
 
+Choose **Custom** beside the analysis presets, enter **Start date** and **End date**, then **Apply dates** to study a specific period on a fund or comparison page. Requested dates and actual NAV dates are shown separately. Charts, selected-period statistics, drawdown episodes, and CSV exports follow the applied range. Shorter source history is disclosed, empty ranges remain empty, and partial months are excluded from monthly risk calculations. The trailing-return table and Holding periods view continue to use their explicitly labeled full available history.
+
 ## Previous hosted archive — scheduled imports paused
 
 The former hosted updater used bounded import tranches and was paused on 21 October 2026 at the owner's request. Its old hourly and twice-daily schedules must not be restored automatically. The behavior described in this section belongs to that retained implementation; it is not an active GitHub import or proof of a GitHub deployment. Historical release snapshots remain in the [release verification record](docs/RELEASE_VERIFICATION.md).

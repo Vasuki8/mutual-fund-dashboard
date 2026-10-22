@@ -8,8 +8,8 @@ This document keeps the broader product scope visible while separating it from t
 | --- | --- |
 | Explorer | MFAPI name/code search, plan/option labels, Direct Growth filter, six explicit starter examples, pagination, loading/error states. |
 | Local workspace | Watchlist, up to four comparison selections, last opened fund, editable target-rate assumption, cached histories, JSON backup/restore. |
-| Fund research | Dated NAV, selected-range wealth/NAV/drawdown, absolute and ACT/365 returns, monthly volatility/Sharpe/Sortino, maximum drawdown, five deepest decline episodes plus any unrecovered episode with calendar-day recovery durations, monthly heatmap, rolling 1/3/5-year outcomes. |
-| Comparison | Two to four eligible funds on exact common dates, equal ₹10,000 start, shared hover, visible-series controls, aligned metrics, CSV and PNG export. |
+| Fund research | Dated NAV, presets and custom start/end dates with actual coverage shown, selected-range wealth/NAV/drawdown, absolute and ACT/365 returns, monthly volatility/Sharpe/Sortino, maximum drawdown, five deepest decline episodes plus any unrecovered episode with calendar-day recovery durations, monthly heatmap, rolling 1/3/5-year outcomes. |
+| Comparison | Two to four eligible funds on exact common dates, preset/custom ranges with shorter coverage disclosed, equal ₹10,000 start, shared hover, visible-series controls, aligned metrics, CSV and PNG export. |
 | Provenance | Source links, original observation/retrieval dates, archive coverage, latest sync outcome, cache/error status, raw NAV inspection, methodology and explicit unavailable states. |
 | Shared market data | D1 indexes and R2 full histories, twice-daily scheduled catalogue refresh, resumable history archive, checkpointed failures and on-demand retrieval. |
 

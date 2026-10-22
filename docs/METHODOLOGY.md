@@ -34,6 +34,10 @@ All calculation dates are `YYYY-MM-DD`; elapsed days use UTC-midnight difference
 
 For `1M`, `3M`, `6M`, `1Y`, `3Y`, and `5Y`, the requested start is measured backward from the latest observation. Use the last reported NAV on or before that boundary, at most seven calendar days earlier. If none qualifies, a selected chart range begins with the first later available observation and discloses the shorter actual range. Historical valuation never substitutes a future NAV. `MAX` uses all available observations.
 
+**Custom dates** are available on the Overview, Risk & drawdown, Monthly returns, and comparison views. Enter real calendar start/end dates and choose **Apply dates**; drafts and invalid inputs do not change the applied analysis. The start must be on or before the end. The same seven-day preceding-NAV rule applies to the start. The final observation is the last reported NAV on or before the requested end; no later observations are used. At least one observation must fall inside the requested interval before an earlier starting baseline can be included. An interval with no observations stays empty, including a weekend-only interval with no reported NAV. It never falls back to all history.
+
+The interface shows requested dates separately from actual NAV dates and identifies preceding starts or shorter available ranges. Charts, selected-period metrics, drawdown episodes, and NAV/return exports use the same selected observations. CSV metadata records the requested range and actual observation endpoints. Comparison first intersects exact dates across all selected funds, then applies the custom range. Controls stay available when the selected range has too few observations. The full-history trailing-return table and Holding periods view remain explicitly separate; NAV inspection/export from Holding periods uses its full available history.
+
 Unavailable metrics are represented as `null` and displayed as an em dash. Missing months are not zeros. A single observation cannot establish a return, and CAGR requires at least 365 elapsed days. Displayed risk/return values must always be interpreted with their actual date range and sample count.
 
 ## Returns and illustrated wealth
@@ -78,6 +82,8 @@ For a calendar month, take its final reported NAV only if it is no more than sev
 
 Months before the latest observation's month are complete. The final month qualifies only if its last observation is the actual calendar month end, or its month precedes the current real UTC month. The seven-day month-end rule still applies. This last-month decision reads `Date.now()`; tests fix that clock. Selected histories need an eligible preceding month-end before their first monthly return can be calculated.
 
+For a custom range, a month must additionally have reached its calendar month end by the requested end date. Cutting a historical range partway through a month does not make that partial month complete simply because the current clock is later. A requested end on a calendar month end can still use an eligible preceding NAV, including a Friday observation when month end falls on a weekend. The monthly table, its CSV, and risk statistics use this same complete-month population.
+
 The heatmap shows each eligible month separately. A calendar-year total is the product of its twelve monthly growth factors minus one and is displayed only when all twelve months are present. Monthly results carry the actual NAV observation date, not an invented calendar-boundary observation.
 
 ## Monthly risk measures
@@ -112,7 +118,7 @@ Rolling analysis starts at every available observation whose full one-, three-, 
 
 The chart's horizontal identity is the **starting NAV date**. This retains distinct windows that resolve to the same ending NAV date. Hover details include both start and end dates; summary counts and best/worst/median outcomes use the same full set of completed windows.
 
-Comparison intersects exact reported dates across every selected fund first, then computes the requested period from their common endpoint. It retains only those common observations, without interpolation or forward filling. Each fund starts with ₹10,000 at the common first observation. Its table metrics use that same aligned history, which can have fewer monthly observations than an individual fund's history. At least two common dates are needed to display comparison results.
+Comparison intersects exact reported dates across every selected fund first, then computes a preset period from their common endpoint or applies the requested custom boundaries. It retains only those common observations, without interpolation or forward filling. Each fund starts with ₹10,000 at the common first observation. Its table metrics use that same aligned history, which can have fewer monthly observations than an individual fund's history. At least two common dates are needed to display comparison results.
 
 ## Reproducibility
 
