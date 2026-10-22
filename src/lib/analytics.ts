@@ -1,4 +1,4 @@
-import type { NavPoint, Period } from './types.ts';
+import type { AnalysisRange, DateRange, NavPoint, Period } from './types.ts';
 
 export const CALCULATION_VERSION = '1.0.0';
 
@@ -79,6 +79,28 @@ export function selectPeriod(points: NavPoint[], period: Period): NavPoint[] {
   const index = predecessorIndex(points, target);
   const eligible = index >= 0 && daysBetween(points[index].date, target) <= MAX_PRECEDING_DAYS;
   return points.slice(eligible ? index : index + 1);
+}
+
+export function validateDateRange(range: DateRange): string | null {
+  if (!range.start || !range.end) return 'Choose both a start date and an end date.';
+  for (const [label, value] of [['Start', range.start], ['End', range.end]]) {
+    const error = `${label} date must be a valid calendar date in YYYY-MM-DD format (years 0001–9999).`;
+    if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return error;
+    const [year, month, day] = dateParts(value);
+    if (year < 1 || month < 1 || month > 12 || day < 1 || day > daysInMonth(year, month)) return error;
+  }
+  return range.start > range.end ? 'Start date must be on or before the end date.' : null;
+}
+
+/** Custom ranges need a NAV inside the requested interval before adding an eligible preceding baseline. */
+export function selectRange(points: NavPoint[], range: AnalysisRange): NavPoint[] {
+  if (typeof range === 'string') return selectPeriod(points, range);
+  if (validateDateRange(range) !== null || !points.length) return [];
+  const endIndex = predecessorIndex(points, range.end);
+  if (endIndex < 0 || points[endIndex].date < range.start) return [];
+  const startIndex = predecessorIndex(points, range.start);
+  const eligible = startIndex >= 0 && daysBetween(points[startIndex].date, range.start) <= MAX_PRECEDING_DAYS;
+  return points.slice(eligible ? startIndex : startIndex + 1, endIndex + 1);
 }
 
 export function absoluteReturn(points: NavPoint[]): number | null {
@@ -196,7 +218,8 @@ export function selectDrawdownEpisodes(episodes: DrawdownEpisode[], limit = 5): 
   return selected;
 }
 
-export function monthlyReturns(points: NavPoint[]): { year: number; month: number; date: string; value: number }[] {
+/** An explicit cutoff excludes partial historical months from custom analysis. */
+export function monthlyReturns(points: NavPoint[], throughDate?: string): { year: number; month: number; date: string; value: number }[] {
   if (points.length < 2) return [];
   const lastInMonth = new Map<number, NavPoint>();
   for (const point of points) {
@@ -213,7 +236,8 @@ export function monthlyReturns(points: NavPoint[]): { year: number; month: numbe
     const month = index - year * 12 + 1;
     const end = formatDate(year, month, daysInMonth(year, month));
     const complete = index < latestMonthIndex || point.date === end || index < currentMonthIndex;
-    if (complete && daysBetween(point.date, end) <= MAX_PRECEDING_DAYS) eligible.set(index, point);
+    const withinCutoff = throughDate === undefined || end <= throughDate;
+    if (complete && withinCutoff && daysBetween(point.date, end) <= MAX_PRECEDING_DAYS) eligible.set(index, point);
   }
   const returns: { year: number; month: number; date: string; value: number }[] = [];
   for (const [index, point] of eligible) {
@@ -225,11 +249,11 @@ export function monthlyReturns(points: NavPoint[]): { year: number; month: numbe
   return returns;
 }
 
-export function riskStats(points: NavPoint[], annualRiskFreeRate = 0): {
+export function riskStats(points: NavPoint[], annualRiskFreeRate = 0, throughDate?: string): {
   volatility: number | null; sharpe: number | null; sortino: number | null;
   monthlyCount: number; positiveMonths: number; bestMonth: number | null; worstMonth: number | null;
 } {
-  const returns = monthlyReturns(points).map(point => point.value);
+  const returns = monthlyReturns(points, throughDate).map(point => point.value);
   const monthlyCount = returns.length;
   const summaries = {
     monthlyCount,
@@ -272,14 +296,14 @@ export function rollingReturns(points: NavPoint[], years: number): { start: stri
   return returns;
 }
 
-export function alignFunds(series: NavPoint[][], period: Period): {
+export function alignFunds(series: NavPoint[][], period: AnalysisRange): {
   dates: string[]; series: NavPoint[][]; start: string | null; end: string | null;
 } {
   const empty = { dates: [], series: series.map(() => []), start: null, end: null };
   if (!series.length || series.some(points => !points.length)) return empty;
   const lookups = series.map(points => new Map(points.map(point => [point.date, point])));
   const commonPoints = series[0].filter(point => lookups.every(lookup => lookup.has(point.date)));
-  const selected = selectPeriod(commonPoints, period);
+  const selected = selectRange(commonPoints, period);
   if (!selected.length) return empty;
   const dates = selected.map(point => point.date);
   return {

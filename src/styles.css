@@ -312,6 +312,17 @@ svg { flex-shrink: 0; }
 .range-picker button, .segmented button { min-width: 0; min-height: 26px; padding: 4px 8px; border-radius: 2px; color: var(--muted); font-size: 11px; white-space: nowrap; }
 .range-picker button:hover, .segmented button:hover:not(:disabled) { color: var(--text); background: var(--graphite-raised); }
 .range-picker button.selected, .range-picker button[aria-pressed='true'], .segmented button.active { color: var(--graphite-accent); background: var(--graphite-selected); }
+.analysis-range-controls { display: flex; flex: 0 1 456px; flex-direction: column; align-items: flex-end; gap: 8px; min-width: 0; max-width: 100%; }
+.custom-range-form { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr) auto; align-items: end; gap: 8px; width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 4px; background: var(--graphite-panel); }
+.custom-range-field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.custom-range-field label { color: var(--muted); font-size: 11px; }
+.custom-range-field input { width: 100%; min-height: 30px; color-scheme: dark; font: 12px var(--graphite-numeric-font); }
+.custom-range-field input[aria-invalid='true'] { border-color: var(--negative); }
+.custom-range-actions .button { min-height: 30px; }
+.custom-range-help, .custom-range-error { grid-column: 1 / -1; margin: 0; font-size: 11px; line-height: 1.5; overflow-wrap: anywhere; }
+.custom-range-help { color: var(--muted); }
+.custom-range-error { color: var(--negative); }
+.range-notice { display: block; }
 .metrics-strip { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 8px; margin-bottom: 12px; background: transparent; border: 0; border-radius: 0; overflow: visible; }
 .metric { display: flex; flex-direction: column; gap: 4px; min-width: 0; padding: 10px 11px; border: 1px solid var(--line); border-radius: 5px; background: var(--graphite-panel); }
 .metric-label { display: flex; align-items: center; gap: 4px; color: var(--muted); font-size: 11px; }
@@ -557,8 +568,13 @@ svg { flex-shrink: 0; }
   .detail-tabs > button { min-height: 44px; }
   .detail-tabs .method-link { margin-left: 0; }
   .analysis-toolbar > div:first-child { align-items: flex-start; flex-direction: column; gap: 4px; }
-  .range-picker { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); width: 100%; }
+  .analysis-range-controls { flex-basis: 100%; width: 100%; align-items: stretch; }
+  .range-picker { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); width: 100%; }
   .range-picker button, .segmented button { min-height: 44px; padding: 6px; }
+  .custom-range-form { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .custom-range-field input { min-height: 44px; font-size: 16px; }
+  .custom-range-actions { grid-column: 1 / -1; }
+  .custom-range-actions .button { width: 100%; min-height: 44px; }
   .segmented { flex-wrap: wrap; }
   .segmented button { flex: 1; }
   .metrics-strip { grid-template-columns: repeat(2,minmax(0,1fr)); }
@@ -610,6 +626,7 @@ svg { flex-shrink: 0; }
   .brand > span:last-child { font-size: 16px; }
   .sidebar-link { flex-basis: 120px; }
   .range-picker { grid-template-columns: repeat(4,minmax(0,1fr)); }
+  .custom-range-form { grid-template-columns: minmax(0,1fr); }
   .metric > strong { font-size: 21px; }
   .metric-label { align-items: flex-start; }
   .metric-label > span { margin-top: 2px; }
