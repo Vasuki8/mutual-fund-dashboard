@@ -105,6 +105,8 @@ export function createSource(options: { fetch?: typeof fetch; now?: () => number
 }
 interface TrancheOptions {
   store: ArchiveStore;
+  /** Fence a prepared workflow run before any source request; undefined preserves standalone use. */
+  expectedSequence?: number | null;
   /** Transports notify onStart once immediately before their first request; never on deferral. */
   source?: (path: string, onStart?: () => void) => Promise<unknown>;
   now?: () => number;
@@ -119,6 +121,8 @@ export interface TrancheResult {
   changed: boolean;
   sequence: number | null;
   attempted: number;
+  firstAttempted: number;
+  historiesAdded: number;
   deferred: number;
   counts: ArchiveCheckpoint['counts'] | null;
   lastCatalogueError: string | null;
@@ -133,6 +137,9 @@ export async function runTranche(options: TrancheOptions): Promise<TrancheResult
   const source = options.source ?? createSource({ now, deadline: workDeadline });
   const log = options.log ?? (() => {});
   const previous = await options.store.loadSnapshot();
+  if (options.expectedSequence !== undefined && (previous?.checkpoint.sequence ?? null) !== options.expectedSequence) {
+    throw new Error('checkpoint_conflict');
+  }
   let catalogue: Catalogue | null = previous?.catalogue ?? null;
   let catalogueRef = previous?.checkpoint.catalogue ?? null;
   let slot = previous?.checkpoint.catalogueSlot ?? catalogueSlot(now());
@@ -170,7 +177,7 @@ export async function runTranche(options: TrancheOptions): Promise<TrancheResult
       changed ||= catalogueError !== previous?.checkpoint.lastCatalogueError;
     }
   }
-  if (!catalogue || !catalogueRef) return { changed: false, sequence: null, attempted: 0, deferred: 0, counts: null,
+  if (!catalogue || !catalogueRef) return { changed: false, sequence: null, attempted: 0, firstAttempted: 0, historiesAdded: 0, deferred: 0, counts: null,
     lastCatalogueError: catalogueError, sourceRetryAt };
   const states = structuredClone(previous?.checkpoint.states ?? {}) as Record<string, ArchiveSchemeState>;
   for (const entry of catalogue.entries) states[entry.schemeCode] ??= pendingState(entry.schemeCode);
@@ -185,7 +192,7 @@ export async function runTranche(options: TrancheOptions): Promise<TrancheResult
       validateShardStates(shard, states); loaded.set(bucket, structuredClone(shard));
     } else loaded.set(bucket, { version: 2, bucket, records: [] });
   }
-  let cursor = 0, attempted = 0;
+  let cursor = 0, attempted = 0, firstAttempted = 0;
   const changedBuckets = new Set<string>();
   await Promise.all(Array.from({ length: 2 }, async () => {
     for (;;) {
@@ -197,6 +204,7 @@ export async function runTranche(options: TrancheOptions): Promise<TrancheResult
       const onStart = () => {
         if (started) return;
         at = new Date(now()).toISOString(); started = true;
+        if (state.attempts === 0) firstAttempted += 1;
         state.attempts += 1; state.lastAttemptAt = at; attempted += 1; changed = true;
       };
       try {
@@ -236,7 +244,7 @@ export async function runTranche(options: TrancheOptions): Promise<TrancheResult
       if (!options.source && now() + 150 < workDeadline) await sleep(150);
     }
   }));
-  if (!changed) return { changed: false, sequence: previous?.checkpoint.sequence ?? null, attempted: 0,
+  if (!changed) return { changed: false, sequence: previous?.checkpoint.sequence ?? null, attempted: 0, firstAttempted: 0, historiesAdded: 0,
     deferred: selected.length, counts: previous?.checkpoint.counts ?? null, lastCatalogueError: catalogueError, sourceRetryAt };
   for (const bucket of [...changedBuckets].sort((a, b) => Number(a) - Number(b))) {
     const shard = validateHistoryShard(loaded.get(bucket), bucket);
@@ -251,7 +259,8 @@ export async function runTranche(options: TrancheOptions): Promise<TrancheResult
   await options.store.commitCheckpoint(checkpoint, previous?.checkpoint.sequence ?? null);
   const saved = await options.store.loadSnapshot();
   if (!saved || JSON.stringify(saved.checkpoint) !== JSON.stringify(checkpoint)) throw new Error('checkpoint_readback_invalid');
-  return { changed: true, sequence: checkpoint.sequence, attempted, deferred: selected.length - attempted,
+  return { changed: true, sequence: checkpoint.sequence, attempted, firstAttempted,
+    historiesAdded: checkpoint.counts.saved - (previous?.checkpoint.counts.saved ?? 0), deferred: selected.length - attempted,
     counts: checkpoint.counts, lastCatalogueError: catalogueError, sourceRetryAt };
 }
 
@@ -268,14 +277,21 @@ async function main(): Promise<void> {
     return;
   }
   const deadline = Date.now() + WORK_MS;
+  const expected = process.env.EXPECTED_SEQUENCE;
+  if (expected !== undefined && expected !== 'none' && (!/^[1-9]\d*$/.test(expected) || !Number.isSafeInteger(Number(expected)))) {
+    throw new Error('expected_sequence_invalid');
+  }
+  const expectedSequence = expected === undefined ? undefined : expected === 'none' ? null : Number(expected);
   const store = createGitHubStore({ repository: process.env.GITHUB_REPOSITORY!, token: process.env.GITHUB_TOKEN ?? '', deadline });
-  const result = await runTranche({ store, deadline, log: event => process.stdout.write(JSON.stringify(event) + '\n') });
+  const result = await runTranche({ store, deadline, expectedSequence, log: event => process.stdout.write(JSON.stringify(event) + '\n') });
   process.stdout.write(JSON.stringify({ phase: 'verified', ...result }) + '\n');
-  if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT, `changed=${result.changed}\nsequence=${result.sequence ?? ''}\n`);
+  if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT,
+    `changed=${result.changed}\nsequence=${result.sequence ?? ''}\nresult=${JSON.stringify(result)}\n`);
   if (process.env.GITHUB_STEP_SUMMARY) {
     const counts = result.counts;
     const summary = ['## FundScope verified archive tranche', '',
       `Checkpoint: ${result.sequence ?? 'none'} · Source histories attempted in this tranche: ${result.attempted} · Deferred: ${result.deferred}.`, '',
+      `First attempts: ${result.firstAttempted} · Newly saved histories: ${result.historiesAdded}.`, '',
       counts ? `Saved **${counts.saved} / ${counts.total}** histories; ${counts.pending} await a first attempt, ${counts.sourceGaps} have source failures, ${counts.qualityIssues} have saved quality issues, and ${counts.refreshPending} saved histories need refresh or follow-up.` : 'No catalogue or history checkpoint has been saved.', '',
       result.sourceRetryAt ? `Source requests are paused until ${result.sourceRetryAt}.` : '',
       counts?.coverageComplete ? 'All currently catalogued histories passed the saved checkpoint checks. This does not independently establish the completeness of MFAPI’s upstream history.' : 'Full data coverage is not verified. Source gaps remain visible.', ''].filter(Boolean).join('\n\n');
