@@ -36,7 +36,7 @@ export function ReturnCorrelation({ funds, range, requestedPeriod }: Props) {
     </div>
     <div className="small-notice">
       Pearson correlation ranges from −1 (opposite historical moves) to +1 (similar moves). Each pair needs at least
-      12 **complete, matching calendar-month returns**; months with missing data are excluded. A result is descriptive,
+      <strong>12 complete, matching calendar-month returns</strong>; months with missing data are excluded. A result is descriptive,
       not a forecast or guarantee of diversification.
     </div>
     <div className="table-scroll" role="region" aria-label="Monthly return correlation matrix" tabIndex={0}>
