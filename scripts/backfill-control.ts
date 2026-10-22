@@ -93,7 +93,14 @@ export async function prepareBackfill(options: Options): Promise<Prepared> {
     return metadata(cache.get(id), id, workflowId);
   };
   const current = await loadRun(runId);
-  requireValue(current.status === 'in_progress' && current.conclusion === null && current.run_attempt === runAttempt,
+  // GitHub's workflow-level REST status can remain "queued" while this archive
+  // job is already executing (other dependent jobs have not started yet).
+  // Validate identity, attempt and absence of a conclusion; do not require
+  // the workflow-level status to have caught up with the running job.
+  log({ phase: 'backfill_current_run_status', runId, runAttempt, apiStatus: current.status,
+    apiConclusion: current.conclusion });
+  requireValue(['queued', 'in_progress'].includes(String(current.status))
+    && current.conclusion === null && current.run_attempt === runAttempt,
     'backfill_current_run_invalid');
   const provided = inputs(options.env.BACKFILL_INPUTS, current.event);
   const rootRunId = provided?.root_run_id ?? runId; const parentRunId = provided?.parent_run_id ?? null;
