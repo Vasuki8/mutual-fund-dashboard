@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { monthlyDownsideStats, monthlyReturns } from '../src/lib/analytics.ts';
 
@@ -85,8 +86,7 @@ test('source month-end selection never invents missing returns for downside coun
 });
 
 test('risk panel renders the lower-tail labels and explicit eligibility gates', () => {
-  const fs = require('node:fs');
-  const source = fs.readFileSync(new URL('../src/components/FundDetail.tsx', import.meta.url), 'utf8');
+  const source = readFileSync(new URL('../src/components/FundDetail.tsx', import.meta.url), 'utf8');
   assert.match(source, /Historical monthly downside/);
   assert.match(source, /5th-percentile month/);
   assert.match(source, /Worst 5% mean/);
