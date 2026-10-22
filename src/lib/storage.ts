@@ -1,4 +1,4 @@
-import type { FundData, FundMeta, FundNote, NavPoint, ResearchSettings, Scheme } from './types.ts';
+import type { AnalysisRange, FundData, FundMeta, FundNote, NavPoint, ResearchSettings, SavedComparison, Scheme } from './types.ts';
 import { validateArchiveProvenance } from './provenance.ts';
 
 const DATABASE = 'fundscope-research-v1';
@@ -10,6 +10,8 @@ const MAX_TOTAL_POINTS = 500_000;
 const MAX_SEARCHES = 200;
 export const MAX_FUND_NOTES = 120;
 export const MAX_FUND_NOTE_LENGTH = 3000;
+export const MAX_SAVED_COMPARISONS = 24;
+export const MAX_COMPARISON_NAME_LENGTH = 80;
 
 type JsonObject = Record<string, unknown>;
 export interface SearchCache { schemes: Scheme[]; fetchedAt: string }
@@ -236,6 +238,46 @@ function validateFundNotes(value: unknown): FundNote[] {
   });
 }
 
+function validateSavedRange(value: unknown): AnalysisRange {
+  if (typeof value === 'string') {
+    if (['1M', '3M', '6M', '1Y', '3Y', '5Y', 'MAX'].includes(value)) return value as AnalysisRange;
+    throw new Error('Invalid saved comparison period.');
+  }
+  const range = object(value, 'saved comparison date range');
+  if (Object.keys(range).length !== 2 || !Object.hasOwn(range, 'start') || !Object.hasOwn(range, 'end')) {
+    throw new Error('Invalid saved comparison date range.');
+  }
+  const start = isoCalendarDate(range.start, 'iso');
+  const end = isoCalendarDate(range.end, 'iso');
+  if (!start || !end || start > end) throw new Error('Invalid saved comparison date range.');
+  return { start, end };
+}
+
+function validateSavedComparisons(value: unknown): SavedComparison[] {
+  if (!Array.isArray(value) || value.length > MAX_SAVED_COMPARISONS) {
+    throw new Error('Invalid saved comparisons: maximum 24.');
+  }
+  const ids = new Set<string>();
+  const names = new Set<string>();
+  return value.map(raw => {
+    const saved = object(raw, 'saved comparison');
+    const id = text(saved.id, 'saved comparison ID', 64);
+    const name = text(saved.name, 'saved comparison name', MAX_COMPARISON_NAME_LENGTH);
+    const key = name.trim().toLocaleLowerCase('en-US');
+    if (!/^[A-Za-z0-9_-]+$/.test(id) || ids.has(id)) throw new Error('Duplicate or invalid saved comparison ID.');
+    if (name !== name.trim() || /[\x00-\x1f\x7f]/.test(name) || names.has(key)) {
+      throw new Error('Duplicate or invalid saved comparison name.');
+    }
+    ids.add(id);
+    names.add(key);
+    const schemes = schemeList(saved.schemes, 4, 'saved comparison');
+    if (schemes.length < 2) throw new Error('A saved comparison must include at least two distinct funds.');
+    const range = validateSavedRange(saved.range);
+    const savedAt = timestamp(saved.savedAt, 'saved comparison date');
+    return { id, name, schemes, range, savedAt };
+  });
+}
+
 function validateSettings(value: unknown): ResearchSettings {
   const item = object(value, 'research settings');
   if (item.version !== 1) throw new Error('Unsupported settings version.');
@@ -244,7 +286,8 @@ function validateSettings(value: unknown): ResearchSettings {
   }
   return { version: 1, watchlist: schemeList(item.watchlist, 100, 'watchlist'), compared: schemeList(item.compared, 4, 'comparisons'),
     riskFreeRate: item.riskFreeRate, lastFund: item.lastFund === null ? null : validateScheme(item.lastFund),
-    ...(item.fundNotes !== undefined ? { fundNotes: validateFundNotes(item.fundNotes) } : {}) };
+    ...(item.fundNotes !== undefined ? { fundNotes: validateFundNotes(item.fundNotes) } : {}),
+    ...(item.savedComparisons !== undefined ? { savedComparisons: validateSavedComparisons(item.savedComparisons) } : {}) };
 }
 
 function defaultSettings(): ResearchSettings {

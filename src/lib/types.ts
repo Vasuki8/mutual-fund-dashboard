@@ -33,6 +33,14 @@ export interface FundNote {
   updatedAt: string;
 }
 
+export interface SavedComparison {
+  id: string;
+  name: string;
+  schemes: Scheme[];
+  range: AnalysisRange;
+  savedAt: string;
+}
+
 export interface ResearchSettings {
   version: 1;
   watchlist: Scheme[];
@@ -41,4 +49,5 @@ export interface ResearchSettings {
   lastFund: Scheme | null;
   // Optional for backwards compatibility with version-1 settings and backups.
   fundNotes?: FundNote[];
+  savedComparisons?: SavedComparison[];
 }
