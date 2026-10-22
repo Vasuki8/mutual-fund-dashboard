@@ -30,6 +30,8 @@ test('monthly Pearson matrix uses twelve paired complete months, with symmetric 
   const matrix = returnCorrelationMatrix([fund(100001, alternating),fund(100002, reverse)], 'MAX');
   assert.deepEqual(matrix.schemeCodes, [100001, 100002]);
   assert.equal(matrix.cells[0][1].pairedMonths, 12);
+  assert.equal(matrix.cells[0][1].firstMonth, '2023-02');
+  assert.equal(matrix.cells[0][1].lastMonth, '2024-01');
   assert.equal(matrix.cells[1][0].pairedMonths, 12);
   close(matrix.cells[0][0].correlation, 1);
   close(matrix.cells[1][1].correlation, 1);

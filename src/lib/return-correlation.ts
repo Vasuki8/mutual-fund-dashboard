@@ -5,6 +5,8 @@ import { qualityBlocked } from './format.ts';
 export interface ReturnCorrelationCell {
   correlation: number | null;
   pairedMonths: number;
+  firstMonth: string | null;
+  lastMonth: string | null;
   reason: string | null;
 }
 export interface ReturnCorrelationMatrix {
@@ -15,14 +17,20 @@ export interface ReturnCorrelationMatrix {
 }
 const MIN_PAIRED_MONTHS = 12;
 function monthIndex(year: number, month: number): number { return year * 12 + month - 1; }
+function monthLabel(index: number): string {
+  const year = Math.floor(index / 12);
+  return String(year).padStart(4, '0') + '-' + String(index - year * 12 + 1).padStart(2, '0');
+}
 
 /** Pearson correlation of independently validated and paired complete calendar-month NAV returns. */
 function pairedCorrelation(left: Map<number, number>, right: Map<number, number>): ReturnCorrelationCell {
-  const matched = [...left].filter(([month]) => right.has(month))
-    .map(([month, value]) => [value, right.get(month)!] as const);
+  const matchedKeys = [...left.keys()].filter(month => right.has(month)).sort((a, b) => a - b);
+  const matched = matchedKeys.map(month => [left.get(month)!, right.get(month)!] as const);
   const count = matched.length;
+  const firstMonth = count ? monthLabel(matchedKeys[0]) : null;
+  const lastMonth = count ? monthLabel(matchedKeys[count - 1]) : null;
   if (count < MIN_PAIRED_MONTHS) {
-    return { correlation: null, pairedMonths: count,
+    return { correlation: null, pairedMonths: count, firstMonth, lastMonth,
       reason: 'Requires at least 12 calendar months with complete returns for both funds.' };
   }
   const meanLeft = matched.reduce((sum, point) => sum + point[0], 0) / count;
@@ -34,14 +42,14 @@ function pairedCorrelation(left: Map<number, number>, right: Map<number, number>
   }
   const denominator = Math.sqrt(xx * yy);
   if (!Number.isFinite(denominator) || denominator === 0) {
-    return { correlation: null, pairedMonths: count,
+    return { correlation: null, pairedMonths: count, firstMonth, lastMonth,
       reason: 'Return variation is zero or unusable for a correlation coefficient.' };
   }
   const result = xy / denominator;
   if (!Number.isFinite(result)) {
-    return { correlation: null, pairedMonths: count, reason: 'Correlation is not finite.' };
+    return { correlation: null, pairedMonths: count, firstMonth, lastMonth, reason: 'Correlation is not finite.' };
   }
-  return { correlation: Math.max(-1, Math.min(1, result)), pairedMonths: count, reason: null };
+  return { correlation: Math.max(-1, Math.min(1, result)), pairedMonths: count, firstMonth, lastMonth, reason: null };
 }
 
 /**
@@ -61,7 +69,7 @@ export function returnCorrelationMatrix(funds: FundData[], period: AnalysisRange
   });
   const cells = funds.map((fund, i) => funds.map((_, j): ReturnCorrelationCell => {
     if (!eligible[i] || !eligible[j]) {
-      return { correlation: null, pairedMonths: 0,
+      return { correlation: null, pairedMonths: 0, firstMonth: null, lastMonth: null,
         reason: 'Growth options with independently validated NAV histories and distinct scheme codes are required.' };
     }
     return pairedCorrelation(months[i], months[j]);
