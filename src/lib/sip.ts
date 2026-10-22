@@ -139,6 +139,9 @@ export function simulateSip(points: NavPoint[], range: AnalysisRange, monthlyAmo
   const invested = contributions.reduce((sum, item) => sum + item.amount, 0);
   const units = contributions.reduce((sum, item) => sum + item.units, 0);
   const endingValue = units * selected[selected.length - 1].nav;
+  if (![invested, units, endingValue].every(Number.isFinite)) {
+    return empty('Simulated units or terminal value exceed a safe numeric range.', requestedStart, requestedEnd);
+  }
   const timeline: SipSnapshot[] = [];
   let currentUnits = 0, currentInvested = 0, index = 0;
   for (const point of selected) {

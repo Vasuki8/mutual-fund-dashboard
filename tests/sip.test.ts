@@ -120,3 +120,12 @@ test('custom final NAV never includes a newer observation beyond the end date', 
   assert.ok(fixed.contributions.every(row=>row.navDate<='2024-01-01'));
   assert.equal(simulateSip(points,'MAX',1000).valuationDate,'2025-01-01');
 });
+
+
+test('extreme NAV units never turn into an infinite simulated return or value', () => {
+  const result = simulateSip([nav('2024-01-01', Number.MIN_VALUE),
+    nav('2024-02-01', Number.MIN_VALUE)], 'MAX', 1000);
+  assert.match(result.reason ?? '', /safe numeric range/);
+  assert.equal(result.endingValue, null);
+  assert.equal(result.annualizedXirr, null);
+});

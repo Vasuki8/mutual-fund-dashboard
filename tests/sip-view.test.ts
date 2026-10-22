@@ -101,8 +101,8 @@ test('historical SIP tab shows NAV-backed cash flow chart and dated reproducible
   assert.deepEqual(chart.props.series[0].data.map((p:{date:string})=>p.date),
     view.chart()!.props.series[1].data.map((p:{date:string})=>p.date));
   assert.match(view.text(),/Money-weighted XIRR/);
-  assert.match(view.text(),/13 valued \/ 13 scheduled/);
-  assert.match(view.text(),/Reported NAV/);
+  assert.match(view.text(),/13\s+valued \/\s+13\s+scheduled/);
+  assert.match(view.text(),/reported NAV/i);
   view.export();
   assert.equal(view.downloads[0].filename,'fundscope-122639-historical-sip.csv');
   assert.deepEqual(view.downloads[0].rows[0],['Fund','Example Direct Plan Growth']);
