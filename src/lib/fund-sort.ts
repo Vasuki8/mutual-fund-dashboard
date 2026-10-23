@@ -1,9 +1,9 @@
 import type { HistoryDocument } from '../../server/types.ts';
 import type { FundData, Scheme } from './types.ts';
-import { isGrowthScheme, trailingReturn } from './analytics.ts';
+import { isGrowthScheme, trailingReturn, threeYearMaxDrawdown } from './analytics.ts';
 import { qualityBlocked } from './format.ts';
 
-export type FundSortKey = 'name' | '1' | '3' | '5';
+export type FundSortKey = 'name' | '1' | '3' | '5' | 'dd3';
 export interface FundSort { key: FundSortKey; desc: boolean }
 export interface FundReturns {
   schemeCode: number;
@@ -11,9 +11,11 @@ export interface FundReturns {
   oneYear: number | null;
   threeYear: number | null;
   fiveYear: number | null;
+  /** Absent from historical version-1 ranking indexes. */
+  threeYearMaxDrawdown?: number | null;
 }
 export interface ArchivedReturnIndex {
-  version: 1;
+  version: 1 | 2;
   source: 'mfapi.in';
   sequence: number;
   catalogueFetchedAt: string;
@@ -21,8 +23,8 @@ export interface ArchivedReturnIndex {
 }
 export type FundReturnLookup = Record<number, FundReturns>;
 
-const keys: Record<Exclude<FundSortKey, 'name'>, keyof Pick<FundReturns, 'oneYear' | 'threeYear' | 'fiveYear'>> = {
-  '1': 'oneYear', '3': 'threeYear', '5': 'fiveYear',
+const keys: Record<Exclude<FundSortKey, 'name'>, keyof Pick<FundReturns, 'oneYear' | 'threeYear' | 'fiveYear' | 'threeYearMaxDrawdown'>> = {
+  '1': 'oneYear', '3': 'threeYear', '5': 'fiveYear', 'dd3': 'threeYearMaxDrawdown',
 };
 
 /** Use the exact NAV and quality gates as a fund's detail view. */
@@ -32,7 +34,8 @@ export function localFundReturns(fund: FundData): FundReturns {
   return { schemeCode: fund.meta.schemeCode, navDate,
     oneYear: safe ? trailingReturn(fund.points, 1) : null,
     threeYear: safe ? trailingReturn(fund.points, 3) : null,
-    fiveYear: safe ? trailingReturn(fund.points, 5) : null };
+    fiveYear: safe ? trailingReturn(fund.points, 5) : null,
+    threeYearMaxDrawdown: safe ? threeYearMaxDrawdown(fund.points) : null };
 }
 
 /** Published historical returns never substitute a future NAV or an IDCW cash distribution. */
@@ -44,7 +47,8 @@ export function archivedFundReturns(doc: HistoryDocument): FundReturns | null {
     + row.date.slice(3, 5) + '-' + row.date.slice(0, 2), nav: Number(row.nav) })).reverse();
   return { schemeCode: doc.schemeCode, navDate: doc.coverageEnd,
     oneYear: trailingReturn(points, 1), threeYear: trailingReturn(points, 3),
-    fiveYear: trailingReturn(points, 5) };
+    fiveYear: trailingReturn(points, 5),
+    threeYearMaxDrawdown: threeYearMaxDrawdown(points) };
 }
 
 const calendarDate = (value: unknown): value is string => typeof value === 'string'
@@ -56,7 +60,7 @@ export function validateReturnIndex(value: unknown, sequence: number, catalogueF
   knownCodes: Set<number>, cleanCount: number): FundReturnLookup {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Invalid archived return index.');
   const record = value as Record<string, unknown>;
-  if (record.version !== 1 || record.source !== 'mfapi.in' || record.sequence !== sequence
+  if (![1, 2].includes(record.version as number) || record.source !== 'mfapi.in' || record.sequence !== sequence
     || record.catalogueFetchedAt !== catalogueFetchedAt || !Array.isArray(record.entries)
     || record.entries.length > cleanCount || record.entries.length > 100_000) {
     throw new Error('Archived return index does not match the verified checkpoint.');
@@ -77,10 +81,20 @@ export function validateReturnIndex(value: unknown, sequence: number, catalogueF
         throw new Error('Archived return value is not finite or valid.');
       }
     }
+    // A v2 index must explicitly carry a bounded downside metric for every
+    // eligible fund. Existing v1 indexes remain readable without fabricating it.
+    if (record.version === 2 && (item.threeYearMaxDrawdown === undefined
+      || item.threeYearMaxDrawdown !== null
+        && (typeof item.threeYearMaxDrawdown !== 'number'
+          || !Number.isFinite(item.threeYearMaxDrawdown)
+          || item.threeYearMaxDrawdown <= -1 || item.threeYearMaxDrawdown > 0))) {
+      throw new Error('Archived three-year maximum drawdown value is invalid.');
+    }
     lastCode = item.schemeCode;
     result[lastCode] = { schemeCode: lastCode, navDate: item.navDate,
       oneYear: item.oneYear as number | null, threeYear: item.threeYear as number | null,
-      fiveYear: item.fiveYear as number | null };
+      fiveYear: item.fiveYear as number | null,
+      ...(record.version === 2 ? { threeYearMaxDrawdown: item.threeYearMaxDrawdown as number | null } : {}) };
   }
   return result;
 }
