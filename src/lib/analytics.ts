@@ -1,6 +1,6 @@
 import type { AnalysisRange, DateRange, NavPoint, Period } from './types.ts';
 
-export const CALCULATION_VERSION = '1.3.0';
+export const CALCULATION_VERSION = '1.4.0';
 
 const MILLISECONDS_PER_DAY = 86_400_000;
 const MAX_PRECEDING_DAYS = 7;
@@ -123,6 +123,17 @@ export function trailingReturn(points: NavPoint[], years: number): number | null
   const start = eligiblePredecessor(points, target);
   if (!start) return null;
   return years === 1 ? absoluteReturn([start, end]) : cagr([start, end]);
+}
+
+/**
+ * Largest observed peak-to-trough NAV decline over the trailing 3Y window.
+ * Require the same eligible preceding NAV as the published 3Y CAGR; a
+ * shorter history is never labeled as a full three-year drawdown.
+ * No missing intermediate NAV values are imputed.
+ */
+export function threeYearMaxDrawdown(points: NavPoint[]): number | null {
+  if (trailingReturn(points, 3) === null) return null;
+  return drawdownStats(selectPeriod(points, '3Y')).maxDrawdown;
 }
 
 export function drawdownSeries(points: NavPoint[]): { date: string; value: number }[] {
