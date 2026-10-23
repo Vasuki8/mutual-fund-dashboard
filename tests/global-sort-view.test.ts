@@ -35,6 +35,7 @@ function pageView(hasIndex = true, savedOnly = true) {
         }];
       },
       useMemo: (fn:()=>unknown) => fn(),
+      useRef: (value:unknown)=>({current:value}),
       useEffect(run:()=>void|(()=>void),deps:unknown[]) {
         const at=effectIndex++, prev=effects[at];
         if(prev&&prev.deps.length===deps.length&&deps.every((value,i)=>Object.is(value,prev.deps[i])))return;
@@ -57,7 +58,7 @@ function pageView(hasIndex = true, savedOnly = true) {
     assert.ok(name in dependencies, 'Unexpected Home dependency '+name);
     return dependencies[name];
   },exports);
-  const props = { savedOnly, watchlist:schemes, compared:[],
+  const props = { savedOnly, watchlist:[...schemes], compared:[],
     funds:{},errors:{}, ensureFund:async()=>{},toggleWatch(){},toggleCompare(){},openFund(){},
     openCompare(){},openResearch(){},browse(){},
   };
@@ -101,14 +102,16 @@ function pageView(hasIndex = true, savedOnly = true) {
   };
 }
 
-test('starter collection keeps the sortable table and separate selected-fund preview', async()=>{
+test('starter collection opens a fund popup only on request and closes without changing sorting', async()=>{
   const view=pageView(true,false);
   await view.ready();
   assert.deepEqual(view.page(),[6,5,4,3,2,1]);
-  assert.equal(view.preview()?.props.scheme.schemeCode,6);
+  assert.equal(view.preview(),undefined,'No popup should open on arrival');
   view.table().props.previewFund(schemes[1]);
   view.render();
   assert.equal(view.preview()?.props.scheme.schemeCode,2);
+  view.preview()!.props.onClose();view.render();
+  assert.equal(view.preview(),undefined);
   view.sort('3');
   assert.equal(view.table().props.sort.key,'3');
   assert.deepEqual(view.page(),[6,5,4,3,2,1]);
@@ -156,4 +159,16 @@ test('no verified return index disables misleading multi-page performance sortin
   assert.deepEqual(view.page(),before);
   assert.equal(view.table().props.sort.key,'name');
   view.unmount();
+});
+
+
+test('an open preview keeps its fund when the watchlist row is removed',async()=>{
+  const view=pageView();await view.ready();
+  view.table().props.previewFund(schemes[20]);view.render();
+  assert.equal(view.preview()?.props.scheme.schemeCode,21);
+  view.table().props.watchlist.splice(20,1);
+  view.sort('name');
+  assert.equal(view.preview()?.props.scheme.schemeCode,21,'Saving or removing must not switch the open fund');
+  view.preview()!.props.onClose();view.render();
+  assert.equal(view.preview(),undefined);view.unmount();
 });
