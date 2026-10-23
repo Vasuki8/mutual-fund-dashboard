@@ -41,6 +41,8 @@ export interface ReadyArchiveManifest {
   catalogue: PublicArchiveAsset;
   /** Optional for backwards compatibility with older published checkpoints. */
   returns?: PublicArchiveAsset;
+  /** Optional verified source categories for all saved histories, including IDCW. */
+  categories?: PublicArchiveAsset;
   /** floor(schemeCode / 32), independent of catalogue ordering. */
   shards: Record<string, PublicArchiveAsset>;
   issues: ArchiveIssue[];
