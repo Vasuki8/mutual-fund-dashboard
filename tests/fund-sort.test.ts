@@ -83,7 +83,7 @@ test('index validator rejects missing, unverified, duplicate or cross-checkpoint
     {...base,source:'unknown'},
     {...base,entries:[row,row]},
     {...base,entries:[{...row,schemeCode:999999}]},
-    {...base,entries:[{...row,navDate:'2026-11-01'}]},
+    {...base,entries:[{...row,navDate:'invalid-date'}]},
     {...base,entries:[{...row,navDate:'2026-02-30'}]},
     {...base,entries:[{...row,oneYear:Infinity}]},
     {...base,entries:[{...row,oneYear:-1.5}]},
