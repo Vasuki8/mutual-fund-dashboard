@@ -104,6 +104,11 @@ test('a verified snapshot publishes every history and honest partial coverage in
     assert.equal(manifest.checkpointAt, fixture.snapshot.checkpoint.updatedAt);
     assert.ok(manifest.catalogue.path.startsWith('archive/catalogue-'));
     assert.ok(manifest.shards['3125'].path.startsWith('archive/history-3125-'));
+    assert.ok(manifest.returns?.path.startsWith('archive/returns-'), 'The complete return index is published once per checkpoint.');
+    const sortIndex = verifyArchiveBytes(await readFile(join(directory, manifest.returns!.path)), manifest.returns!, 100 * 1024 * 1024) as {sequence:number;entries:{schemeCode:number;oneYear:number|null}[]};
+    assert.equal(sortIndex.sequence, manifest.sequence);
+    assert.deepEqual(sortIndex.entries.map(entry=>entry.schemeCode), [100000]);
+    assert.equal(sortIndex.entries[0].oneYear,null, 'Two observations within one month cannot support a one-year return.');
     const bytes = await readFile(join(directory, manifest.shards['3125'].path));
     const decoded = verifyArchiveBytes(bytes, manifest.shards['3125']);
     assert.equal(decoded.records[0].payload.data.length, 2);
@@ -187,6 +192,8 @@ test('published compressed files load through the real Pages reader with matchin
     assert.equal(fund?._fundscope.stale, false);
     assert.equal(await client.loadFund(100032), null);
     assert.equal((await client.search('Synthetic'))?.length, 2);
+    assert.deepEqual(Object.keys((await client.loadReturns()) ?? {}).map(Number),[100000],
+      'The public site can rank the full verified population from one small asset.');
     const manifest = await client.loadManifest();
     assert.equal(manifest.status, 'ready');
     assert.equal(manifest.collectionEnabled, true);

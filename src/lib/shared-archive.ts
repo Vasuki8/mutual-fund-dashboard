@@ -3,6 +3,7 @@ import type { ArchiveCounts, PublicArchiveAsset, PublicArchiveManifest, ReadyArc
 import type { ArchiveProvenance } from './sync-types.ts';
 import type { Scheme } from './types.ts';
 import { normalizeNavRecords, validSchemeCode, validateScheme } from './storage.ts';
+import { validateReturnIndex, type FundReturnLookup } from './fund-sort.ts';
 
 const MAX_COMPRESSED = 32 * 1024 * 1024;
 const MAX_EXPANDED = 64 * 1024 * 1024;
@@ -92,8 +93,17 @@ export function validateSharedManifest(value: unknown): PublicArchiveManifest {
   });
   return { version: 2, source: 'mfapi.in', status: 'ready', collectionEnabled: item.collectionEnabled, sequence: item.sequence,
     generatedAt: item.generatedAt, checkpointAt: item.checkpointAt, catalogueFetchedAt: item.catalogueFetchedAt,
-    latestNavDate: item.latestNavDate, counts: counts(item.counts), catalogue: asset(item.catalogue, MAX_CATALOGUE_EXPANDED), shards, issues,
-    warnings: messages(item.warnings) };
+    latestNavDate: item.latestNavDate, counts: counts(item.counts), catalogue: asset(item.catalogue, MAX_CATALOGUE_EXPANDED),
+    ...(item.returns === undefined ? {} : {
+      returns: (() => {
+        const index = asset(item.returns, MAX_CATALOGUE_EXPANDED);
+        if (!/^archive\/returns-[a-f0-9]{64}\.json\.gz$/.test(index.path)
+          || index.path !== `archive/returns-${index.sha256}.json.gz`) {
+          throw new Error('Invalid shared return index path.');
+        }
+        return index;
+      })(),
+    }), shards, issues, warnings: messages(item.warnings) };
 }
 
 function validateCatalogue(value: unknown, manifest: ReadyArchiveManifest): Catalogue {
@@ -245,6 +255,13 @@ export function createSharedArchiveClient(options: { baseUrl?: string; fetch?: t
     catch (error) { if (files.get(key) === pending) files.delete(key); throw error; }
   }
   async function catalogue(manifest: ReadyArchiveManifest) { return validateCatalogue(await loadAsset(manifest.catalogue), manifest); }
+  async function loadReturns(): Promise<FundReturnLookup | null> {
+    const manifest = await loadManifest();
+    if (manifest.status !== 'ready' || !manifest.returns) return null;
+    const [raw, list] = await Promise.all([loadAsset(manifest.returns), catalogue(manifest)]);
+    return validateReturnIndex(raw, manifest.sequence, manifest.catalogueFetchedAt,
+      new Set(list.entries.map(entry => entry.schemeCode)), manifest.counts.clean);
+  }
   async function loadFund(code: number): Promise<SharedFundPayload | null> {
     if (!validSchemeCode(code)) throw new Error('Invalid requested scheme code.');
     const manifest = await loadManifest();
@@ -283,10 +300,11 @@ export function createSharedArchiveClient(options: { baseUrl?: string; fetch?: t
     return list.entries.filter(item => words.every(word => item.schemeName.toLocaleLowerCase().includes(word)
       || String(item.schemeCode).includes(word))).map(item => validateScheme(item));
   }
-  return { loadManifest, loadFund, search };
+  return { loadManifest, loadFund, loadReturns, search };
 }
 
 const sharedArchive = createSharedArchiveClient();
 export const loadSharedManifest = sharedArchive.loadManifest;
 export const loadSharedFund = sharedArchive.loadFund;
+export const loadSharedReturnIndex = sharedArchive.loadReturns;
 export const searchSharedCatalogue = sharedArchive.search;
