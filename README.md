@@ -1,6 +1,6 @@
 # FundScope — Mutual Fund Dashboard
 
-An Indian mutual fund research dashboard with the approved Atlas interface and analytics based on available MFAPI NAV histories.
+An Indian mutual fund research dashboard with the compact layout and Atlas colour theme and analytics based on available MFAPI NAV histories.
 
 - **Canonical development repository:** [Vasuki8/mutual-fund-dashboard](https://github.com/Vasuki8/mutual-fund-dashboard)
 - **Development direction:** GitHub only, as requested by the owner on 21 October 2026.
@@ -9,7 +9,7 @@ An Indian mutual fund research dashboard with the approved Atlas interface and a
 
 Development and scheduled imports for the former ChatGPT-hosted website have stopped. Its existing data has not been deleted or migrated. The linked import task is paused. Do not publish further releases to that host or restart its task without a later explicit request from the owner.
 
-The standalone GitHub Pages build reuses the Atlas interface. It can read a verified shared history snapshot and refresh individual funds directly from MFAPI, with credentials omitted and older cached observations retained. The GitHub-only archive is opt-in: its [activation and public-data conditions](docs/GITHUB_ARCHIVE.md) remain in force. A deployed interface or passing workflow does not establish saved bulk history; Data status shows the actual published checkpoint, gaps and browser-local cache separately.
+The standalone GitHub Pages build reuses the compact layout and Atlas light/dark colours. It can read a verified shared history snapshot and refresh individual funds directly from MFAPI, with credentials omitted and older cached observations retained. The GitHub-only archive is opt-in: its [activation and public-data conditions](docs/GITHUB_ARCHIVE.md) remain in force. A deployed interface or passing workflow does not establish saved bulk history; Data status shows the actual published checkpoint, gaps and browser-local cache separately.
 
 ## Shared GitHub history
 
