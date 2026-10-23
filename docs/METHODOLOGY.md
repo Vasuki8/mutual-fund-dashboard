@@ -112,6 +112,14 @@ The UI defaults to an editable **6% annual risk-free/target assumption**, saved 
 
 These measures describe observed NAV behavior. They do not capture every liquidity, credit, concentration, or valuation risk. Benchmark-dependent measures require a separate, suitable return series and are absent from this release.
 
+## Explorer and watchlist sorting
+
+FundScope filters the full matched scheme population before sorting it and applies eight-row pagination **after global ordering**. Fund-name sorting covers all matched scheme names, not just currently visible rows. Name ties use the exact scheme code for deterministic ordering. Changing the sort resets the view to its first page. A user can switch ascending or descending without changing their watchlist or any saved observations.
+
+For 1Y, 3Y and 5Y return sorting, the GitHub Pages archive publisher builds a compact, versioned, **checkpoint-linked return index** from every validated Growth-scheme history already inspected during publication. It uses the exact same trailing-return calculations as individual fund pages: 1Y is an absolute return from eligible reported NAVs, 3Y and 5Y are ACT/365 CAGRs, with the same seven-calendar-day predecessor rule. Dividend/IDCW and unresolved source-quality histories never produce sortable returns. Missing history or an insufficient horizon is `null`, not zero. In either sort direction, unavailable values sort **after** valid ones, with name/code tie-breakers. This is a historical, descriptive order of the currently published archive, **not a market ranking or verified fund-performance leaderboard**.
+
+The single small compressed index is distributed as a same-origin GitHub Pages asset and checked against the manifest's SHA-256 digest, byte lengths, original catalogue identities and published checkpoint sequence. It does not trigger thousands of MFAPI requests or mutate the source archives. Because a newer individual fund refresh can contain observations not yet in the published checkpoint, a snapshot's sorted returns may differ from the latest open fund details. The table consistently displays the return values used for ranking, and the UI identifies them as archived. Older website deployments do not contain the index; in that case the interface keeps global name sorting and disables return sort for multiple pages until verified data for the entire matching set is available, instead of presenting a misleading page-local order.
+
 ## Historical monthly downside (Risk tab)
 
 This section uses the same **complete, consecutive-month-end NAV returns** as the monthly heatmap and risk statistics, within the selected preset or applied custom date range. The existing confirmed Growth-option and unresolved history-quality gates also apply. A failed refresh alone does not invalidate otherwise validated saved data. The section does not use synthetic returns, fill missing months, or bridge gaps.
