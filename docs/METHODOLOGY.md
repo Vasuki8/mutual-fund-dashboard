@@ -1,6 +1,6 @@
 # FundScope methodology
 
-Calculation version: **1.3.0**, defined in `src/lib/analytics.ts`. This document describes the current implementation. It is a reproducibility reference for NAV-based research, not a suitability assessment or a forecast.
+Calculation version: **1.4.0**, defined in `src/lib/analytics.ts`. This document describes the current implementation. It is a reproducibility reference for NAV-based research, not a suitability assessment or a forecast.
 
 ## Data and source matrix
 
