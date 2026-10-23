@@ -134,7 +134,7 @@ test('no verified return index disables misleading multi-page performance sortin
   const view=pageView(false);
   await view.ready();
   assert.equal(view.table().props.canSortReturns,false);
-  assert.match(view.all().map(n=>typeof n.props.children==='string'?n.props.children:'').join(' '),
+  assert.match(JSON.stringify(view.all().map(n=>n.props.children)),
     /global return sorting needs the verified archive/i);
   const before=view.page();
   view.sort('3');
