@@ -5,6 +5,7 @@ import { isDeepStrictEqual } from 'node:util';
 import { pathToFileURL } from 'node:url';
 import { gunzipSync, gzipSync } from 'node:zlib';
 import { archivedFundReturns, validateReturnIndex, type FundReturns, type ArchivedReturnIndex } from '../src/lib/fund-sort.ts';
+import { archiveCategory, validateCategoryIndex, type ArchivedCategory, type ArchivedCategoryIndex } from '../src/lib/fund-directory.ts';
 import type { UnavailableArchiveManifest } from '../src/lib/archive-types.ts';
 import type { ArchiveAssetRef, ArchiveSnapshot } from './archive-model.ts';
 import type { ReadyArchiveManifest } from '../src/lib/archive-types.ts';
@@ -47,6 +48,7 @@ export async function materializeSnapshot(options: { snapshot: ArchiveSnapshot;
     // cleanup so a failed worker cannot leave writes racing with publication.
     const shards = Object.entries(checkpoint.shards);
     const returnRows: FundReturns[] = [];
+    const categoryRows: ArchivedCategory[] = [];
     let cursor = 0;
     let failure: unknown;
     const readers = Array.from({ length: Math.min(4, shards.length) }, async () => {
@@ -57,6 +59,7 @@ export async function materializeSnapshot(options: { snapshot: ArchiveSnapshot;
           const shard = validateHistoryShard(verifyArchiveBytes(bytes, ref), bucket);
           validateShardStates(shard, checkpoint.states);
           for (const document of shard.records) {
+            categoryRows.push(archiveCategory(document));
             const summary = archivedFundReturns(document);
             if (summary) returnRows.push(summary);
           }
@@ -67,6 +70,27 @@ export async function materializeSnapshot(options: { snapshot: ArchiveSnapshot;
     const results = await Promise.allSettled(readers);
     const rejected = results.find(result => result.status === 'rejected');
     if (rejected?.status === 'rejected') throw rejected.reason;
+
+    // Every saved fund, including IDCW and quality-flagged histories, has
+    // source-provided category metadata. Publish a compact, independently
+    // verified index rather than guessing from scheme names or fetching all
+    // histories just to render the category selector.
+    categoryRows.sort((a, b) => a.schemeCode - b.schemeCode);
+    const categoryIndex: ArchivedCategoryIndex = { version: 1, source: 'mfapi.in',
+      sequence: checkpoint.sequence, catalogueFetchedAt: checkpoint.catalogueFetchedAt,
+      entries: categoryRows };
+    validateCategoryIndex(categoryIndex, checkpoint.sequence, checkpoint.catalogueFetchedAt,
+      catalogue, checkpoint.counts.saved);
+    const categoryUncompressed = Buffer.from(JSON.stringify(categoryIndex));
+    const categoryCompressed = gzipSync(categoryUncompressed, { level: 9 });
+    if (categoryCompressed.length > MAX_COMPRESSED_BYTES || categoryUncompressed.length > MAX_METADATA_EXPANDED_BYTES) {
+      throw new Error('Published category index exceeds its size budget.');
+    }
+    const categoryDigest = createHash('sha256').update(categoryCompressed).digest('hex');
+    const categoryName = `categories-${categoryDigest}.json.gz`;
+    await writeFile(join(staging, categoryName), categoryCompressed);
+    const categoryRef = { path: `archive/${categoryName}`, sha256: categoryDigest,
+      bytes: categoryCompressed.length, expandedBytes: categoryUncompressed.length };
 
     // Publish one small, immutable ranking index for the entire verified
     // archive. Otherwise a browser would need thousands of MFAPI requests to
@@ -98,7 +122,7 @@ export async function materializeSnapshot(options: { snapshot: ArchiveSnapshot;
     const manifest: ReadyArchiveManifest = { version: 2, source: 'mfapi.in', status: 'ready', collectionEnabled: options.collectionEnabled === true,
       sequence: checkpoint.sequence, generatedAt: now, checkpointAt: checkpoint.updatedAt,
       catalogueFetchedAt: checkpoint.catalogueFetchedAt, latestNavDate: latestDates.at(-1) ?? null,
-      counts: checkpoint.counts, catalogue: publicRef(checkpoint.catalogue), returns: returnRef,
+      counts: checkpoint.counts, catalogue: publicRef(checkpoint.catalogue), returns: returnRef, categories: categoryRef,
       shards: Object.fromEntries(shards.map(([bucket, ref]) => [bucket, publicRef(ref)])),
       issues: archiveIssues(checkpoint.states, 20), warnings };
     await writeFile(join(staging, 'manifest.json'), JSON.stringify(manifest) + '\n');
