@@ -16,8 +16,10 @@ const schemes: Scheme[] = Array.from({ length: 21 }, (_, i) =>
 const archived = Object.fromEntries(schemes.slice(0,17).map(scheme =>
   [scheme.schemeCode, { schemeCode: scheme.schemeCode, navDate: '2026-10-20',
     oneYear: scheme.schemeCode/100, threeYear: scheme.schemeCode/200, fiveYear: null }]));
+const archivedWithDrawdown = Object.fromEntries(Object.values(archived).map(row =>
+  [row.schemeCode,{...row,threeYearMaxDrawdown:row.schemeCode / -100}]));
 
-function pageView(hasIndex = true, savedOnly = true) {
+function pageView(hasIndex = true, savedOnly = true, returnIndexVersion:1|2 = 1) {
   const TABLE = Symbol('FundTable');
   const state: unknown[] = [];
   const effects: { deps: unknown[]; cleanup?: () => void }[] = [];
@@ -46,7 +48,7 @@ function pageView(hasIndex = true, savedOnly = true) {
     '../lib/types.ts': {},
     '../lib/api.ts': {searchSchemes:async()=>[]},
     '../lib/analytics.ts': analytics,
-    '../lib/shared-archive.ts': {loadSharedReturnIndex:async()=>{readCount++;return hasIndex ? archived : null;}},
+    '../lib/shared-archive.ts': {loadSharedReturnIndex:async()=>{readCount++;return hasIndex ? returnIndexVersion===2 ? archivedWithDrawdown : archived : null;}},
     '../lib/fund-sort.ts': fundSort,
     '../lib/catalog.ts': {STARTER_FUNDS:schemes.slice(0,6)},
     './FundTable.tsx': {FundTable:TABLE},
@@ -148,6 +150,40 @@ test('no verified return index disables misleading multi-page performance sortin
   const before=view.page();
   view.sort('3');
   assert.deepEqual(view.page(),before);
+  assert.equal(view.table().props.sort.key,'name');
+  view.unmount();
+});
+
+test('three-year drawdown sorts ALL matching funds before pagination with fewer losses first', async()=>{
+  const view=pageView(true,true,2);
+  await view.ready();
+  assert.equal(view.table().props.canSortDrawdown,true);
+  view.next();
+  view.sort('dd3');
+  assert.equal(view.table().props.sort.key,'dd3');
+  assert.equal(view.table().props.sort.desc,true);
+  assert.deepEqual(view.page(),[1,2,3,4,5,6,7,8]);
+  view.next();
+  assert.deepEqual(view.page(),[9,10,11,12,13,14,15,16]);
+  view.next();
+  assert.deepEqual(view.page(),[17,21,20,19,18],
+    'Missing or unarchived three-year histories stay last in both directions.');
+  view.sort('dd3');
+  assert.equal(view.table().props.sort.desc,false);
+  assert.deepEqual(view.page(),[17,16,15,14,13,12,11,10],
+    'Ascending shows deeper historical drawdowns first across ALL pages.');
+  assert.equal(view.readCount,1);
+  view.unmount();
+});
+
+test('older version-one return index does not offer a misleading downside sort', async()=>{
+  const view=pageView(true,true,1);
+  await view.ready();
+  assert.equal(view.table().props.canSortReturns,true);
+  assert.equal(view.table().props.canSortDrawdown,false);
+  const existing=view.page();
+  view.sort('dd3');
+  assert.deepEqual(view.page(),existing);
   assert.equal(view.table().props.sort.key,'name');
   view.unmount();
 });
