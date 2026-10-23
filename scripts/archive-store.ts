@@ -24,7 +24,7 @@ interface StoreOptions {
   deadline?: number;
   generationLimit?: number;
   wait?: (milliseconds: number) => Promise<unknown>;
-  onRetry?: (event: { phase: 'archive_asset_retry'; assetId: number; reason: string;
+  onRetry?: (event: { phase: 'archive_asset_retry' | 'archive_asset_api_fallback'; assetId: number; reason: string;
     attempt: number; delayMs: number; freshlyUploaded: boolean }) => void;
 }
 interface Release { id: number; tag_name: string; body: string | null }
@@ -139,35 +139,52 @@ export function createGitHubStore(options: StoreOptions): ArchiveStore {
     return validateAssetRef({ id: asset.id, releaseTag: release.tag_name, name: asset.name,
       url: asset.browser_download_url, sha256: digest, bytes, expandedBytes });
   }
-  async function readAssetBytesOnce(ref: ArchiveAssetRef): Promise<Uint8Array> {
-    // Signed Release redirects can change between requests. Every attempt must
-    // start at the canonical GitHub URL and revalidate all redirect hosts.
-    let url = new URL(ref.url);
+  async function readAssetBytesOnce(ref: ArchiveAssetRef, viaApi = false): Promise<Uint8Array> {
+    // A browser-download 404 may not mean GitHub has lost the asset: its
+    // authenticated REST binary endpoint supports a separate download path.
+    // Construct that REST path solely from the validated numeric asset ID.
+    const restUrl = `${apiBase}/releases/assets/${ref.id}`;
+    let url = new URL(viaApi ? restUrl : ref.url);
     for (let redirects = 0; redirects <= 3; redirects++) {
+      // Only the FIRST API request receives the token. Never forward it to
+      // GitHub's signed binary hosts, github.com, or an unexpected redirect.
+      const apiOrigin = viaApi && redirects === 0;
       requireValue(url.protocol === 'https:' && !url.port && !url.username && !url.password && !url.hash
-        && (redirects === 0 ? url.hostname === 'github.com'
-          : ['release-assets.githubusercontent.com', 'objects.githubusercontent.com'].includes(url.hostname)), 'asset_redirect_invalid');
+        && (redirects === 0
+          ? apiOrigin ? url.href === restUrl && url.hostname === 'api.github.com'
+            : url.hostname === 'github.com'
+          : ['release-assets.githubusercontent.com', 'objects.githubusercontent.com'].includes(url.hostname)),
+        'asset_redirect_invalid');
       let response: Response;
       try { response = await request(url.href, { redirect: 'manual', credentials: 'omit',
-        headers: { Accept: 'application/octet-stream' }, signal: signal(45_000) }); }
-      catch { throw new Error(now() >= deadline ? 'work_deadline' : 'asset_transport'); }
+        headers: apiOrigin
+          ? { ...headers, Accept: 'application/octet-stream' }
+          : { Accept: 'application/octet-stream' },
+        signal: signal(45_000) }); }
+      catch { throw new Error(now() >= deadline ? 'work_deadline'
+        : viaApi ? 'asset_api_transport' : 'asset_transport'); }
       if ([301, 302, 303, 307, 308].includes(response.status)) {
-        const location = response.headers.get('location'); requireValue(location && redirects < 3, 'asset_redirect_invalid');
+        const location = response.headers.get('location');
+        requireValue(location && redirects < 3, 'asset_redirect_invalid');
         await response.body?.cancel(); url = new URL(location, url); continue;
       }
       if (!response.ok) {
         await response.body?.cancel().catch(() => {});
-        throw new Error(`asset_http_${response.status}`);
+        throw new Error(`${viaApi ? 'asset_api_http' : 'asset_http'}_${response.status}`);
       }
+      // Some REST clients receive JSON metadata despite requesting binary.
+      // Only exact archive bytes can pass BOTH these checks.
       const bytes = await readLimited(response, Math.min(ref.bytes, MAX_COMPRESSED_BYTES));
       requireValue(bytes.length === ref.bytes, 'asset_size_invalid');
-      requireValue(sha256(bytes) === ref.sha256, 'asset_digest_invalid'); return bytes;
+      requireValue(sha256(bytes) === ref.sha256, 'asset_digest_invalid');
+      return bytes;
     }
     throw new Error('asset_redirect_invalid');
   }
   async function readAssetBytes(value: ArchiveAssetRef, freshlyUploaded = false): Promise<Uint8Array> {
     const ref = validateAssetRef(value);
-    requireValue(ref.url === `https://github.com/${repository}/releases/download/${ref.releaseTag}/${ref.name}`, 'asset_url_invalid');
+    requireValue(ref.url === `https://github.com/${repository}/releases/download/${ref.releaseTag}/${ref.name}`,
+      'asset_url_invalid');
     const transportDelays = [750, 1500] as const;
     const fresh404Delays = [750, 1500, 3000, 6000] as const;
     let transportRetries = 0, fresh404Retries = 0;
@@ -175,18 +192,28 @@ export function createGitHubStore(options: StoreOptions): ArchiveStore {
       try { return await readAssetBytesOnce(ref); }
       catch (error) {
         const code = error instanceof Error ? error.message : '';
-        // GitHub may briefly return 404 for a just-uploaded Release asset even
-        // after its authenticated metadata confirms state=uploaded. Only this
-        // freshly uploaded asset gets bounded 404 retries. Older, missing
-        // references still fail closed immediately. All successful GETs are
-        // reverified by the exact compressed byte length and SHA-256 digest.
+        let failure = error;
+        if (code === 'asset_http_404') {
+          // A REST binary fallback is safe for both fresh and older assets:
+          // missing/forbidden content fails there too; a valid alternative
+          // must still match the immutable size and digest in the checkpoint.
+          options.onRetry?.({ phase: 'archive_asset_api_fallback', assetId: ref.id,
+            reason: code, attempt: fresh404Retries + 1, delayMs: 0, freshlyUploaded });
+          try { return await readAssetBytesOnce(ref, true); }
+          catch (apiError) {
+            const apiCode = apiError instanceof Error ? apiError.message : '';
+            // A new upload may still be propagating in both download paths.
+            // Older missing assets, API denials and integrity failures stop.
+            if (apiCode !== 'asset_api_http_404' || !freshlyUploaded) throw apiError;
+            failure = apiError;
+          }
+        }
         let delay: number | undefined;
         if (freshlyUploaded && code === 'asset_http_404') delay = fresh404Delays[fresh404Retries++];
         else if (code === 'asset_transport' || /^asset_http_(?:408|425|500|502|503|504)$/.test(code)) {
           delay = transportDelays[transportRetries++];
         }
-        // Never retry 403/429, malformed redirects, or mismatched content.
-        if (delay === undefined || now() + delay + 1000 >= deadline) throw error;
+        if (delay === undefined || now() + delay + 1000 >= deadline) throw failure;
         options.onRetry?.({ phase: 'archive_asset_retry', assetId: ref.id,
           reason: code, attempt: fresh404Retries + transportRetries, delayMs: delay, freshlyUploaded });
         await wait(delay);
