@@ -60,6 +60,8 @@ For each write:
 
 An interrupted upload is reconciled by content name. A reserved/incomplete asset name causes generation rotation, never deletion of a previous asset. A failure before pointer advancement leaves the previous checkpoint authoritative. If a pointer update succeeds but its response is lost, readback reconciles it. The workflow concurrency group is the single-writer lock; do not run independent collectors against the same control release concurrently.
 
+GitHub can temporarily return HTTP 404 for the public download URL of a freshly uploaded Release asset, even after authenticated metadata reports `uploaded`. In that specific post-upload readback, the collector permits up to **four bounded, deadline-aware retries**. Every retry starts from the canonical GitHub URL; redirect hosts, compressed byte count and SHA-256 are still verified. Existing saved references do **not** get 404 retries, and 403/429, corrupt bytes or malformed redirects still fail immediately. Retry logs report only a public asset ID and safe error code. Retrying a GET never repeats an upload or advances the checkpoint.
+
 Existing observations survive shorter, older or failed responses. Valid source corrections may update matching dates; ambiguous values and large discontinuities remain flagged. Missing schemes remain in the catalogue with `current: false`. Source failures retain any previously saved history and its original successful retrieval time.
 
 The original v1 script is retained for historical reference only. The active workflow uses `scripts/github-history-v2.ts`; it does not count v1 filenames or old hosted data as v2 coverage. No v1 Release existed when v2 development began.
