@@ -5,7 +5,7 @@
 On 21 October 2026, the owner stopped development of the ChatGPT-hosted website and directed all further work to this GitHub repository.
 
 - Develop, review, and track changes in `Vasuki8/mutual-fund-dashboard`.
-- On 23 October 2026, the owner supplied the Atlas UI template and requested its implementation, replacing the earlier Graphite visual direction. Preserve the resulting FundScope Atlas interface and the documented financial calculation rules; its adaptation contract is in `docs/UI_DESIGN.md`.
+- On 23 October 2026, the owner clarified: keep the previous sidebar/table layout and use the Atlas colour theme. Preserve that layout, the Atlas light/dark palette and the documented financial calculation rules; the contract is in `docs/UI_DESIGN.md`. Do not reintroduce the Atlas horizontal navigation or expandable starter bands without a new request.
 - Do not publish to the former ChatGPT Site, retrieve its service credentials, or run `scripts/sync-cloud.mjs` unless the owner later explicitly requests that work.
 - The former hosted import task is paused. Do not resume it or restore its old refresh schedule as part of GitHub development.
 - Keep existing stored data and historical source code. Stopping development does not authorize deleting the old deployment, its database, or its object storage.

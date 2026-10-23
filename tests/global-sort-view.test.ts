@@ -17,7 +17,7 @@ const archived = Object.fromEntries(schemes.slice(0,17).map(scheme =>
   [scheme.schemeCode, { schemeCode: scheme.schemeCode, navDate: '2026-10-20',
     oneYear: scheme.schemeCode/100, threeYear: scheme.schemeCode/200, fiveYear: null }]));
 
-function pageView(hasIndex = true) {
+function pageView(hasIndex = true, savedOnly = true) {
   const TABLE = Symbol('FundTable'), PREVIEW=Symbol('FundPreview');
   const state: unknown[] = [];
   const effects: { deps: unknown[]; cleanup?: () => void }[] = [];
@@ -51,14 +51,13 @@ function pageView(hasIndex = true) {
     '../lib/catalog.ts': {STARTER_FUNDS:schemes.slice(0,6)},
     './FundTable.tsx': {FundTable:TABLE},
     './FundPreview.tsx': {FundPreview:PREVIEW},
-    './FundBands.tsx': {FundBands:Symbol('FundBands')},
   };
   const exports: Record<string,(props:unknown)=>Element> = {};
   new Function('require','exports',compiled)((name:string)=>{
     assert.ok(name in dependencies, 'Unexpected Home dependency '+name);
     return dependencies[name];
   },exports);
-  const props = { savedOnly:true, watchlist:schemes, compared:[],
+  const props = { savedOnly, watchlist:schemes, compared:[],
     funds:{},errors:{}, ensureFund:async()=>{},toggleWatch(){},toggleCompare(){},openFund(){},
     openCompare(){},openResearch(){},browse(){},
   };
@@ -95,11 +94,26 @@ function pageView(hasIndex = true) {
     sort:(key:fundSort.FundSortKey)=>{table().props.onSort(key);render();},
     next:()=>click('Next page'),
     table,
+    preview:()=>all().find(node=>node.type===PREVIEW),
     all,
     get readCount(){return readCount;},
     unmount:()=>effects.forEach(x=>x.cleanup?.()),
   };
 }
+
+test('starter collection keeps the sortable table and separate selected-fund preview', async()=>{
+  const view=pageView(true,false);
+  await view.ready();
+  assert.deepEqual(view.page(),[6,5,4,3,2,1]);
+  assert.equal(view.preview()?.props.scheme.schemeCode,6);
+  view.table().props.previewFund(schemes[1]);
+  view.render();
+  assert.equal(view.preview()?.props.scheme.schemeCode,2);
+  view.sort('3');
+  assert.equal(view.table().props.sort.key,'3');
+  assert.deepEqual(view.page(),[6,5,4,3,2,1]);
+  view.unmount();
+});
 
 test('fund name sorting applies before page slicing and includes all watchlist results', async()=>{
   const view=pageView();
