@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { MouseEvent, ReactNode } from 'react';
-import { ArrowRight, ArrowUpRight, Bookmark, Check, CircleHelp, Database, GitCompareArrows, Menu, Moon, Search, Sun, X } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Bookmark, CircleHelp, Database, GitCompareArrows, Menu, Moon, Search, Sun, X } from 'lucide-react';
 import type { FundData, ResearchSettings, Scheme } from './lib/types.ts';
 import { MAX_FUND_NOTES, MAX_FUND_NOTE_LENGTH } from './lib/storage.ts';
 import { getFund } from './lib/api.ts';
@@ -14,6 +14,7 @@ import { Comparison } from './components/Comparison.tsx';
 import { Methodology } from './components/Methodology.tsx';
 import { DataStatus, useDataStatus } from './components/DataStatus.tsx';
 import { GlobalSearch } from './components/GlobalSearch.tsx';
+import { StatusToast } from './components/StatusToast.tsx';
 
 interface Route { page:string; code?:number; tab?:string; query?:string }
 function readRoute():Route {
@@ -104,6 +105,7 @@ export default function App() {
     </header>
     <div className="workspace-layout">
       <aside className={`app-sidebar ${mobileNav?'open':''}`} id="workspace-navigation">
+        <div className="sidebar-content">
         <nav aria-label="Main navigation"><div className="sidebar-section"><span className="sidebar-label">Research</span>
           {sidebarLink('explore','Explore funds',<Search size={16}/>)}
           {sidebarLink('compare','Compare',<GitCompareArrows size={16}/>,settings.compared.length)}
@@ -114,6 +116,7 @@ export default function App() {
         </div></nav>
         {settings.lastFund&&<div className="sidebar-section sidebar-recent"><span className="sidebar-label">Last viewed</span><button className="sidebar-link" onClick={()=>openFund(settings.lastFund!)}><span>{shortName(settings.lastFund.schemeName)}</span><ArrowUpRight size={14}/></button></div>}
         <div className="sidebar-bottom"><div className="sidebar-source"><strong>MFAPI</strong><span>End-of-day NAV</span><small>Independent fund research</small></div><a className="sidebar-link" href="https://github.com/Vasuki8/mutual-fund-dashboard" target="_blank" rel="noreferrer"><span>Project on GitHub</span><ArrowUpRight size={14}/></a></div>
+        </div>
       </aside>
       <div className="workspace-body">
         {!online&&<div className="offline-banner" role="status">You’re offline. Available cached fund histories remain usable.</div>}
@@ -130,6 +133,6 @@ export default function App() {
       </div>
     </div>
     {settings.compared.length>0&&route.page!=='compare'&&<section className="comparison-dock" aria-label="Fund comparison selection"><div className="dock-summary"><GitCompareArrows size={18}/><span><strong>{settings.compared.length} of 4 selected</strong><small>Same dates · Same starting amount</small></span></div><div className="comparison-chips">{settings.compared.map(s=><span className="comparison-chip" key={s.schemeCode}><span title={s.schemeName}>{shortName(s.schemeName)}</span><button aria-label={`Remove ${shortName(s.schemeName)} from comparison`} onClick={()=>toggleCompare(s)}><X size={13}/></button></span>)}</div><div className="comparison-dock-actions"><button className="button primary small" onClick={()=>navigate('compare')}>Compare <ArrowRight size={15}/></button><button className="icon-button" aria-label="Clear comparison" onClick={()=>updateSettings(old=>({...old,compared:[]}))}><X size={15}/></button></div></section>}
-    {toast&&<div role="status" className="toast"><Check size={16}/><span>{toast}</span><button onClick={()=>setToast('')} aria-label="Dismiss notification"><X size={15}/></button></div>}
+    <StatusToast message={toast} onDismiss={()=>setToast('')}/>
   </div>;
 }

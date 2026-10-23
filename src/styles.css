@@ -143,7 +143,8 @@ svg { flex-shrink: 0; }
 .mobile-menu-toggle.icon-button { display: none; }
 .workspace-layout { display: grid; grid-template-columns: var(--atlas-sidebar-width) minmax(0,1fr); min-height: calc(100vh - var(--atlas-header-height)); }
 .app-sidebar { display: flex; flex-direction: column; gap: 16px; min-width: 0; padding: 16px 10px; border-right: 1px solid var(--line); background: var(--atlas-panel); }
-.app-sidebar > nav { display: grid; gap: 16px; }
+.sidebar-content { display: contents; }
+.app-sidebar nav { display: grid; gap: 16px; }
 .sidebar-section { display: grid; gap: 4px; }
 .sidebar-label { padding: 0 8px; margin: 0 0 4px; color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: .08em; }
 .sidebar-link { display: flex; align-items: center; gap: 8px; min-width: 0; min-height: 34px; padding: 8px; border-radius: 4px; color: var(--muted); font-size: 12px; line-height: 1.35; }
@@ -550,10 +551,12 @@ svg { flex-shrink: 0; }
   .global-search-option { min-height: 48px; }
   .global-search-results { max-height: 60vh; }
   .header-context { display: none; }
-  .workspace-layout { grid-template-columns: minmax(0,1fr); }
-  .app-sidebar { display: none; padding: 8px; border-right: 0; border-bottom: 1px solid var(--line); }
-  .app-sidebar.open { display: flex; flex-direction: row; flex-wrap: wrap; gap: 4px; }
-  .app-sidebar > nav { display: flex; flex-wrap: wrap; gap: 4px; width: 100%; }
+  .workspace-layout { grid-template-columns: minmax(0,1fr); grid-template-rows: auto minmax(0,1fr); }
+  .app-sidebar, .app-sidebar.open { display: grid; grid-template-rows: 0fr; gap: 0; padding: 0 8px; border-right: 0; border-bottom: 0 solid var(--line); overflow: hidden; transition: grid-template-rows 180ms ease-out, padding 180ms ease-out; }
+  .app-sidebar.open { grid-template-rows: 1fr; padding-block: 8px; border-bottom-width: 1px; }
+  .sidebar-content { display: flex; flex-direction: row; flex-wrap: wrap; gap: 4px; min-height: 0; overflow: hidden; visibility: hidden; opacity: 0; pointer-events: none; transition: opacity 160ms ease-out; }
+  .app-sidebar.open .sidebar-content { visibility: visible; opacity: 1; pointer-events: auto; }
+  .app-sidebar nav { display: flex; flex-wrap: wrap; gap: 4px; width: 100%; }
   .sidebar-section, .sidebar-bottom { display: contents; }
   .sidebar-label, .sidebar-source, .sidebar-recent { display: none; }
   .sidebar-link { flex: 1 1 120px; min-height: 44px; padding: 8px; font-size: 12px; }
@@ -729,3 +732,14 @@ svg { flex-shrink: 0; }
 @media (max-width: 650px), (pointer: coarse) {
   .theme-switch.icon-button { width: 44px; height: 44px; }
 }
+
+/* Brief feedback; fund values and charts are never delayed or counted up. */
+@keyframes preview-enter { from { opacity: .86; } to { opacity: 1; } }
+.preview-title, .preview-metrics, .preview-chart, .preview-meta { animation: preview-enter 160ms ease-out; }
+@keyframes action-confirm { from { opacity: .65; transform: scale(.88); } to { opacity: 1; transform: scale(1); } }
+.table-actions button[aria-pressed='true'] svg,
+.preview-actions button[aria-pressed='true'] svg,
+.fund-heading-actions button[aria-pressed='true'] svg { animation: action-confirm 160ms ease-out; }
+.toast { display: none; opacity: 0; transform: translateY(-4px); transition: opacity 160ms ease-out, transform 160ms ease-out; transition: opacity 160ms ease-out, transform 160ms ease-out, display 160ms allow-discrete; }
+.toast.toast-visible { display: flex; opacity: 1; transform: translateY(0); }
+@starting-style { .toast.toast-visible { opacity: 0; transform: translateY(-4px); } }
