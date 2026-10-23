@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { MouseEvent, ReactNode } from 'react';
-import { ArrowRight, ArrowUpRight, Bookmark, Check, CircleHelp, Database, GitCompareArrows, Menu, Search, X } from 'lucide-react';
+import { ArrowRight, Bookmark, Check, CircleHelp, Database, GitCompareArrows, Moon, Search, Sun, X } from 'lucide-react';
 import type { FundData, ResearchSettings, Scheme } from './lib/types.ts';
 import { MAX_FUND_NOTES, MAX_FUND_NOTE_LENGTH } from './lib/storage.ts';
 import { getFund } from './lib/api.ts';
 import { getSettings, getStorageGeneration, saveSettings, storageWarning } from './lib/storage.ts';
 import { BRAND } from './lib/catalog.ts';
+import { readAppearance, saveAppearance } from './lib/appearance.ts';
 import { shortName } from './lib/format.ts';
 import { Home } from './components/Home.tsx';
 import { FundDetail } from './components/FundDetail.tsx';
@@ -22,21 +23,22 @@ function readRoute():Route {
 }
 export default function App() {
   const dataStatus = useDataStatus();
-  const [route,setRoute]=useState<Route>(readRoute);const [settings,setSettings]=useState<ResearchSettings>(getSettings);const [funds,setFunds]=useState<Record<number,FundData>>({});const [errors,setErrors]=useState<Record<number,string>>({});const [loading,setLoading]=useState<number[]>([]);const [toast,setToast]=useState('');const [online,setOnline]=useState(navigator.onLine);const [mobileNav,setMobileNav]=useState(false);
+  const [route,setRoute]=useState<Route>(readRoute);const [settings,setSettings]=useState<ResearchSettings>(getSettings);const [funds,setFunds]=useState<Record<number,FundData>>({});const [errors,setErrors]=useState<Record<number,string>>({});const [loading,setLoading]=useState<number[]>([]);const [toast,setToast]=useState('');const [online,setOnline]=useState(navigator.onLine);const [appearance,setAppearance]=useState(readAppearance);
   const loaded=useRef<Record<number,FundData>>({});const inFlight=useRef(new Map<number,{generation:number;task:Promise<void>}>());const failed=useRef(new Set<number>());const toastTimer=useRef<ReturnType<typeof setTimeout>|null>(null);const settingsRef=useRef(settings);
   const notify=useCallback((message:string)=>{setToast(message);if(toastTimer.current)clearTimeout(toastTimer.current);toastTimer.current=setTimeout(()=>setToast(''),5500);},[]);
-  const navigate=useCallback((hash:string)=>{if(window.location.hash===`#${hash}`)setRoute(readRoute());else window.location.hash=hash;setMobileNav(false);window.scrollTo({top:0,behavior:'instant'});document.getElementById('main-content')?.focus({preventScroll:true});},[]);
+  const navigate=useCallback((hash:string)=>{if(window.location.hash===`#${hash}`)setRoute(readRoute());else window.location.hash=hash;window.scrollTo({top:0,behavior:'instant'});document.getElementById('main-content')?.focus({preventScroll:true});},[]);
   const navigateLink=(event:MouseEvent<HTMLAnchorElement>,hash:string)=>{
     if(event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
     event.preventDefault();navigate(hash);
   };
-  useEffect(()=>{const handle=()=>{setRoute(readRoute());setMobileNav(false);};window.addEventListener('hashchange',handle);const offline=()=>setOnline(navigator.onLine);window.addEventListener('online',offline);window.addEventListener('offline',offline);return()=>{window.removeEventListener('hashchange',handle);window.removeEventListener('online',offline);window.removeEventListener('offline',offline);};},[]);
+  useEffect(()=>{const handle=()=>{setRoute(readRoute());};window.addEventListener('hashchange',handle);const offline=()=>setOnline(navigator.onLine);window.addEventListener('online',offline);window.addEventListener('offline',offline);return()=>{window.removeEventListener('hashchange',handle);window.removeEventListener('online',offline);window.removeEventListener('offline',offline);};},[]);
   useEffect(()=>()=>{if(toastTimer.current)clearTimeout(toastTimer.current);},[]);
   useEffect(()=>{
-    if(!mobileNav)return;
-    const close=(event:KeyboardEvent)=>{if(event.key==='Escape'){setMobileNav(false);document.getElementById('navigation-toggle')?.focus();}};
-    window.addEventListener('keydown',close);return()=>window.removeEventListener('keydown',close);
-  },[mobileNav]);
+    document.documentElement.dataset.appearance=appearance;
+    document.documentElement.style.colorScheme=appearance;
+    saveAppearance(appearance);
+    window.dispatchEvent(new Event('fundscope:appearance'));
+  },[appearance]);
   useEffect(()=>{
     const title=route.page==='fund'?(funds[route.code!]?shortName(funds[route.code!].meta.schemeName):`Scheme ${route.code}`):({explore:'Explore funds',watchlist:'Watchlist',compare:'Compare funds',data:'Data status',methodology:'Methodology'}[route.page]??'Research');
     document.title=`${title} · FundScope`;
@@ -82,31 +84,27 @@ export default function App() {
   const restore=(value:ResearchSettings)=>{settingsRef.current=value;loaded.current={};failed.current.clear();inFlight.current.clear();setLoading([]);setFunds({});setErrors({});setSettings(value);};
   const browse=()=>navigate('explore');
   const tableProps={funds,errors,ensureFund,openFund,watchlist:settings.watchlist,compared:settings.compared,toggleWatch,toggleCompare};
-  const sidebarLink=(page:string,label:string,icon:ReactNode,count?:number)=>{
+  const navigationLink=(page:string,label:string,icon:ReactNode,count?:number)=>{
     const active=route.page===page||(page==='explore'&&route.page==='fund');
-    return <a className={`sidebar-link ${active?'active':''}`} href={`#${page}`} aria-current={active?'location':undefined} onClick={event=>navigateLink(event,page)}>{icon}<span>{label}</span>{count!==undefined&&<span className="nav-count">{count}</span>}</a>;
+    return <a className={`atlas-nav-link ${active?'active':''}`} href={`#${page}`} aria-current={active?'page':undefined} onClick={event=>navigateLink(event,page)}>{icon}<span>{label}</span>{count!==undefined&&<span className="nav-count">{count}</span>}</a>;
   };
-  return <div className={`app-shell graphite-ui ${settings.compared.length>0&&route.page!=='compare'?'has-comparison':''}`}>
+  return <div className={`app-shell atlas-ui ${settings.compared.length>0&&route.page!=='compare'?'has-comparison':''}`}>
     <a className="skip-link" href="#main-content" onClick={event=>{event.preventDefault();document.getElementById('main-content')?.focus();document.getElementById('main-content')?.scrollIntoView();}}>Skip to main content</a>
     <header className="app-header">
-      <a className="brand" href="#explore" aria-label="FundScope home" onClick={event=>navigateLink(event,'explore')}><span className="brand-mark"><svg width="25" height="26" viewBox="0 0 25 26" aria-hidden="true"><path d="M4 21V8l8.5-5L21 8v13M8.5 19V10.5l4-2.4 4 2.4V19" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg></span><span>{BRAND.name}<small>FUND RESEARCH</small></span></a>
+      <a className="brand" href="#explore" aria-label="FundScope home" onClick={event=>navigateLink(event,'explore')}><span className="brand-mark" aria-hidden="true"/><span>{BRAND.name}<small>/ fund research</small></span></a>
+      <span className="header-disclosure">Indian mutual funds · End-of-day NAV</span>
       <GlobalSearch openFund={openFund}/>
       <div className="header-context"><span className={`status-dot ${online?'':'offline'}`}/><span>{online?'Browser online':'Offline cache'}</span></div>
-      <button id="navigation-toggle" className="mobile-menu-toggle icon-button" aria-label={mobileNav?'Close navigation':'Open navigation'} aria-expanded={mobileNav} aria-controls="workspace-navigation" onClick={()=>setMobileNav(value=>!value)}>{mobileNav?<X size={19}/>:<Menu size={19}/>}</button>
+      <button type="button" className="theme-switch icon-button" aria-label={`Switch to ${appearance==='light'?'dark':'light'} theme`} title={`Switch to ${appearance==='light'?'dark':'light'} theme`} onClick={()=>setAppearance(current=>current==='light'?'dark':'light')}>{appearance==='light'?<Moon size={17}/>:<Sun size={17}/>}</button>
     </header>
+    <nav className="workspace-navigation" id="workspace-navigation" aria-label="Main navigation">
+      {navigationLink('explore','Explore',<Search size={15}/>)}
+      {navigationLink('compare','Compare',<GitCompareArrows size={15}/>,settings.compared.length)}
+      {navigationLink('watchlist','Saved',<Bookmark size={15}/>,settings.watchlist.length)}
+      {navigationLink('data','Data & backups',<Database size={15}/>)}
+      {navigationLink('methodology','Methodology',<CircleHelp size={15}/>)}
+    </nav>
     <div className="workspace-layout">
-      <aside className={`app-sidebar ${mobileNav?'open':''}`} id="workspace-navigation">
-        <nav aria-label="Main navigation"><div className="sidebar-section"><span className="sidebar-label">Research</span>
-          {sidebarLink('explore','Explore funds',<Search size={16}/>)}
-          {sidebarLink('compare','Compare',<GitCompareArrows size={16}/>,settings.compared.length)}
-          {sidebarLink('watchlist','Watchlist',<Bookmark size={16}/>,settings.watchlist.length)}
-        </div><div className="sidebar-section"><span className="sidebar-label">Workspace</span>
-          {sidebarLink('data','Data & backups',<Database size={16}/>)}
-          {sidebarLink('methodology','Methodology',<CircleHelp size={16}/>)}
-        </div></nav>
-        {settings.lastFund&&<div className="sidebar-section sidebar-recent"><span className="sidebar-label">Last viewed</span><button className="sidebar-link" onClick={()=>openFund(settings.lastFund!)}><span>{shortName(settings.lastFund.schemeName)}</span><ArrowUpRight size={14}/></button></div>}
-        <div className="sidebar-bottom"><div className="sidebar-source"><strong>MFAPI</strong><span>End-of-day NAV</span><small>Independent fund research</small></div><a className="sidebar-link" href="https://github.com/Vasuki8/mutual-fund-dashboard" target="_blank" rel="noreferrer"><span>Project on GitHub</span><ArrowUpRight size={14}/></a></div>
-      </aside>
       <div className="workspace-body">
         {!online&&<div className="offline-banner" role="status">You’re offline. Available cached fund histories remain usable.</div>}
         {storageWarning()&&<div className="storage-banner" role="status"><span>{storageWarning()}</span><button onClick={()=>navigate('data')}>Back up your research <ArrowRight size={13}/></button></div>}

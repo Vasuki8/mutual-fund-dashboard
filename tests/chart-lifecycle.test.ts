@@ -24,6 +24,19 @@ function mountedChart() {
   let renderedWidth = width, renderedHeight = height;
   const resizes: { width: number; height: number }[] = [];
   const options: any[] = [];
+  const exportOptions: any[] = [];
+  let appearance = 'light';
+  let rendered: any;
+  const listeners = new Map<string, Set<() => void>>();
+  const windowBoundary = {
+    addEventListener(name: string, listener: () => void) { if (!listeners.has(name)) listeners.set(name, new Set()); listeners.get(name)!.add(listener); },
+    removeEventListener(name: string, listener: () => void) { listeners.get(name)?.delete(listener); },
+  };
+  const cssBoundary = () => ({ getPropertyValue(name: string) {
+    const light: Record<string, string> = { '--atlas-panel': '#faf7f0', '--atlas-raised': '#faf7f0', '--atlas-border': '#c9d0c4', '--atlas-text': '#26352e', '--atlas-muted': '#5e6e63', '--atlas-grid': '#e1e4db', '--atlas-accent': '#25795d', '--atlas-secondary-series': '#b85832', '--atlas-third-series': '#4d6fa3', '--atlas-fourth-series': '#98651c' };
+    const dark: Record<string, string> = { '--atlas-panel': '#24332d', '--atlas-raised': '#24332d', '--atlas-border': '#455a4c', '--atlas-text': '#edf1e9', '--atlas-muted': '#aebdb2', '--atlas-grid': '#35483d', '--atlas-accent': '#9ad7b1', '--atlas-secondary-series': '#e7ae7a', '--atlas-third-series': '#9db9df', '--atlas-fourth-series': '#d6c281' };
+    return (appearance === 'light' ? light : dark)[name] ?? '';
+  } });
   const chart = {
     getWidth: () => renderedWidth,
     getHeight: () => renderedHeight,
@@ -35,6 +48,7 @@ function mountedChart() {
     },
     setOption: (option: unknown) => { options.push(option); },
     dispose: () => { disposed += 1; },
+    getDataURL: (options: unknown) => { exportOptions.push(options); return ""; },
   };
   const refs: { current: unknown }[] = [];
   const effects: { deps: unknown[]; cleanup?: () => void }[] = [];
@@ -66,7 +80,7 @@ function mountedChart() {
     'lucide-react': {}, '../lib/format.ts': { currency, dateLabel, number, percent },
   };
   const exports: { Chart?: (props: { series: Series }) => unknown } = {};
-  new Function('require', 'exports', 'ResizeObserver', 'requestAnimationFrame', 'cancelAnimationFrame', compiled)(
+  new Function('require', 'exports', 'ResizeObserver', 'requestAnimationFrame', 'cancelAnimationFrame', 'window', 'getComputedStyle', compiled)(
     (name: string) => { assert.ok(name in dependencies, `Unexpected Chart dependency: ${name}`); return dependencies[name]; },
     exports,
     class {
@@ -76,16 +90,22 @@ function mountedChart() {
     },
     (callback: () => void) => { const id = ++nextFrame; frames.set(id, callback); return id; },
     (id: number) => { frames.delete(id); },
+    windowBoundary, cssBoundary,
   );
   const render = (series = initial) => {
     refIndex = 0; effectIndex = 0;
-    exports.Chart!({ series });
+    rendered = exports.Chart!({ series });
     const work = pending; pending = [];
     work.forEach(run => run());
   };
   render();
   return {
-    resizes, options, render,
+    resizes, options, render, exportOptions,
+    appearance(next: string) { appearance = next; listeners.get('fundscope:appearance')?.forEach(listener => listener()); },
+    exportPng() {
+      const find = (value: any): any => Array.isArray(value) ? value.map(find).find(Boolean) : value?.props ? String(value.props['aria-label'] ?? '').startsWith('Download ') ? value : find(value.props.children) : undefined;
+      find(rendered).props.onClick();
+    },
     notify(nextWidth = width, nextHeight = height, connected = true) {
       width = nextWidth; height = nextHeight; element.isConnected = connected;
       observe([{ target: element, contentRect: element.getBoundingClientRect() }]);
@@ -147,4 +167,26 @@ test('new data renders at unchanged dimensions and retains real dates and null g
   assert.deepEqual(updated.series.map((series: any) => series.data), [[100, null, 125], [null, 110, 130]]);
   assert.ok(updated.series.every((series: any) => series.connectNulls === false));
   mounted.unmount();
+});
+
+
+test('appearance changes recolor existing charts and PNG exports without changing NAV observations', () => {
+  const mounted = mountedChart();
+  assert.equal(mounted.options.at(-1).backgroundColor, '#faf7f0');
+  const originalDates = mounted.options.at(-1).xAxis.data;
+  const originalValues = mounted.options.at(-1).series[0].data;
+  mounted.appearance('dark');
+  const dark = mounted.options.at(-1);
+  assert.equal(dark.backgroundColor, '#24332d');
+  assert.equal(dark.series[0].lineStyle.color, '#9ad7b1');
+  assert.deepEqual(dark.xAxis.data, originalDates);
+  assert.deepEqual(dark.series[0].data, originalValues);
+  mounted.exportPng();
+  assert.equal(mounted.exportOptions.at(-1).backgroundColor, '#24332d');
+  mounted.appearance('light');
+  assert.equal(mounted.options.at(-1).series[0].lineStyle.color, '#25795d');
+  const count = mounted.options.length;
+  mounted.unmount();
+  mounted.appearance('dark');
+  assert.equal(mounted.options.length, count, 'Disposed charts must not receive appearance updates.');
 });

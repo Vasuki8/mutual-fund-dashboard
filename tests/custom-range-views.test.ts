@@ -55,12 +55,14 @@ function view(name: 'FundDetail' | 'Comparison', overrides: Record<string, unkno
   const effects: { deps: unknown[]; cleanup?: () => void }[] = [];
   const downloads: { rows: unknown[][]; filename: string }[] = [];
   let stateIndex = 0, effectIndex = 0, dirty = false;
+  let hooks: string[] = [], previousHooks: string[] | undefined;
   let pending: (() => void)[] = [];
   let tree: Element;
   const jsx = (type: unknown, props: Element['props']) => ({ type, props });
   const dependencies: Record<string, unknown> = {
     react: {
       useState(initial: unknown) {
+        hooks.push('state');
         const index = stateIndex++;
         if (!(index in state)) state[index] = typeof initial === 'function' ? initial() : initial;
         return [state[index], (update: unknown) => {
@@ -68,8 +70,9 @@ function view(name: 'FundDetail' | 'Comparison', overrides: Record<string, unkno
           if (!Object.is(next, state[index])) { state[index] = next; dirty = true; }
         }];
       },
-      useMemo: (run: () => unknown) => run(),
+      useMemo: (run: () => unknown) => { hooks.push('memo'); return run(); },
       useEffect(run: () => void | (() => void), deps: unknown[]) {
+        hooks.push('effect');
         const index = effectIndex++;
         const previous = effects[index];
         if (previous && deps.every((value, i) => Object.is(value, previous.deps[i]))) return;
@@ -110,7 +113,10 @@ function view(name: 'FundDetail' | 'Comparison', overrides: Record<string, unkno
     do {
       assert.ok(attempts++ < 10, 'Page state must settle.');
       dirty = false; stateIndex = 0; effectIndex = 0;
+      hooks = [];
       tree = exports[name](props);
+      if (previousHooks) assert.deepEqual(hooks, previousHooks, 'Hook order must survive asynchronous fund loading.');
+      previousHooks = hooks;
       const work = pending; pending = []; work.forEach(run => run());
     } while (dirty);
   }
@@ -137,6 +143,17 @@ function view(name: 'FundDetail' | 'Comparison', overrides: Record<string, unkno
     unmount: () => effects.forEach(effect => effect.cleanup?.()),
   };
 }
+
+test('fund detail opens after asynchronous loading and recovers from an error on the same route', () => {
+  const page = view('FundDetail', { fund: undefined });
+  assert.match(page.content(), /Loading NAV history/);
+  page.change({ error: 'Source unavailable' });
+  assert.match(page.content(), /Source unavailable/);
+  page.change({ fund: makeFund(1), error: undefined });
+  assert.ok(page.chart(), 'Loaded fund must expose its real NAV chart.');
+  page.change({ fund: undefined });
+  assert.match(page.content(), /Loading NAV history/);
+});
 
 test('fund custom dates keep chart, metrics, drawdown episodes and NAV export on the same observations', () => {
   const page = view('FundDetail');
