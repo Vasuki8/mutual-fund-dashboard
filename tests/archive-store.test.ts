@@ -339,13 +339,11 @@ test('HTTP 403/429 and corrupt binaries never enter the asset retry loop', async
   assert.deepEqual(waits, [], 'Checksum and length mismatches still fail closed.');
 });
 
-test('fresh Release asset 404 retries safely after verified upload metadata', async () => {
+test('new upload with a missing public URL reads verified bytes from REST without a second upload', async () => {
   const fixture = new GitHubFixture();
-  fixture.binaryFailures.push({ host: 'github.com', status: 404 },
-    { host: 'release-assets.githubusercontent.com', status: 404 });
+  fixture.binaryFailures.push({ host: 'github.com', status: 404 });
   const waits: number[] = [];
-  const events: { reason: string; assetId: number; attempt: number; delayMs: number;
-    freshlyUploaded: boolean }[] = [];
+  const events: { phase: string; reason: string; assetId: number; freshlyUploaded: boolean }[] = [];
   const store = createGitHubStore({
     repository, token: 'test-token', fetch: fixture.fetch,
     wait: async milliseconds => { waits.push(milliseconds); },
@@ -353,63 +351,151 @@ test('fresh Release asset 404 retries safely after verified upload metadata', as
   });
   const ref = await store.writeJSON('catalogue', { rows: [11, 22] });
   assert.equal(ref.id, fixture.releases[0].assets[0].id);
-  assert.deepEqual(waits, [750, 1500]);
-  assert.deepEqual(fixture.binaryRequests, [
-    'github.com', 'github.com', 'release-assets.githubusercontent.com',
-    'github.com', 'release-assets.githubusercontent.com',
-  ], 'Each retry must restart at canonical GitHub URL, not reuse an expired redirect.');
-  assert.deepEqual(events.map(e => [e.reason, e.assetId, e.attempt, e.delayMs, e.freshlyUploaded]), [
-    ['asset_http_404', ref.id, 1, 750, true],
-    ['asset_http_404', ref.id, 2, 1500, true],
-  ]);
+  assert.deepEqual(fixture.binaryRequests,
+    ['github.com', 'api.github.com', 'release-assets.githubusercontent.com'],
+    'API redirect must use credential-free CDN GET, not repeat the upload.');
+  assert.deepEqual(waits, []);
+  assert.deepEqual(events.map(event => [event.phase, event.assetId, event.reason, event.freshlyUploaded]),
+    [['archive_asset_api_fallback', ref.id, 'asset_http_404', true]]);
   assert.equal(fixture.releases.flatMap(release => release.assets).length, 1);
   assert.equal(fixture.patchCount, 0);
   assert.ok((await store.readAssetBytes(ref)).length > 0);
 });
 
-test('permanent fresh 404 stops after five reads and leaves the control pointer untouched', async () => {
+test('missing public link for an older asset uses its immutable REST ID without bypassing checks', async () => {
   const fixture = new GitHubFixture();
-  fixture.binaryFailures.push(...Array.from({ length: 5 },
-    () => ({ host: 'release-assets.githubusercontent.com', status: 404 })));
+  const store = createGitHubStore({ repository, token: 'test-token', fetch: fixture.fetch });
+  const ref = await store.writeJSON('catalogue', { rows: [30] });
+  fixture.binaryFailures.push({ host: 'release-assets.githubusercontent.com', status: 404 });
   const waits: number[] = [];
+  const resumed = createGitHubStore({ repository, token: 'test-token', fetch: fixture.fetch,
+    wait: async milliseconds => { waits.push(milliseconds); } });
+  assert.ok((await resumed.readAssetBytes(ref)).length > 0);
+  assert.deepEqual(waits, []);
+  assert.deepEqual(fixture.binaryRequests.slice(-4),
+    ['github.com', 'release-assets.githubusercontent.com', 'api.github.com',
+      'release-assets.githubusercontent.com']);
+  assert.equal(fixture.patchCount, 0);
+});
+
+test('GitHub REST direct 200 binary response passes only when its bytes match the stored digest', async () => {
+  const fixture = new GitHubFixture();
+  fixture.apiBinaryDirect = true;
+  fixture.binaryFailures.push({ host: 'github.com', status: 404 });
+  const store = createGitHubStore({ repository, token: 'test-token', fetch: fixture.fetch });
+  const ref = await store.writeJSON('catalogue', { rows: [40] });
+  assert.equal(ref.id, fixture.releases[0].assets[0].id);
+  assert.deepEqual(fixture.binaryRequests, ['github.com', 'api.github.com']);
+  assert.equal(fixture.patchCount, 0);
+});
+
+test('both new-asset URLs may take two bounded 404 retries before public delivery', async () => {
+  const fixture = new GitHubFixture();
+  fixture.binaryFailures.push(
+    { host: 'github.com', status: 404 },
+    { host: 'api.github.com', status: 404 },
+    { host: 'release-assets.githubusercontent.com', status: 404 },
+    { host: 'api.github.com', status: 404 },
+  );
+  const waits: number[] = [];
+  const events: { phase: string; reason: string; attempt: number; delayMs: number }[] = [];
   const store = createGitHubStore({
     repository, token: 'test-token', fetch: fixture.fetch,
     wait: async milliseconds => { waits.push(milliseconds); },
+    onRetry: event => { events.push(event); },
   });
-  await assert.rejects(store.writeJSON('catalogue', { rows: [12] }), /asset_http_404/);
+  await store.writeJSON('catalogue', { rows: [20] });
+  assert.deepEqual(waits, [750, 1500]);
+  assert.deepEqual(fixture.binaryRequests, ['github.com', 'api.github.com',
+    'github.com', 'release-assets.githubusercontent.com', 'api.github.com',
+    'github.com', 'release-assets.githubusercontent.com']);
+  assert.deepEqual(events.map(event => [event.phase, event.reason, event.delayMs]), [
+    ['archive_asset_api_fallback', 'asset_http_404', 0],
+    ['archive_asset_retry', 'asset_http_404', 750],
+    ['archive_asset_api_fallback', 'asset_http_404', 0],
+    ['archive_asset_retry', 'asset_http_404', 1500],
+  ]);
+  assert.equal(fixture.releases.flatMap(release => release.assets).length, 1);
+});
+
+test('persistent 404 in both public and API binary routes fails without advancing the pointer', async () => {
+  const fixture = new GitHubFixture();
+  fixture.binaryFailures.push(
+    ...Array.from({ length: 5 }, () => ({ host: 'release-assets.githubusercontent.com', status: 404 })),
+    ...Array.from({ length: 5 }, () => ({ host: 'api.github.com', status: 404 })),
+  );
+  const waits: number[] = [];
+  const store = createGitHubStore({ repository, token: 'test-token', fetch: fixture.fetch,
+    wait: async milliseconds => { waits.push(milliseconds); } });
+  await assert.rejects(store.writeJSON('catalogue', { rows: [12] }), /asset_api_http_404/);
   assert.deepEqual(waits, [750, 1500, 3000, 6000]);
-  assert.equal(fixture.binaryRequests.filter(host => host === 'release-assets.githubusercontent.com').length, 5);
+  assert.equal(fixture.binaryRequests.filter(host => host === 'api.github.com').length, 5);
   assert.equal(fixture.releases.flatMap(release => release.assets).length, 1);
   assert.equal(fixture.patchCount, 0);
-  // A later root reconciles the same immutable content by name, without upload
-  // duplication or unverified sequence changes.
   const resumed = createGitHubStore({ repository, token: 'test-token', fetch: fixture.fetch });
   const ref = await resumed.writeJSON('catalogue', { rows: [12] });
   assert.equal(ref.id, fixture.releases[0].assets[0].id);
   assert.equal(fixture.releases.flatMap(release => release.assets).length, 1);
 });
 
-test('404 for previously uploaded references is not treated as eventual consistency', async () => {
+test('an older asset truly absent from public and API routes fails immediately', async () => {
   const fixture = new GitHubFixture();
   const initial = createGitHubStore({ repository, token: 'test-token', fetch: fixture.fetch });
-  const ref = await initial.writeJSON('catalogue', { rows: [30] });
-  fixture.binaryFailures.push({ host: 'release-assets.githubusercontent.com', status: 404 });
+  const ref = await initial.writeJSON('catalogue', { rows: [13] });
+  fixture.binaryFailures.push(
+    { host: 'release-assets.githubusercontent.com', status: 404 },
+    { host: 'api.github.com', status: 404 },
+  );
   const waits: number[] = [];
   const resumed = createGitHubStore({ repository, token: 'test-token', fetch: fixture.fetch,
     wait: async milliseconds => { waits.push(milliseconds); } });
-  await assert.rejects(resumed.readAssetBytes(ref), /asset_http_404/);
-  assert.deepEqual(waits, [], 'Missing older data must be reported immediately.');
+  await assert.rejects(resumed.readAssetBytes(ref), /asset_api_http_404/);
+  assert.deepEqual(waits, []);
   assert.equal(fixture.patchCount, 0);
 });
 
-test('fresh asset 404 does not delay after the archive work deadline', async () => {
+test('REST denied, malformed, or tampered binary data never becomes an accepted archive', async () => {
+  for (const problem of ['denied', 'metadata', 'corrupt']) {
+    const fixture = new GitHubFixture();
+    fixture.binaryFailures.push({ host: 'github.com', status: 404 });
+    if (problem === 'denied') fixture.binaryFailures.push({ host: 'api.github.com', status: 403 });
+    if (problem === 'metadata') fixture.apiBinaryMetadata = true;
+    if (problem === 'corrupt') { fixture.apiBinaryDirect = true; fixture.apiBinaryCorrupt = true; }
+    const waits: number[] = [];
+    const store = createGitHubStore({ repository, token: 'test-token', fetch: fixture.fetch,
+      wait: async milliseconds => { waits.push(milliseconds); } });
+    await assert.rejects(store.writeJSON('catalogue', { rows: [14] }),
+      problem === 'denied' ? /asset_api_http_403/ : /asset_(?:size|digest)_invalid/);
+    assert.deepEqual(waits, []);
+    assert.equal(fixture.patchCount, 0);
+  }
+});
+
+test('REST signed redirect never carries token to unapproved hosts', async () => {
   const fixture = new GitHubFixture();
-  fixture.binaryFailures.push({ host: 'release-assets.githubusercontent.com', status: 404 });
+  fixture.binaryFailures.push({ host: 'github.com', status: 404 });
+  fixture.redirectTo = 'https://example.net/injected';
+  const waits: number[] = [];
+  const store = createGitHubStore({ repository, token: 'test-token', fetch: fixture.fetch,
+    wait: async milliseconds => { waits.push(milliseconds); } });
+  await assert.rejects(store.writeJSON('catalogue', { rows: [15] }), /asset_redirect_invalid/);
+  assert.deepEqual(fixture.binaryRequests, ['github.com', 'api.github.com']);
+  assert.deepEqual(waits, []);
+  assert.equal(fixture.patchCount, 0);
+});
+
+test('fresh asset 404 does not extend the existing archive work deadline', async () => {
+  const fixture = new GitHubFixture();
+  fixture.binaryFailures.push(
+    { host: 'release-assets.githubusercontent.com', status: 404 },
+    { host: 'api.github.com', status: 404 },
+  );
   const waits: number[] = [];
   const now = 1000;
   const store = createGitHubStore({ repository, token: 'test-token', fetch: fixture.fetch,
-    now: () => now, deadline: now + 1600, wait: async milliseconds => { waits.push(milliseconds); } });
-  await assert.rejects(store.writeJSON('catalogue', { rows: [50] }), /asset_http_404/);
+    now: () => now, deadline: now + 1600,
+    wait: async milliseconds => { waits.push(milliseconds); } });
+  await assert.rejects(store.writeJSON('catalogue', { rows: [50] }), /asset_api_http_404/);
   assert.deepEqual(waits, []);
   assert.equal(fixture.patchCount, 0);
 });
