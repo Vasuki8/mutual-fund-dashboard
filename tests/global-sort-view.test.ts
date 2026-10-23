@@ -101,7 +101,7 @@ function pageView(hasIndex = true, savedOnly = true, returnIndexVersion:1|2 = 1,
   const select=(label:string,value:string)=>{
     const control=all().find(node=>node.type==='select'&&node.props['aria-label']===label);
     assert.ok(control,'Missing '+label);
-    assert.equal(control!.props.disabled,false,'Selector must be enabled');
+    assert.notEqual(control!.props.disabled,true,'Selector must be enabled');
     control!.props.onChange({target:{value}});render();
   };
   render();
@@ -210,6 +210,10 @@ test('users can select 20, 50, or 100 funds, jump to a page, and navigate first/
   assert.equal(view.page().length,100);
   view.next();
   assert.deepEqual(view.page(),Array.from({length:25},(_,i)=>25-i));
+  const pageInput=view.all().find(n=>n.type==='input'&&n.props['aria-label']==='Go to page');
+  assert.ok(pageInput);
+  pageInput!.props.onChange({target:{value:'1'}});view.render();
+  assert.equal(view.page()[0],125,'Direct page jump must update the full result view.');
   view.unmount();
 });
 
