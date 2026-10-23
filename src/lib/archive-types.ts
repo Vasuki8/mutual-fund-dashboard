@@ -39,6 +39,8 @@ export interface ReadyArchiveManifest {
   latestNavDate: string | null;
   counts: ArchiveCounts;
   catalogue: PublicArchiveAsset;
+  /** Optional for backwards compatibility with older published checkpoints. */
+  returns?: PublicArchiveAsset;
   /** floor(schemeCode / 32), independent of catalogue ordering. */
   shards: Record<string, PublicArchiveAsset>;
   issues: ArchiveIssue[];
