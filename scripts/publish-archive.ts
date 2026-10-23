@@ -3,7 +3,8 @@ import { mkdir, mkdtemp, readdir, rename, rm, stat, writeFile } from 'node:fs/pr
 import { basename, dirname, join, resolve } from 'node:path';
 import { isDeepStrictEqual } from 'node:util';
 import { pathToFileURL } from 'node:url';
-import { gunzipSync } from 'node:zlib';
+import { gunzipSync, gzipSync } from 'node:zlib';
+import { archivedFundReturns, validateReturnIndex, type FundReturns, type ArchivedReturnIndex } from '../src/lib/fund-sort.ts';
 import type { UnavailableArchiveManifest } from '../src/lib/archive-types.ts';
 import type { ArchiveAssetRef, ArchiveSnapshot } from './archive-model.ts';
 import type { ReadyArchiveManifest } from '../src/lib/archive-types.ts';
@@ -45,6 +46,7 @@ export async function materializeSnapshot(options: { snapshot: ArchiveSnapshot;
     // Download a few immutable objects at a time. Settle all readers before
     // cleanup so a failed worker cannot leave writes racing with publication.
     const shards = Object.entries(checkpoint.shards);
+    const returnRows: FundReturns[] = [];
     let cursor = 0;
     let failure: unknown;
     const readers = Array.from({ length: Math.min(4, shards.length) }, async () => {
@@ -54,6 +56,10 @@ export async function materializeSnapshot(options: { snapshot: ArchiveSnapshot;
           const bytes = await readAssetBytes(ref);
           const shard = validateHistoryShard(verifyArchiveBytes(bytes, ref), bucket);
           validateShardStates(shard, checkpoint.states);
+          for (const document of shard.records) {
+            const summary = archivedFundReturns(document);
+            if (summary) returnRows.push(summary);
+          }
           await writeFile(join(staging, ref.name), bytes);
         } catch (error) { failure = error; throw error; }
       }
@@ -62,6 +68,25 @@ export async function materializeSnapshot(options: { snapshot: ArchiveSnapshot;
     const rejected = results.find(result => result.status === 'rejected');
     if (rejected?.status === 'rejected') throw rejected.reason;
 
+    // Publish one small, immutable ranking index for the entire verified
+    // archive. Otherwise a browser would need thousands of MFAPI requests to
+    // sort search results by returns across pages.
+    returnRows.sort((a, b) => a.schemeCode - b.schemeCode);
+    const returnsIndex: ArchivedReturnIndex = { version: 1, source: 'mfapi.in',
+      sequence: checkpoint.sequence, catalogueFetchedAt: checkpoint.catalogueFetchedAt,
+      entries: returnRows };
+    validateReturnIndex(returnsIndex, checkpoint.sequence, checkpoint.catalogueFetchedAt,
+      new Set(catalogue.entries.map(entry => entry.schemeCode)), checkpoint.counts.clean);
+    const indexUncompressed = Buffer.from(JSON.stringify(returnsIndex));
+    const indexCompressed = gzipSync(indexUncompressed, { level: 9 });
+    const indexDigest = createHash('sha256').update(indexCompressed).digest('hex');
+    const indexFilename = `returns-${indexDigest}.json.gz`;
+    if (indexCompressed.length > MAX_COMPRESSED_BYTES || indexUncompressed.length > MAX_METADATA_EXPANDED_BYTES) {
+      throw new Error('Archived return index exceeds its size budget.');
+    }
+    await writeFile(join(staging, indexFilename), indexCompressed);
+    const returnRef = { path: `archive/${indexFilename}`, sha256: indexDigest,
+      bytes: indexCompressed.length, expandedBytes: indexUncompressed.length };
     const publicRef = (ref: ArchiveAssetRef) => ({ path: `archive/${ref.name}`, sha256: ref.sha256,
       bytes: ref.bytes, expandedBytes: ref.expandedBytes });
     const latestDates = catalogue.entries.flatMap(entry => entry.latestDate ? [entry.latestDate] : []).sort();
@@ -73,7 +98,7 @@ export async function materializeSnapshot(options: { snapshot: ArchiveSnapshot;
     const manifest: ReadyArchiveManifest = { version: 2, source: 'mfapi.in', status: 'ready', collectionEnabled: options.collectionEnabled === true,
       sequence: checkpoint.sequence, generatedAt: now, checkpointAt: checkpoint.updatedAt,
       catalogueFetchedAt: checkpoint.catalogueFetchedAt, latestNavDate: latestDates.at(-1) ?? null,
-      counts: checkpoint.counts, catalogue: publicRef(checkpoint.catalogue),
+      counts: checkpoint.counts, catalogue: publicRef(checkpoint.catalogue), returns: returnRef,
       shards: Object.fromEntries(shards.map(([bucket, ref]) => [bucket, publicRef(ref)])),
       issues: archiveIssues(checkpoint.states, 20), warnings };
     await writeFile(join(staging, 'manifest.json'), JSON.stringify(manifest) + '\n');
