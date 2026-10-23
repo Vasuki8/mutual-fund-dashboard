@@ -282,7 +282,8 @@ async function main(): Promise<void> {
     throw new Error('expected_sequence_invalid');
   }
   const expectedSequence = expected === undefined ? undefined : expected === 'none' ? null : Number(expected);
-  const store = createGitHubStore({ repository: process.env.GITHUB_REPOSITORY!, token: process.env.GITHUB_TOKEN ?? '', deadline });
+  const store = createGitHubStore({ repository: process.env.GITHUB_REPOSITORY!, token: process.env.GITHUB_TOKEN ?? '', deadline,
+    onRetry: event => process.stdout.write(JSON.stringify(event) + '\n') });
   const result = await runTranche({ store, deadline, expectedSequence, log: event => process.stdout.write(JSON.stringify(event) + '\n') });
   process.stdout.write(JSON.stringify({ phase: 'verified', ...result }) + '\n');
   if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT,
