@@ -11,7 +11,7 @@ The former hosted import task is paused. Do not deploy to that host, run its upd
 | Area | Status |
 | --- | --- |
 | Source code | GitHub `main` is the canonical source. |
-| Approved interface | The Graphite React interface and retained financial calculations are present in `src/`. |
+| Approved interface | The Atlas React interface and retained financial calculations are present in `src/`. |
 | Automated checks | `.github/workflows/ci.yml` checks types, runs tests, and builds both the retained Worker and standalone Pages applications. It does not publish a website. |
 | GitHub Pages build | `pnpm run build:pages` builds the shared UI as static assets in `dist/pages` using the repository base path. |
 | GitHub Pages deployment | Live at [FundScope](https://vasuki8.github.io/mutual-fund-dashboard/), verified after [successful run 39652812557](https://github.com/Vasuki8/mutual-fund-dashboard/actions/runs/39652812557) on 21 October 2026. Each later change must verify its own deployment. |

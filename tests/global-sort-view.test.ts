@@ -51,6 +51,7 @@ function pageView(hasIndex = true) {
     '../lib/catalog.ts': {STARTER_FUNDS:schemes.slice(0,6)},
     './FundTable.tsx': {FundTable:TABLE},
     './FundPreview.tsx': {FundPreview:PREVIEW},
+    './FundBands.tsx': {FundBands:Symbol('FundBands')},
   };
   const exports: Record<string,(props:unknown)=>Element> = {};
   new Function('require','exports',compiled)((name:string)=>{
