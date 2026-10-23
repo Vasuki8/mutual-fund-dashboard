@@ -67,6 +67,41 @@ test('catalogue search is available from the verified snapshot without MFAPI', a
   assert.equal(f.requests.some(path => path.includes('shard')), false);
 });
 
+test('a verified return index exposes a complete-page ranking input without fetching history shards', async () => {
+  const f = fixture();
+  const payload = { version:1, source:'mfapi.in', sequence:1, catalogueFetchedAt:NOW,
+    entries:[{ schemeCode:CODE,navDate:'2026-10-20',oneYear:null,threeYear:null,fiveYear:null }] };
+  const compressed=asset(payload,'returns-temp');
+  compressed.descriptor.path = 'archive/returns-' + compressed.descriptor.sha256 + '.json.gz';
+  Object.assign(f.manifest,{returns:compressed.descriptor});
+  f.files.set(compressed.descriptor.path,compressed.bytes);
+  const rows=await f.reader.loadReturns();
+  assert.equal(rows?.[CODE].navDate,'2026-10-20');
+  assert.equal(rows?.[CODE].oneYear,null);
+  assert.equal(Object.keys(rows??{}).length,1);
+  assert.ok(!f.requests.some(path=>path.includes('shard')),
+    'Loading global sort values must never download every NAV shard.');
+});
+
+test('tampered or cross-checkpoint return indexes fail closed', async () => {
+  const broken = [
+    {version:1,source:'mfapi.in',sequence:2,catalogueFetchedAt:NOW,entries:[]},
+    {version:1,source:'mfapi.in',sequence:1,catalogueFetchedAt:NOW,
+      entries:[{schemeCode:999999,navDate:'2026-10-20',oneYear:.1,threeYear:null,fiveYear:null}]},
+  ];
+  for(const index of broken){
+    const f=fixture(), compressed=asset(index,'returns-temp');
+    compressed.descriptor.path='archive/returns-'+compressed.descriptor.sha256+'.json.gz';
+    Object.assign(f.manifest,{returns:compressed.descriptor});
+    f.files.set(compressed.descriptor.path,compressed.bytes);
+    await assert.rejects(f.reader.loadReturns(),/index|scheme|checkpoint|return/i);
+  }
+  const f=fixture();
+  Object.assign(f.manifest,{returns:{path:'archive/other-file.json.gz',sha256:'a'.repeat(64),
+    bytes:100,expandedBytes:100}});
+  await assert.rejects(f.reader.loadReturns(),/return index path/i);
+});
+
 test('disabled publication does not invent zero coverage or request a history shard', async () => {
   const f = fixture();
   f.files.set('archive/manifest.json', { version: 2, source: 'mfapi.in', status: 'disabled', generatedAt: NOW,
