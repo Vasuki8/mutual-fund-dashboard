@@ -13,6 +13,9 @@ class GitHubFixture {
   binaryRequests: string[] = [];
   // Inject transient or permanent read errors at GitHub or its redirected asset CDN.
   binaryFailures: { host: string; status: number }[] = [];
+  apiBinaryDirect = false;
+  apiBinaryMetadata = false;
+  apiBinaryCorrupt = false;
   nextId = 1;
   uploadLost = false;
   corruptBinary = false;
@@ -52,6 +55,16 @@ class GitHubFixture {
       const assetMatch = new RegExp(`^${base}/assets/(\\d+)$`).exec(url.pathname);
       if (assetMatch) {
         const asset = this.releases.flatMap(release => release.assets).find(entry => entry.id === Number(assetMatch[1]));
+        if (headers.get('Accept') === 'application/octet-stream') {
+          this.binaryRequests.push('api.github.com');
+          const failureIndex = this.binaryFailures.findIndex(failure => failure.host === 'api.github.com');
+          if (failureIndex >= 0) return new Response(null, { status: this.binaryFailures.splice(failureIndex, 1)[0].status });
+          if (!asset) return new Response(null, { status: 404 });
+          if (this.apiBinaryMetadata) return Response.json({ id: asset.id, name: asset.name, digest: asset.digest });
+          if (this.apiBinaryDirect) return new Response(this.apiBinaryCorrupt ? new Uint8Array([0, 1]) : asset.body);
+          return new Response(null, { status: 302, headers: {
+            Location: this.redirectTo ?? `https://release-assets.githubusercontent.com/${asset.id}` } });
+        }
         return Response.json(asset ?? {}, { status: asset ? 200 : 404 });
       }
       const match = new RegExp(`^${base}/(\\d+)(/assets)?$`).exec(url.pathname);
