@@ -31,3 +31,7 @@ Apply the palette to backgrounds, panels, borders, selections, text, buttons, st
 Preserve full-result sorting before pagination, the verified return-index gate, separate preview/save/compare actions, watchlists, notes, backup/restore, exports, request deduplication and cache generation guards. Retain the fund-detail hook-order fix for asynchronous history loading. Keep financial calculations, Growth/distribution gates, actual dates, missing values and source-quality notices unchanged.
 
 GitHub remains the delivery target. Do not deploy to the former ChatGPT Site, resume its updater, change collectors or migrate stored history. Verify the Pages deployment and public UI separately from source checks. A UI release does not establish complete archive coverage.
+
+## Interaction motion
+
+The owner approved subtle interaction effects: 160ms preview fades and save/compare icon feedback, a 180ms mobile-menu expansion/collapse, and 160ms notification entry/exit. Values and charts update immediately. New notifications replace outgoing messages immediately; dismissed controls become inert and are hidden from assistive technology before the visual exit completes. CSS display-transition support improves the notification exit; older browsers close it immediately. The existing Reduce Motion rule disables every effect. Keep the layout, data, calculations and collection behaviour unchanged.

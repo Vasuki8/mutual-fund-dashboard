@@ -73,7 +73,7 @@ export function Home(props:Props) {
           <button className="research-card" onClick={()=>props.openResearch(selected??STARTER_FUNDS[0],'holding')}><span className="research-icon"><ChartNoAxesCombined size={19}/></span><span className="research-card-body"><strong>Holding periods</strong><span>Consistency across historical windows.</span></span><ArrowUpRight size={16}/></button>
         </div></section>}
       </section>
-      <FundPreview scheme={selected} fund={selected?props.funds[selected.schemeCode]:undefined} error={selected?props.errors[selected.schemeCode]:undefined} saved={!!selected&&props.watchlist.some(s=>s.schemeCode===selected.schemeCode)} compared={!!selected&&props.compared.some(s=>s.schemeCode===selected.schemeCode)} openFund={props.openFund} toggleWatch={props.toggleWatch} toggleCompare={props.toggleCompare} retry={()=>{if(selected)void props.ensureFund(selected.schemeCode,true);}}/>
+      <FundPreview key={selected?.schemeCode??'empty'} scheme={selected} fund={selected?props.funds[selected.schemeCode]:undefined} error={selected?props.errors[selected.schemeCode]:undefined} saved={!!selected&&props.watchlist.some(s=>s.schemeCode===selected.schemeCode)} compared={!!selected&&props.compared.some(s=>s.schemeCode===selected.schemeCode)} openFund={props.openFund} toggleWatch={props.toggleWatch} toggleCompare={props.toggleCompare} retry={()=>{if(selected)void props.ensureFund(selected.schemeCode,true);}}/>
     </div>
     <div className="quiet-note"><span className="status-dot"/>NAV histories supplied by MFAPI. Missing observations are never treated as zero.</div>
   </>;
