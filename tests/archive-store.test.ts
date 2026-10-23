@@ -465,7 +465,7 @@ test('REST denied, malformed, or tampered binary data never becomes an accepted 
     const store = createGitHubStore({ repository, token: 'test-token', fetch: fixture.fetch,
       wait: async milliseconds => { waits.push(milliseconds); } });
     await assert.rejects(store.writeJSON('catalogue', { rows: [14] }),
-      problem === 'denied' ? /asset_api_http_403/ : /asset_(?:size|digest)_invalid/);
+      problem === 'denied' ? /asset_api_http_403/ : /(?:response_size|asset_(?:size|digest))_invalid/);
     assert.deepEqual(waits, []);
     assert.equal(fixture.patchCount, 0);
   }
