@@ -107,8 +107,12 @@ test('a verified snapshot publishes every history and honest partial coverage in
     assert.ok(manifest.returns?.path.startsWith('archive/returns-'), 'The complete return index is published once per checkpoint.');
     const sortIndex = verifyArchiveBytes(await readFile(join(directory, manifest.returns!.path)), manifest.returns!, 100 * 1024 * 1024) as {sequence:number;entries:{schemeCode:number;oneYear:number|null}[]};
     assert.equal(sortIndex.sequence, manifest.sequence);
+    assert.equal((sortIndex as typeof sortIndex & {version:number}).version, 2);
     assert.deepEqual(sortIndex.entries.map(entry=>entry.schemeCode), [100000]);
     assert.equal(sortIndex.entries[0].oneYear,null, 'Two observations within one month cannot support a one-year return.');
+    assert.ok(Object.prototype.hasOwnProperty.call(sortIndex.entries[0], 'threeYearMaxDrawdown'));
+    assert.equal((sortIndex.entries[0] as typeof sortIndex.entries[0] & {threeYearMaxDrawdown:number|null})
+      .threeYearMaxDrawdown,null, 'Do not label a shorter observed drawdown as a full 3Y maximum.');
     const bytes = await readFile(join(directory, manifest.shards['3125'].path));
     const decoded = verifyArchiveBytes(bytes, manifest.shards['3125']);
     assert.equal(decoded.records[0].payload.data.length, 2);
