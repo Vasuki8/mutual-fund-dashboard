@@ -38,7 +38,7 @@ test('three-year max drawdown requires an eligible full three-year NAV baseline'
   ]), null, 'A future baseline is not a predecessor NAV.');
   around(threeYearMaxDrawdown([
     point('2023-01-03', 100),point('2024-01-10', 150),point('2026-01-10', 120),
-  ]), 120 / 150 - 1, 'A valid seven-day predecessor baseline is eligible.');
+  ]), 120 / 150 - 1);
 });
 
 test('a zero drawdown is valid; leap-day windows use calendar anniversaries', () => {
