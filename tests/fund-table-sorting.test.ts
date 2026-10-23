@@ -82,8 +82,8 @@ test('fund names open full analysis directly while save and compare remain separ
 test('3Y max drawdown is shown beside returns using the globally sorted archive values',()=>{
   const html=render(true);
   assert.match(html,/>3Y max drawdown /);
-  assert.match(html,/-30\\.00%/);
-  assert.match(html,/-20\\.00%/);
+  assert.match(html,/-30\.00%/);
+  assert.match(html,/-20\.00%/);
   assert.match(html,/Largest observed peak-to-trough NAV decline over the trailing 3Y/);
   assert.match(html,/Unavailable: requires a validated Growth history/);
   assert.ok(html.indexOf('5Y CAGR')<html.indexOf('3Y max drawdown'),
@@ -101,8 +101,6 @@ test('the 3Y downside heading is sortable only when globally available',()=>{
   });
   const walk=(node:any):any[]=>Array.isArray(node)?node.flatMap(walk)
     :node&&typeof node==='object'&&node.props?[node,...walk(node.props.children)]:[];
-  const down=walk(build(true)).find(node=>node.type==='button'
-    && walk(node).some((child:any)=>typeof child==='string'&&child.includes('3Y max drawdown')));
   // Locate the column by its directly rendered text, not a page-specific row.
   const header=walk(build(true)).find(node=>node.type==='th' && node.props['aria-sort']==='descending');
   assert.ok(header);
