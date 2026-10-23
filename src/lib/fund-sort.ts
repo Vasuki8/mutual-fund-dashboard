@@ -68,7 +68,7 @@ export function validateReturnIndex(value: unknown, sequence: number, catalogueF
     const item = raw as Record<string, unknown>;
     if (typeof item.schemeCode !== 'number' || !Number.isSafeInteger(item.schemeCode)
       || item.schemeCode <= lastCode || !knownCodes.has(item.schemeCode)
-      || !calendarDate(item.navDate) || item.navDate > catalogueFetchedAt.slice(0, 10)) {
+      || !calendarDate(item.navDate)) {
       throw new Error('Archived return scheme identity, date or order is invalid.');
     }
     for (const field of ['oneYear', 'threeYear', 'fiveYear']) {
