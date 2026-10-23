@@ -24,6 +24,8 @@ interface StoreOptions {
   deadline?: number;
   generationLimit?: number;
   wait?: (milliseconds: number) => Promise<unknown>;
+  onRetry?: (event: { phase: 'archive_asset_retry'; assetId: number; reason: string;
+    attempt: number; delayMs: number; freshlyUploaded: boolean }) => void;
 }
 interface Release { id: number; tag_name: string; body: string | null }
 interface Asset { id: number; name: string; size: number; state: string; digest: string; browser_download_url: string }
@@ -163,24 +165,33 @@ export function createGitHubStore(options: StoreOptions): ArchiveStore {
     }
     throw new Error('asset_redirect_invalid');
   }
-  async function readAssetBytes(value: ArchiveAssetRef): Promise<Uint8Array> {
+  async function readAssetBytes(value: ArchiveAssetRef, freshlyUploaded = false): Promise<Uint8Array> {
     const ref = validateAssetRef(value);
     requireValue(ref.url === `https://github.com/${repository}/releases/download/${ref.releaseTag}/${ref.name}`, 'asset_url_invalid');
-    const retryDelays = [750, 1500] as const;
-    for (let attempt = 0; attempt <= retryDelays.length; attempt++) {
+    const transportDelays = [750, 1500] as const;
+    const fresh404Delays = [750, 1500, 3000, 6000] as const;
+    let transportRetries = 0, fresh404Retries = 0;
+    for (;;) {
       try { return await readAssetBytesOnce(ref); }
       catch (error) {
         const code = error instanceof Error ? error.message : '';
-        // GETs are safe to repeat; uploads and control-pointer updates are not.
-        // Never retry missing assets, rate limits, malformed redirects or bad bytes.
-        const transient = code === 'asset_transport' || /^asset_http_(?:408|425|500|502|503|504)$/.test(code);
-        if (!transient || attempt === retryDelays.length) throw error;
-        const delay = retryDelays[attempt];
-        if (now() + delay + 1000 >= deadline) throw error;
+        // GitHub may briefly return 404 for a just-uploaded Release asset even
+        // after its authenticated metadata confirms state=uploaded. Only this
+        // freshly uploaded asset gets bounded 404 retries. Older, missing
+        // references still fail closed immediately. All successful GETs are
+        // reverified by the exact compressed byte length and SHA-256 digest.
+        let delay: number | undefined;
+        if (freshlyUploaded && code === 'asset_http_404') delay = fresh404Delays[fresh404Retries++];
+        else if (code === 'asset_transport' || /^asset_http_(?:408|425|500|502|503|504)$/.test(code)) {
+          delay = transportDelays[transportRetries++];
+        }
+        // Never retry 403/429, malformed redirects, or mismatched content.
+        if (delay === undefined || now() + delay + 1000 >= deadline) throw error;
+        options.onRetry?.({ phase: 'archive_asset_retry', assetId: ref.id,
+          reason: code, attempt: fresh404Retries + transportRetries, delayMs: delay, freshlyUploaded });
         await wait(delay);
       }
     }
-    throw new Error('asset_download_failed');
   }
   async function readJSON(ref: ArchiveAssetRef, maximum = MAX_METADATA_EXPANDED_BYTES): Promise<unknown> {
     requireValue(ref.expandedBytes <= maximum, 'asset_expanded_size_invalid');
@@ -253,7 +264,9 @@ export function createGitHubStore(options: StoreOptions): ArchiveStore {
       const metadata = await api(`/releases/assets/${uploaded.id}`) as Asset;
       requireValue(metadata.id === uploaded.id && metadata.name === name, 'asset_metadata_invalid');
       const ref = refFor(metadata, current.release, digest, bytes.length, expanded.length);
-      await readAssetBytes(ref);
+      // A new immutable upload can be visible in metadata before its
+      // canonical public download URL becomes available on GitHub's CDN.
+      await readAssetBytes(ref, true);
       current.assets = [...current.assets.filter(asset => asset.id !== metadata.id), metadata]; return ref;
     }
     throw new Error('generation_rotation_limit');
