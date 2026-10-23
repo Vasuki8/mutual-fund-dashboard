@@ -2,7 +2,7 @@
 
 The owner approved the proposed preview fade, save/compare feedback, mobile menu transitions and notification transitions. Keep the existing layout and Atlas colours.
 
-1. Keep preview content current immediately. Recreate only the selected fund preview when its scheme changes, with a 160ms opacity effect; add no number counting, chart drawing or delayed data swaps.
+1. Keep preview content current immediately. Keep the preview and its action buttons stable; recreate only the fund-information fragment when the scheme changes, with a 160ms opacity effect; add no number counting, chart drawing or delayed data swaps.
 2. Add 160ms icon feedback to successful save/compare states. Preserve existing handlers, limits and accessible pressed states.
 3. Use a collapsible mobile sidebar wrapper with a 180ms grid transition; preserve desktop geometry, close-button/Escape focus and hidden navigation behaviour.
 4. Extract the status notification into a small component that keeps its outgoing text for the CSS exit transition. Hide it from assistive technology and disable its close button immediately on dismissal. New messages must replace outgoing text immediately. Use a 160ms discrete display transition with an instant fallback in older browsers.

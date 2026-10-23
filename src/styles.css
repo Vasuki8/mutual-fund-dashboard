@@ -735,7 +735,7 @@ svg { flex-shrink: 0; }
 
 /* Brief feedback; fund values and charts are never delayed or counted up. */
 @keyframes preview-enter { from { opacity: .86; } to { opacity: 1; } }
-.fund-preview, .preview-metrics { animation: preview-enter 160ms ease-out; }
+.preview-title, .preview-metrics, .preview-chart, .preview-meta { animation: preview-enter 160ms ease-out; }
 @keyframes action-confirm { from { opacity: .65; transform: scale(.88); } to { opacity: 1; transform: scale(1); } }
 .table-actions button[aria-pressed='true'] svg,
 .preview-actions button[aria-pressed='true'] svg,
