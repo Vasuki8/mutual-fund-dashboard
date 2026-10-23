@@ -105,6 +105,15 @@ test('a verified snapshot publishes every history and honest partial coverage in
     assert.ok(manifest.catalogue.path.startsWith('archive/catalogue-'));
     assert.ok(manifest.shards['3125'].path.startsWith('archive/history-3125-'));
     assert.ok(manifest.returns?.path.startsWith('archive/returns-'), 'The complete return index is published once per checkpoint.');
+    assert.ok(manifest.categories?.path.startsWith('archive/categories-'),
+      'Every saved source category must be published without excluding IDCW/quality histories.');
+    const categoryIndex = verifyArchiveBytes(
+      await readFile(join(directory,manifest.categories!.path)),manifest.categories!,100*1024*1024
+    ) as {sequence:number;entries:{schemeCode:number;schemeCategory:string}[]};
+    assert.equal(categoryIndex.sequence,manifest.sequence);
+    assert.deepEqual(categoryIndex.entries,[{schemeCode:100000,schemeCategory:'Equity'}]);
+    assert.ok(!categoryIndex.entries.some(x=>x.schemeCode===100032),
+      'A pending fund must not be assigned an invented category.');
     const sortIndex = verifyArchiveBytes(await readFile(join(directory, manifest.returns!.path)), manifest.returns!, 100 * 1024 * 1024) as {sequence:number;entries:{schemeCode:number;oneYear:number|null}[]};
     assert.equal(sortIndex.sequence, manifest.sequence);
     assert.equal((sortIndex as typeof sortIndex & {version:number}).version, 2);
@@ -196,6 +205,12 @@ test('published compressed files load through the real Pages reader with matchin
     assert.equal(fund?._fundscope.stale, false);
     assert.equal(await client.loadFund(100032), null);
     assert.equal((await client.search('Synthetic'))?.length, 2);
+    assert.deepEqual(await client.loadDirectory(),[
+      {schemeCode:100000,schemeName:'Synthetic Growth'},
+      {schemeCode:100032,schemeName:'Synthetic Pending'},
+    ],'Empty-search browse includes the complete catalogue, not only starter examples.');
+    assert.deepEqual(await client.loadCategories(),{100000:'Equity'},
+      'Category metadata loads without full history requests and excludes pending schemes.');
     assert.deepEqual(Object.keys((await client.loadReturns()) ?? {}).map(Number),[100000],
       'The public site can rank the full verified population from one small asset.');
     const manifest = await client.loadManifest();
