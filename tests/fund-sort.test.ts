@@ -39,9 +39,9 @@ test('return sorting ranks the whole set before pagination in both directions', 
 
 test('tied return ranks use scheme name, and not the original or previous page', () => {
   const sorted = sortFundSchemes(schemes, { key: '1', desc: true }, entries);
-  const top = sorted.slice(0,4).map(s=>s.schemeCode);
-  assert.deepEqual(top, [20,15,10,5].filter(x=>x<=19),
-    'The four 0.4 returns are tied and sorted by full name.');
+  const top = sorted.slice(0,3).map(s=>s.schemeCode);
+  assert.deepEqual(top, [15,10,5],
+    'Equal 0.4 returns are tied and sorted by full name.');
   assert.equal(sorted.at(-1)?.schemeCode, 20);
 });
 
