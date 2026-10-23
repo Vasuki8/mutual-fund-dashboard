@@ -16,6 +16,7 @@ const transpiled=ts.transpileModule(content,{compilerOptions:{
 }}).outputText;
 const exported:Record<string,React.ComponentType<any>>={};
 new Function('require','exports',transpiled)((name:string)=>{
+  if(name==='react')return {...React,useEffect(){}};
   if(name==='../lib/fund-sort.ts')return sort;
   if(name==='../lib/format.ts')return format;
   return require(name);
@@ -39,8 +40,8 @@ function render(canSortReturns:boolean){
   const FundTable=exported.FundTable;assert.ok(FundTable);
   return renderToStaticMarkup(React.createElement(FundTable,{
     schemes,funds:{3:fund},errors:{},ensureFund:async()=>{},openFund(){},
-    watchlist:[],compared:[],toggleWatch(){},toggleCompare(){},selectedCode:3,
-    previewFund(){},sort:{key:'1',desc:true},onSort(){},returnsByScheme:returns,canSortReturns,
+    watchlist:[],compared:[],toggleWatch(){},toggleCompare(){},
+    sort:{key:'1',desc:true},onSort(){},returnsByScheme:returns,canSortReturns,
   }));
 }
 
@@ -57,4 +58,23 @@ test('return columns clearly disable sorting when the global return population i
   const html=render(false);
   assert.match(html,/disabled=""/,'Unavailable return sorting must not act as a page-only sort.');
   assert.match(html,/Global return sorting requires a published return index/);
+});
+
+
+test('fund names open full analysis directly while save and compare remain separate',()=>{
+  const opened:number[]=[],saved:number[]=[],compared:number[]=[];
+  const tree=(exported.FundTable as (props:any)=>React.ReactElement)({
+    schemes,funds:{3:fund},errors:{},ensureFund:async()=>{},openFund:(s:Scheme)=>opened.push(s.schemeCode),
+    watchlist:[],compared:[],toggleWatch:(s:Scheme)=>saved.push(s.schemeCode),toggleCompare:(s:Scheme)=>compared.push(s.schemeCode),
+    sort:{key:'name',desc:false},onSort(){},returnsByScheme:returns,canSortReturns:true,
+  });
+  const walk=(node:any):any[]=>Array.isArray(node)?node.flatMap(walk):node&&typeof node==='object'&&node.props?[node,...walk(node.props.children)]:[];
+  const buttons=walk(tree).filter(node=>node.type==='button');
+  const name=buttons.find(node=>node.props.className==='fund-link');
+  name.props.onClick();assert.deepEqual(opened,[3]);
+  assert.equal(name.props['aria-label'],'Open Fund Gamma');
+  assert.equal(name.props['aria-haspopup'],undefined);
+  buttons.find(node=>node.props['aria-label']==='Save Fund Gamma to watchlist').props.onClick();
+  buttons.find(node=>node.props['aria-label']==='Add Fund Gamma to comparison').props.onClick();
+  assert.deepEqual(saved,[3]);assert.deepEqual(compared,[3]);assert.deepEqual(opened,[3]);
 });

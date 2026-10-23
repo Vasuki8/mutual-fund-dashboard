@@ -18,7 +18,7 @@ const archived = Object.fromEntries(schemes.slice(0,17).map(scheme =>
     oneYear: scheme.schemeCode/100, threeYear: scheme.schemeCode/200, fiveYear: null }]));
 
 function pageView(hasIndex = true, savedOnly = true) {
-  const TABLE = Symbol('FundTable'), PREVIEW=Symbol('FundPreview');
+  const TABLE = Symbol('FundTable');
   const state: unknown[] = [];
   const effects: { deps: unknown[]; cleanup?: () => void }[] = [];
   let stateIndex=0, effectIndex=0, dirty=false, pending: (()=>void)[] = [], tree: Element;
@@ -35,7 +35,6 @@ function pageView(hasIndex = true, savedOnly = true) {
         }];
       },
       useMemo: (fn:()=>unknown) => fn(),
-      useRef: (value:unknown)=>({current:value}),
       useEffect(run:()=>void|(()=>void),deps:unknown[]) {
         const at=effectIndex++, prev=effects[at];
         if(prev&&prev.deps.length===deps.length&&deps.every((value,i)=>Object.is(value,prev.deps[i])))return;
@@ -51,7 +50,6 @@ function pageView(hasIndex = true, savedOnly = true) {
     '../lib/fund-sort.ts': fundSort,
     '../lib/catalog.ts': {STARTER_FUNDS:schemes.slice(0,6)},
     './FundTable.tsx': {FundTable:TABLE},
-    './FundPreview.tsx': {FundPreview:PREVIEW},
   };
   const exports: Record<string,(props:unknown)=>Element> = {};
   new Function('require','exports',compiled)((name:string)=>{
@@ -95,23 +93,16 @@ function pageView(hasIndex = true, savedOnly = true) {
     sort:(key:fundSort.FundSortKey)=>{table().props.onSort(key);render();},
     next:()=>click('Next page'),
     table,
-    preview:()=>all().find(node=>node.type===PREVIEW),
     all,
     get readCount(){return readCount;},
     unmount:()=>effects.forEach(x=>x.cleanup?.()),
   };
 }
 
-test('starter collection opens a fund popup only on request and closes without changing sorting', async()=>{
+test('starter collection keeps global sorting for the fund table', async()=>{
   const view=pageView(true,false);
   await view.ready();
   assert.deepEqual(view.page(),[6,5,4,3,2,1]);
-  assert.equal(view.preview(),undefined,'No popup should open on arrival');
-  view.table().props.previewFund(schemes[1]);
-  view.render();
-  assert.equal(view.preview()?.props.scheme.schemeCode,2);
-  view.preview()!.props.onClose();view.render();
-  assert.equal(view.preview(),undefined);
   view.sort('3');
   assert.equal(view.table().props.sort.key,'3');
   assert.deepEqual(view.page(),[6,5,4,3,2,1]);
@@ -159,16 +150,4 @@ test('no verified return index disables misleading multi-page performance sortin
   assert.deepEqual(view.page(),before);
   assert.equal(view.table().props.sort.key,'name');
   view.unmount();
-});
-
-
-test('an open preview keeps its fund when the watchlist row is removed',async()=>{
-  const view=pageView();await view.ready();
-  view.table().props.previewFund(schemes[20]);view.render();
-  assert.equal(view.preview()?.props.scheme.schemeCode,21);
-  view.table().props.watchlist.splice(20,1);
-  view.sort('name');
-  assert.equal(view.preview()?.props.scheme.schemeCode,21,'Saving or removing must not switch the open fund');
-  view.preview()!.props.onClose();view.render();
-  assert.equal(view.preview(),undefined);view.unmount();
 });
