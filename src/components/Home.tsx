@@ -9,7 +9,7 @@ import { STARTER_FUNDS } from '../lib/catalog.ts';
 import { FundTable } from './FundTable.tsx';
 import type { FundTableProps } from './FundTable.tsx';
 
-interface Props extends Omit<FundTableProps,'schemes'|'sort'|'onSort'|'returnsByScheme'|'canSortReturns'> { savedOnly?:boolean; initialQuery?:string; openCompare:()=>void; openResearch:(scheme:Scheme,tab:string)=>void; browse:()=>void }
+interface Props extends Omit<FundTableProps,'schemes'|'sort'|'onSort'|'returnsByScheme'|'canSortReturns'|'canSortDrawdown'> { savedOnly?:boolean; initialQuery?:string; openCompare:()=>void; openResearch:(scheme:Scheme,tab:string)=>void; browse:()=>void }
 export function Home(props:Props) {
   const [query,setQuery]=useState(props.initialQuery??'');
   const [results,setResults]=useState<Scheme[]>([]);
@@ -46,11 +46,17 @@ export function Home(props:Props) {
   // Without a verified snapshot, sorting by return requires all matching
   // histories to have loaded. Never imply a page-local rank is global.
   const canSortReturns=archiveReturns!==null || list.every(s=>Boolean(props.funds[s.schemeCode]||props.errors[s.schemeCode]));
-  const activeSort=canSortReturns||sort.key==='name'?sort:{key:'name',desc:false} as FundSort;
+  // An older published v1 index does not contain downside data. A page-only
+  // sort would be misleading, so disable that heading until the v2 index is live.
+  const canSortDrawdown=archiveReturns!==null
+    ? Object.values(archiveReturns).some(row=>Object.prototype.hasOwnProperty.call(row,'threeYearMaxDrawdown'))
+    : canSortReturns;
+  const activeSort=(sort.key==='dd3'?canSortDrawdown:sort.key==='name'||canSortReturns)
+    ? sort:{key:'name',desc:false} as FundSort;
   const ordered=useMemo(()=>sortFundSchemes(list,activeSort,returnsByScheme),[list,activeSort.key,activeSort.desc,returnsByScheme]);
   const currentPage=Math.min(page,Math.max(0,Math.ceil(ordered.length/8)-1));
   const visible=useMemo(()=>ordered.slice(currentPage*8,currentPage*8+8),[ordered,currentPage]);
-  const onSort=(key:FundSortKey)=>{if(key!=='name'&&!canSortReturns)return;
+  const onSort=(key:FundSortKey)=>{if((key==='dd3'&&!canSortDrawdown)||(key!=='name'&&!canSortReturns))return;
     setSort(current=>({key,desc:current.key===key?!current.desc:key!=='name'}));setPage(0);};
   const researchFund=(!busy&&!error?visible[0]:undefined)??STARTER_FUNDS[0];
   const resetFilters=()=>{setQuery('');setDirectOnly(!props.savedOnly);setPage(0);};
@@ -61,8 +67,8 @@ export function Home(props:Props) {
     <section className="fund-list-section">
       <div className="section-heading"><div><h2>{props.savedOnly?'Saved funds':query.trim()?'Search results':'Starter collection'}<span className="count-badge" aria-live="polite">{busy?'…':list.length}</span></h2><p>{props.savedOnly?'Stored in this browser. Export a backup from Data & backups.':query.trim()?`Matching “${query}” · Select a fund for full analysis`:'A starting point for research. Not a ranking or recommendation.'}</p></div></div>
       <div className="panel table-panel">
-        {busy&&!props.savedOnly?<div className="search-loading" role="status"><Loader2 className="spin" size={24}/><h3>Finding your funds</h3><p>Searching MFAPI’s scheme directory…</p></div>:error&&!props.savedOnly?<div className="empty-state" role="status"><h3>Search is temporarily unavailable</h3><p>{error}</p><button className="button secondary" onClick={()=>setAttempt(value=>value+1)}>Retry search</button></div>:!list.length?<div className="empty-state"><span className="empty-icon">{props.savedOnly?<Bookmark size={24}/>:<Search size={24}/>}</span><h3>{props.savedOnly&&props.watchlist.length===0?'No saved funds yet':'No funds match these filters'}</h3><p>{props.savedOnly&&props.watchlist.length===0?'Save a fund from the explorer to keep it here.':'Try a shorter name, a scheme code, or include all plan types.'}</p>{props.savedOnly&&props.watchlist.length===0?<button className="button primary" onClick={props.browse}>Explore funds <ArrowRight size={15}/></button>:<button className="button secondary" onClick={resetFilters}>Reset filters</button>}</div>:<FundTable {...props} schemes={visible} sort={activeSort} onSort={onSort} returnsByScheme={returnsByScheme} canSortReturns={canSortReturns}/>}
-        {!!list.length&&!busy&&<div className="table-bottom"><span>1Y: absolute · 3Y / 5Y: annualized{list.length>8?(archiveReturns?' · Sort applies to all matching funds (verified archive)':' · Names sort across all pages; global return sorting needs the verified archive'):''}{returnIndexState==='loading'&&list.length>8?' · Loading return index…':''}</span>{list.length>8?<div className="pagination"><button className="icon-button" disabled={currentPage===0} onClick={()=>setPage(currentPage-1)} aria-label="Previous page"><ChevronLeft size={15}/></button><span>{currentPage*8+1}–{Math.min((currentPage+1)*8,list.length)} of {list.length}</span><button className="icon-button" disabled={(currentPage+1)*8>=list.length} onClick={()=>setPage(currentPage+1)} aria-label="Next page"><ChevronRight size={15}/></button></div>:<span>End-of-day NAV</span>}</div>}
+        {busy&&!props.savedOnly?<div className="search-loading" role="status"><Loader2 className="spin" size={24}/><h3>Finding your funds</h3><p>Searching MFAPI’s scheme directory…</p></div>:error&&!props.savedOnly?<div className="empty-state" role="status"><h3>Search is temporarily unavailable</h3><p>{error}</p><button className="button secondary" onClick={()=>setAttempt(value=>value+1)}>Retry search</button></div>:!list.length?<div className="empty-state"><span className="empty-icon">{props.savedOnly?<Bookmark size={24}/>:<Search size={24}/>}</span><h3>{props.savedOnly&&props.watchlist.length===0?'No saved funds yet':'No funds match these filters'}</h3><p>{props.savedOnly&&props.watchlist.length===0?'Save a fund from the explorer to keep it here.':'Try a shorter name, a scheme code, or include all plan types.'}</p>{props.savedOnly&&props.watchlist.length===0?<button className="button primary" onClick={props.browse}>Explore funds <ArrowRight size={15}/></button>:<button className="button secondary" onClick={resetFilters}>Reset filters</button>}</div>:<FundTable {...props} schemes={visible} sort={activeSort} onSort={onSort} returnsByScheme={returnsByScheme} canSortReturns={canSortReturns} canSortDrawdown={canSortDrawdown}/>}
+        {!!list.length&&!busy&&<div className="table-bottom"><span>1Y: absolute · 3Y / 5Y: annualized · 3Y max DD: largest observed decline{list.length>8?(archiveReturns?' · Sort applies to all matching funds (verified archive)':' · Names sort across all pages; global return sorting needs the verified archive'):''}{returnIndexState==='loading'&&list.length>8?' · Loading return index…':''}</span>{list.length>8?<div className="pagination"><button className="icon-button" disabled={currentPage===0} onClick={()=>setPage(currentPage-1)} aria-label="Previous page"><ChevronLeft size={15}/></button><span>{currentPage*8+1}–{Math.min((currentPage+1)*8,list.length)} of {list.length}</span><button className="icon-button" disabled={(currentPage+1)*8>=list.length} onClick={()=>setPage(currentPage+1)} aria-label="Next page"><ChevronRight size={15}/></button></div>:<span>End-of-day NAV</span>}</div>}
       </div>
       {!props.savedOnly&&<section className="research-section"><div className="section-heading"><div><h2>Research tools</h2><p>Explore the outcomes behind the latest return.</p></div></div><div className="research-grid">
         <button className="research-card" onClick={props.openCompare}><span className="research-icon"><GitCompareArrows size={19}/></span><span className="research-card-body"><strong>Compare funds</strong><span>Aligned dates and a shared starting amount.</span></span><ArrowUpRight size={16}/></button>

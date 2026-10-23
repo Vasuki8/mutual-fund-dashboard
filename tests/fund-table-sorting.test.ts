@@ -32,16 +32,16 @@ const fund:FundData={meta:{schemeCode:3,schemeName:schemes[0].schemeName,
   points:[{date:'2025-01-01',nav:100},{date:'2026-01-01',nav:150}],
   fetchedAt:'2026-01-02T10:00:00.000Z',source:'mfapi.in',fromCache:false,stale:false,warnings:[]};
 const returns={
-  3:{schemeCode:3,navDate:'2026-01-01',oneYear:.05,threeYear:null,fiveYear:null},
-  1:{schemeCode:1,navDate:'2026-01-01',oneYear:.44,threeYear:null,fiveYear:null},
-  2:{schemeCode:2,navDate:'2026-01-01',oneYear:.11,threeYear:null,fiveYear:null},
+  3:{schemeCode:3,navDate:'2026-01-01',oneYear:.05,threeYear:null,fiveYear:null,threeYearMaxDrawdown:-.3},
+  1:{schemeCode:1,navDate:'2026-01-01',oneYear:.44,threeYear:null,fiveYear:null,threeYearMaxDrawdown:-.2},
+  2:{schemeCode:2,navDate:'2026-01-01',oneYear:.11,threeYear:null,fiveYear:null,threeYearMaxDrawdown:null},
 };
 function render(canSortReturns:boolean){
   const FundTable=exported.FundTable;assert.ok(FundTable);
   return renderToStaticMarkup(React.createElement(FundTable,{
     schemes,funds:{3:fund},errors:{},ensureFund:async()=>{},openFund(){},
     watchlist:[],compared:[],toggleWatch(){},toggleCompare(){},
-    sort:{key:'1',desc:true},onSort(){},returnsByScheme:returns,canSortReturns,
+    sort:{key:'1',desc:true},onSort(){},returnsByScheme:returns,canSortReturns,canSortDrawdown:true,
   }));
 }
 
@@ -66,7 +66,7 @@ test('fund names open full analysis directly while save and compare remain separ
   const tree=(exported.FundTable as (props:any)=>React.ReactElement)({
     schemes,funds:{3:fund},errors:{},ensureFund:async()=>{},openFund:(s:Scheme)=>opened.push(s.schemeCode),
     watchlist:[],compared:[],toggleWatch:(s:Scheme)=>saved.push(s.schemeCode),toggleCompare:(s:Scheme)=>compared.push(s.schemeCode),
-    sort:{key:'name',desc:false},onSort(){},returnsByScheme:returns,canSortReturns:true,
+    sort:{key:'name',desc:false},onSort(){},returnsByScheme:returns,canSortReturns:true,canSortDrawdown:true,
   });
   const walk=(node:any):any[]=>Array.isArray(node)?node.flatMap(walk):node&&typeof node==='object'&&node.props?[node,...walk(node.props.children)]:[];
   const buttons=walk(tree).filter(node=>node.type==='button');
@@ -77,4 +77,38 @@ test('fund names open full analysis directly while save and compare remain separ
   buttons.find(node=>node.props['aria-label']==='Save Fund Gamma to watchlist').props.onClick();
   buttons.find(node=>node.props['aria-label']==='Add Fund Gamma to comparison').props.onClick();
   assert.deepEqual(saved,[3]);assert.deepEqual(compared,[3]);assert.deepEqual(opened,[3]);
+});
+
+test('3Y max drawdown is shown beside returns using the globally sorted archive values',()=>{
+  const html=render(true);
+  assert.match(html,/>3Y max drawdown /);
+  assert.match(html,/-30\.00%/);
+  assert.match(html,/-20\.00%/);
+  assert.match(html,/Largest observed peak-to-trough NAV decline over the trailing 3Y/);
+  assert.match(html,/Unavailable: requires a validated Growth history/);
+  assert.ok(html.indexOf('5Y CAGR')<html.indexOf('3Y max drawdown'),
+    'Drawdown should follow the requested return columns.');
+});
+
+test('the 3Y downside heading is sortable only when globally available',()=>{
+  const FundTable=exported.FundTable as (props:any)=>React.ReactElement;
+  const clicks:string[]=[];
+  const build=(canSortDrawdown:boolean)=>FundTable({
+    schemes,funds:{3:fund},errors:{},ensureFund:async()=>{},openFund(){},
+    watchlist:[],compared:[],toggleWatch(){},toggleCompare(){},
+    sort:{key:'dd3',desc:true},onSort:(key:string)=>clicks.push(key),
+    returnsByScheme:returns,canSortReturns:true,canSortDrawdown,
+  });
+  const walk=(node:any):any[]=>Array.isArray(node)?node.flatMap(walk)
+    :node&&typeof node==='object'&&node.props?[node,...walk(node.props.children)]:[];
+  // Locate the column by its directly rendered text, not a page-specific row.
+  const header=walk(build(true)).find(node=>node.type==='th' && node.props['aria-sort']==='descending');
+  assert.ok(header);
+  assert.ok(String(header.props.children.props.children).includes('3Y max drawdown')
+    || String(header.props.children.props.children).includes('3Y'));
+  header.props.children.props.onClick();
+  assert.deepEqual(clicks,['dd3']);
+  const unavailable=walk(build(false)).find(node=>node.type==='th'
+    && node.props['aria-sort']==='descending');
+  assert.equal(unavailable.props.children.props.disabled,true);
 });

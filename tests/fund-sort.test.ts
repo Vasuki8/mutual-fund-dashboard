@@ -97,5 +97,5 @@ test('a missing return is never converted to zero for sorting', () => {
   small.payload.data=[raw('2026-10-20',120)];
   small.coverageStart='2026-10-20';small.coverageEnd='2026-10-20';
   assert.deepEqual(archivedFundReturns(small),{schemeCode:small.schemeCode,navDate:'2026-10-20',
-    oneYear:null,threeYear:null,fiveYear:null});
+    oneYear:null,threeYear:null,fiveYear:null,threeYearMaxDrawdown:null});
 });

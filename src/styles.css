@@ -243,7 +243,7 @@ svg { flex-shrink: 0; }
 .table-scroll, .raw-data-scroll { min-width: 0; max-width: 100%; overflow: auto; overscroll-behavior-x: contain; scrollbar-color: var(--line) var(--atlas-background); }
 .table-scroll:focus-visible, .raw-data-scroll:focus-visible { outline-offset: -2px; }
 .fund-table, .simple-table, .comparison-table, .capability-table, .heatmap { width: 100%; border-collapse: collapse; font-size: 11px; }
-.fund-table { min-width: 690px; }
+.fund-table { min-width: 870px; }
 .fund-table th, .simple-table th, .comparison-table th, .capability-table th { padding: 8px 10px; border-bottom: 1px solid var(--line); background: var(--atlas-background); color: var(--muted); font-family: var(--atlas-font); font-size: 11px; font-weight: 400; text-align: left; white-space: nowrap; }
 .fund-table th button { display: inline-flex; align-items: center; gap: 4px; color: inherit; font: inherit; }
 .fund-table td, .simple-table td, .comparison-table td, .capability-table td { height: var(--atlas-row-height); padding: 6px 10px; border-bottom: 1px solid var(--atlas-grid); vertical-align: middle; }

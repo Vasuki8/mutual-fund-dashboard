@@ -72,7 +72,7 @@ export async function materializeSnapshot(options: { snapshot: ArchiveSnapshot;
     // archive. Otherwise a browser would need thousands of MFAPI requests to
     // sort search results by returns across pages.
     returnRows.sort((a, b) => a.schemeCode - b.schemeCode);
-    const returnsIndex: ArchivedReturnIndex = { version: 1, source: 'mfapi.in',
+    const returnsIndex: ArchivedReturnIndex = { version: 2, source: 'mfapi.in',
       sequence: checkpoint.sequence, catalogueFetchedAt: checkpoint.catalogueFetchedAt,
       entries: returnRows };
     validateReturnIndex(returnsIndex, checkpoint.sequence, checkpoint.catalogueFetchedAt,
