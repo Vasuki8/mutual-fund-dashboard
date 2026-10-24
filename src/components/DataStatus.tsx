@@ -5,6 +5,7 @@ import { isStaticRuntime, loadDataStatus, type BrowserDataStatus } from '../lib/
 import type { SyncStatus } from '../lib/sync-types.ts';
 import { loadSharedManifest } from '../lib/shared-archive.ts';
 import type { ReadyArchiveManifest } from '../lib/archive-types.ts';
+import { sourceErrorLabel, type ArchiveHealthSummary } from '../lib/archive-health.ts';
 
 const integer = new Intl.NumberFormat('en-IN');
 function time(value: string | null): string {
@@ -114,6 +115,60 @@ function BrowserStatus({ state, compact, onOpen }: {
   </section>;
 }
 
+function ArchiveHealthBreakdown({ health }: { health: ArchiveHealthSummary }) {
+  const number = (value: number) => integer.format(value);
+  const sources = Object.entries(health.sourceErrors).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  const quality = health.quality;
+  const behind = health.historyBehind;
+  const latest = health.latestNav;
+  return <details className="archive-issues archive-health-breakdown">
+    <summary>Why source gaps, quality flags and refresh work remain</summary>
+    <p>These are independently verified checkpoint groups, not four separate queues. Source failures and quality issues may overlap, and historical date differences are not automatically missing NAV prices.</p>
+    <div className="archive-health-grid">
+      <section aria-label="Source failure breakdown">
+        <h3>Source failures</h3>
+        <dl>
+          {sources.map(([code, count])=><div key={code}><dt title={code}>{sourceErrorLabel(code)}</dt><dd>{number(count)}</dd></div>)}
+        </dl>
+        <p>Zero-only NAV histories cannot be used to calculate returns. They remain unavailable and are rechecked conservatively, not silently filled.</p>
+      </section>
+      <section aria-label="Saved history quality warning breakdown">
+        <h3>Saved-history quality flags</h3>
+        <dl>
+          <div><dt>Invalid NAV observations only</dt><dd>{number(quality.invalidOnly)}</dd></div>
+          <div><dt>Large historical NAV changes only</dt><dd>{number(quality.discontinuityOnly)}</dd></div>
+          <div><dt>Both kinds of warning</dt><dd>{number(quality.both)}</dd></div>
+          {quality.other>0&&<div><dt>Other unresolved warnings</dt><dd>{number(quality.other)}</dd></div>}
+        </dl>
+        <p>Invalid observations remain excluded. Unresolved histories do not become eligible for performance analytics merely because a refresh succeeded.</p>
+      </section>
+      <section aria-label="History date lag breakdown">
+        <h3>Catalogue versus saved-history dates</h3>
+        <dl>
+          <div><dt>Behind by 1 day</dt><dd>{number(behind.oneDay)}</dd></div>
+          <div><dt>Behind by 2–7 days</dt><dd>{number(behind.twoToSevenDays)}</dd></div>
+          <div><dt>Behind by 8–30 days</dt><dd>{number(behind.eightToThirtyDays)}</dd></div>
+          <div><dt>Behind by more than 30 days</dt><dd>{number(behind.overThirtyDays)}</dd></div>
+        </dl>
+        <p>These figures may overlap the refresh backlog. A missing date is never filled with a fabricated NAV.</p>
+      </section>
+      <section aria-label="Source currency and retry schedule">
+        <h3>Source age and retries</h3>
+        <dl>
+          <div><dt>Latest source NAV dated before 2010</dt><dd>{number(latest.before2010)}</dd></div>
+          <div><dt>Latest source NAV dated 2010–2020</dt><dd>{number(latest.from2010Through2020)}</dd></div>
+          <div><dt>Latest source NAV dated 2021 or later</dt><dd>{number(latest.since2021)}</dd></div>
+          {latest.missingDate>0&&<div><dt>No valid latest NAV date</dt><dd>{number(latest.missingDate)}</dd></div>}
+          <div><dt>Latest source NAV value unavailable</dt><dd>{number(latest.missingValue)}</dd></div>
+          <div><dt>Source follow-ups currently due</dt><dd>{number(health.retries.due)}</dd></div>
+          <div><dt>Follow-ups in source backoff</dt><dd>{number(health.retries.future)}</dd></div>
+        </dl>
+        <p>Many known identities have not reported a NAV in years. Catalogue inclusion does not prove a fund is active or available for investment.</p>
+      </section>
+    </div>
+  </details>;
+}
+
 function SharedArchiveStatus({ state, manifest, compact, onOpen }: {
   state: DataStatusState; manifest: ReadyArchiveManifest; compact: boolean; onOpen?: () => void;
 }) {
@@ -156,11 +211,13 @@ function SharedArchiveStatus({ state, manifest, compact, onOpen }: {
       <div><dt>Source failures needing follow-up</dt><dd>{integer.format(counts.sourceGaps)}</dd></div>
       <div><dt>Saved histories with quality flags</dt><dd>{integer.format(counts.qualityIssues)}</dd></div>
       <div><dt>History refresh or reconciliation pending</dt><dd>{integer.format(counts.refreshPending)}</dd></div>
-      <div><dt>Histories cached in this browser</dt><dd>{localStatus?.fundCount == null ? 'Unavailable' : integer.format(localStatus.fundCount)}</dd></div>
+      <div><dt>Histories cached in this browser (local only)</dt><dd>{localStatus?.fundCount == null ? 'Unavailable' : integer.format(localStatus.fundCount)}</dd></div>
     </dl>
+    {manifest.health&&<ArchiveHealthBreakdown health={manifest.health}/>}
     {manifest.issues.length > 0 && <details className="archive-issues"><summary>Source-gap examples ({manifest.issues.length} shown)</summary>
       <ul>{manifest.issues.map(issue => <li key={issue.code}><strong>Scheme {issue.code}</strong> · {issue.attempts} attempt(s): {issue.message}</li>)}</ul></details>}
     {manifest.warnings.length > 0 && <div className="notice warning"><AlertCircle size={16} /><span>{manifest.warnings.join(' ')}</span></div>}
+    <p className="panel-note">The browser-cache count tracks only histories opened or saved on this device. It is not a central backfill deficit and does not need to equal the shared Release archive size.</p>
     <p className="panel-note">A saved history can still have a source failure, quality flag or pending refresh. Those categories can overlap. A completed attempt pass does not prove complete historical coverage, and provider gaps remain visible.</p>
     <p className="panel-note">{collecting
       ? 'Catalogue checks are scheduled twice daily at 07:00 and 19:00 UTC, with bounded history imports between checks. Actual job times may vary; these figures report the last verified checkpoint, not a currently running job.'
