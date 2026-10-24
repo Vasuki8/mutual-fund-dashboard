@@ -85,7 +85,7 @@ export function validateArchiveHealthSummary(raw: unknown, totals: ArchiveCounts
     const recent = dictionary(value.recentNav, 'recent NAV');
     if (Object.keys(recent).length !== 8 || recent.windowDays !== 7 ||
       !(recent.referenceDate === null || typeof recent.referenceDate === 'string' &&
-        /^\\d{4}-\\d{2}-\\d{2}$/.test(recent.referenceDate) &&
+        /^\d{4}-\d{2}-\d{2}$/.test(recent.referenceDate) &&
         Number.isFinite(Date.parse(recent.referenceDate)) &&
         new Date(recent.referenceDate).toISOString().slice(0,10) === recent.referenceDate)) {
       throw new Error('Invalid recent NAV health fields.');
