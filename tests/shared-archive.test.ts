@@ -167,6 +167,28 @@ test('a paused collection preserves verified shared history without losing its e
   assert.throws(() => validateSharedManifest(missingFlag), /collection|checkpoint/i);
 });
 
+test('health-breakdown metadata is authenticated by matching checkpoint counters and remains optional', async()=>{
+  const f=fixture();
+  const health={
+    version:1,sourceErrors:{},
+    quality:{invalidOnly:0,discontinuityOnly:0,both:0,other:0},
+    latestNav:{missingValue:0,missingDate:0,before2010:0,from2010Through2020:0,since2021:1},
+    historyBehind:{oneDay:0,twoToSevenDays:0,eightToThirtyDays:0,overThirtyDays:0},
+    retries:{due:0,future:0},
+  };
+  assert.equal((await f.reader.loadManifest()).status,'ready');
+  const valid=validateSharedManifest({...f.manifest,health});
+  assert.equal(valid.status,'ready');
+  if(valid.status!=='ready')throw new Error('Missing verified manifest');
+  assert.deepEqual(valid.health,health);
+  for(const forged of [
+    {...health,quality:{...health.quality,invalidOnly:1}},
+    {...health,sourceErrors:{source_history_zero_nav_only:1}},
+    {...health,latestNav:{...health.latestNav,missingDate:1}},
+    {...health,retries:{...health.retries,due:2}},
+  ])assert.throws(()=>validateSharedManifest({...f.manifest,health:forged}),/health|checkpoint/i);
+});
+
 test('manifest accounting cannot claim complete coverage while refresh work or source gaps remain', () => {
   const f = fixture();
   assert.throws(() => validateSharedManifest({ ...f.manifest, counts: { ...f.manifest.counts, sourceGaps: 1 } }), /counts|coverage/i);
