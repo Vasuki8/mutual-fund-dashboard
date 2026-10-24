@@ -18,6 +18,8 @@ export interface DataHealthReport {
   latestNav: { missingValue: number; missingDate: number; before2010: number; from2010Through2020: number; since2021: number };
   historyBehind: { oneDay: number; twoToSevenDays: number; eightToThirtyDays: number; overThirtyDays: number };
   retries: { due: number; future: number };
+  recentNav: { referenceDate: string | null; windowDays: 7; schemes: number; saved: number;
+    sourceFailures: number; qualityFlags: number; pending: number };
 }
 
 function increase(group: Record<string,number>, key:string) {
@@ -32,9 +34,26 @@ export function auditArchiveSnapshot(snapshot: ArchiveSnapshot, now = Date.now()
   const latestNav = { missingValue:0, missingDate:0, before2010:0, from2010Through2020:0, since2021:0 };
   const historyBehind = { oneDay:0, twoToSevenDays:0, eightToThirtyDays:0, overThirtyDays:0 };
   const retries = {due:0,future:0};
+  // Compare with the newest catalogue NAV date, not the runner clock. This
+  // reports recent source activity, not whether a scheme is open for purchase.
+  const referenceDate = catalogue.entries.reduce<string | null>((latest, entry) =>
+    entry.latestDate && (!latest || entry.latestDate > latest) ? entry.latestDate : latest, null);
+  const referenceMs = referenceDate ? Date.parse(referenceDate + 'T00:00:00Z') : null;
+  const recentNav = { referenceDate, windowDays: 7 as const, schemes:0, saved:0,
+    sourceFailures:0, qualityFlags:0, pending:0 };
   for(const entry of catalogue.entries) {
     const state = checkpoint.states[entry.schemeCode];
     if(!state) throw new Error('audit_scheme_state_missing');
+    if(referenceMs !== null && entry.latestDate) {
+      const dateMs = Date.parse(entry.latestDate + 'T00:00:00Z');
+      if(dateMs >= referenceMs - 7 * 86400_000 && dateMs <= referenceMs) {
+        recentNav.schemes++;
+        if(state.observationCount > 0) recentNav.saved++;
+        if(state.status === 'source-error') recentNav.sourceFailures++;
+        if(state.quality) recentNav.qualityFlags++;
+        if(state.attempts === 0) recentNav.pending++;
+      }
+    }
     if(entry.nav===null) latestNav.missingValue++;
     if(entry.latestDate){
       const year=Number(entry.latestDate.slice(0,4));
@@ -66,11 +85,15 @@ export function auditArchiveSnapshot(snapshot: ArchiveSnapshot, now = Date.now()
   const count = catalogue.entries.length;
   if(count!==checkpoint.counts.total ||
     Object.values(sourceErrors).reduce((sum,value)=>sum+value,0)!==checkpoint.counts.sourceGaps ||
-    Object.values(quality).reduce((sum,value)=>sum+value,0)!==checkpoint.counts.qualityIssues) {
+    Object.values(quality).reduce((sum,value)=>sum+value,0)!==checkpoint.counts.qualityIssues ||
+    recentNav.saved > checkpoint.counts.saved ||
+    recentNav.sourceFailures > checkpoint.counts.sourceGaps ||
+    recentNav.qualityFlags > checkpoint.counts.qualityIssues ||
+    recentNav.pending > checkpoint.counts.pending) {
     throw new Error('audit_checkpoint_counts_inconsistent');
   }
   return { checkedAt:new Date(now).toISOString(),sequence:checkpoint.sequence,
-    counts:checkpoint.counts,sourceErrors,quality,latestNav,historyBehind,retries };
+    counts:checkpoint.counts,sourceErrors,quality,latestNav,historyBehind,retries,recentNav };
 }
 
 function reportMarkdown(report:DataHealthReport):string {
@@ -86,6 +109,14 @@ function reportMarkdown(report:DataHealthReport):string {
     + `| Histories with quality flags | ${c.qualityIssues} |\n`
     + `| First attempts pending | ${c.pending} |\n`
     + `| Refresh/reconciliation pending (overlapping issues) | ${c.refreshPending} |\n\n`
+    + `### Recently reporting schemes (not verified as open for investment)\n\n`
+    + `Reference NAV date: ${report.recentNav.referenceDate ?? 'unavailable'}; latest catalogue dates within ${report.recentNav.windowDays} calendar days of this date. Buckets can overlap.\n\n`
+    + `| Measure | Schemes |\n| --- | ---: |\n`
+    + `| Recently reported | ${report.recentNav.schemes} |\n`
+    + `| With saved observations | ${report.recentNav.saved} |\n`
+    + `| With source failure | ${report.recentNav.sourceFailures} |\n`
+    + `| With saved quality warnings | ${report.recentNav.qualityFlags} |\n`
+    + `| Awaiting first attempt | ${report.recentNav.pending} |\n\n`
     + `### Source errors\n\n| Safe error code | Schemes |\n| --- | ---: |\n${errors}\n\n`
     + `### Quality flags (exclusive classification)\n\n| Invalid NAV only | ${report.quality.invalidOnly} |\n`
     + `| Large discontinuity only | ${report.quality.discontinuityOnly} |\n`
