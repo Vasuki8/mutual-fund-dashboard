@@ -27,6 +27,7 @@ const health={
   latestNav:{missingValue:2329,missingDate:0,before2010:5473,from2010Through2020:18249,since2021:14269},
   historyBehind:{oneDay:2745,twoToSevenDays:469,eightToThirtyDays:119,overThirtyDays:625},
   retries:{due:4139,future:0},
+  recentNav:{referenceDate:'2026-10-23',windowDays:7,schemes:8776,saved:8668,missingHistories:108,sourceFailures:108,qualityFlags:602,pending:0},
 };
 const counts={total:37991,attempted:37991,saved:37373,clean:33852,
   qualityIssues:3521,sourceGaps:618,pending:0,refreshPending:5261,
@@ -62,6 +63,9 @@ test('data page explains quality, source, lag and browser-only local cache disti
     'Behind by 1 day','2,745',
     'Latest source NAV dated before 2010','5,473',
     'Follow-ups in source backoff',
+    'Recently reporting with missing histories','108',
+    'Recently reporting with quality warnings','602',
+    'does not verify that a fund is open for investment',
     'not a central backfill deficit',
   ]) assert.ok(html.includes(expected),expected);
   assert.match(html,/<details[^>]*archive-health-breakdown/);

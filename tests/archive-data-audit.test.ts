@@ -43,6 +43,8 @@ test('audit differentiates missing, quality, stale dates, old scheme ages and re
   assert.deepEqual(report.historyBehind,{oneDay:1,twoToSevenDays:1,eightToThirtyDays:0,overThirtyDays:0});
   assert.deepEqual(report.retries,{due:1,future:2});
   assert.equal(report.counts.saved,3);
+  assert.deepEqual(report.recentNav,{referenceDate:'2026-10-23',windowDays:7,
+    schemes:2,saved:2,missingHistories:0,sourceFailures:0,qualityFlags:1,pending:0});
   assert.ok(!JSON.stringify(report).includes('Historical equity'),'Audit outputs aggregate data, not raw source rows or scheme names.');
 });
 
