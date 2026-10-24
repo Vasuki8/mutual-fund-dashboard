@@ -1,0 +1,98 @@
+name: Temporary read-only recent NAV data gaps audit
+on:
+  push:
+    branches: [audit/recent-nav-gap-impact]
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Classify recent NAV impact against the verified Release checkpoint (read only)
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          node --experimental-strip-types --input-type=module <<'NODE'
+          import { createGitHubStore } from './scripts/archive-store.ts';
+          import { needsRefresh } from './scripts/archive-model.ts';
+          const repository=process.env.GITHUB_REPOSITORY,token=process.env.GITHUB_TOKEN;
+          if(repository!=='Vasuki8/mutual-fund-dashboard'||!token)throw Error('unauthorized_audit');
+          const store=createGitHubStore({repository,token,deadline:Date.now()+240000});
+          const snapshot=await store.loadSnapshot();
+          if(!snapshot)throw Error('checkpoint_missing');
+          const {checkpoint,catalogue}=snapshot;
+          const reference=catalogue.entries.reduce((best,entry)=>entry.latestDate&&entry.latestDate>best?entry.latestDate:best,'');
+          const refMS=Date.parse(reference+'T00:00:00Z');
+          if(!Number.isFinite(refMS))throw Error('invalid_reference_date');
+          const lastDays=(day,days)=>typeof day==='string'&&/^\d{4}-\d\d-\d\d$/.test(day)
+            && Date.parse(day+'T00:00:00Z')>=refMS-days*86400000
+            && Date.parse(day+'T00:00:00Z')<=refMS;
+          const names=['HDFC','SBI','ICICI','Kotak','Nippon','Axis','UTI','Mirae','DSP','Aditya Birla','Tata','Motilal','Invesco','Canara','Franklin','Quant','Edelweiss','Bandhan','PGIM'];
+          const isGrowth=(name)=>/direct/i.test(name)&&/growth/i.test(name)&&!/idcw|dividend/i.test(name);
+          const groups=['all','sourceGaps','quality','qualityInvalidOnly','qualityDiscontinuityOnly','qualityBoth','refresh','saved'];
+          const intervals=[7,30,90];
+          const counters=Object.fromEntries(groups.map(g=>[g,{total:0,catRecent:{7:0,30:0,90:0},savedRecent:{7:0,30:0,90:0},bothRecent:{7:0,30:0,90:0}}]));
+          const recentBreakdown={qualityByError:{},sourceErrorCodes:{},discontinuityOnly:0,invalidOnly:0};
+          const eligible=[];
+          for(const entry of catalogue.entries){
+           const state=checkpoint.states[entry.schemeCode];
+           if(!state)throw Error('missing_state');
+           const warnings=state.warnings;
+           const invalid=warnings.some(x=>/^Invalid NAV/.test(x)),jump=warnings.some(x=>/^Unresolved discontinuity/.test(x));
+           const flagged=['all',...(state.status==='source-error'?['sourceGaps']:[]),...(state.quality?['quality']:[]),
+            ...(state.quality&&invalid&&!jump?['qualityInvalidOnly']:[]),
+            ...(state.quality&&jump&&!invalid?['qualityDiscontinuityOnly']:[]),
+            ...(state.quality&&invalid&&jump?['qualityBoth']:[]),
+            ...(needsRefresh(entry,state,Date.now())?['refresh']:[]),
+            ...(state.observationCount>0?['saved']:[])];
+           for(const group of flagged){
+            const c=counters[group];
+            c.total++;
+            for(const days of intervals){
+             const catalogueCurrent=lastDays(entry.latestDate,days),savedCurrent=lastDays(state.coverageEnd,days);
+             if(catalogueCurrent)c.catRecent[days]++;
+             if(savedCurrent)c.savedRecent[days]++;
+             if(catalogueCurrent&&savedCurrent)c.bothRecent[days]++;
+            }
+           }
+           if(lastDays(entry.latestDate,7)&&state.status==='source-error')
+             recentBreakdown.sourceErrorCodes[state.lastError]=(recentBreakdown.sourceErrorCodes[state.lastError]||0)+1;
+           if(lastDays(entry.latestDate,7)&&state.quality){
+             if(invalid&&!jump)recentBreakdown.invalidOnly++;
+             if(jump&&!invalid)recentBreakdown.discontinuityOnly++;
+           }
+           if(isGrowth(entry.schemeName)&&lastDays(entry.latestDate,7) &&(state.status==='source-error'||state.quality||needsRefresh(entry,state,Date.now()))){
+             let brand=names.find(n=>entry.schemeName.toLocaleLowerCase('en').includes(n.toLocaleLowerCase('en')))??'Other';
+             eligible.push({brand,code:entry.schemeCode,name:entry.schemeName.slice(0,150),
+              latestCatalogue:entry.latestDate,latestSaved:state.coverageEnd,
+              status:state.status,issue:state.status==='source-error'?(state.lastError||'unknown'):state.quality?(invalid&&jump?'invalid + discontinuity':invalid?'invalid nav':'large jump'):'refresh',
+              saved:state.observationCount>0});
+           }
+          }
+          const samples={quality:[],sourceGaps:[],refreshOnly:[]},used={quality:new Set(),sourceGaps:new Set(),refreshOnly:new Set()};
+          const choose=(arr,type,maximum)=>{
+           const sorted=arr.sort((a,b)=>(a.brand==='Other'?1:0)-(b.brand==='Other'?1:0)
+            || a.brand.localeCompare(b.brand)||a.name.localeCompare(b.name));
+           for(const x of sorted){
+            if(samples[type].length>=maximum)break;
+            if(x.brand==='Other'||used[type].has(x.brand))continue;
+            samples[type].push(x);
+            used[type].add(x.brand);
+           }
+          };
+          choose(eligible.filter(x=>x.status==='quality'&&lastDays(x.latestSaved,7)),'quality',12);
+          choose(eligible.filter(x=>x.status==='source-error'),'sourceGaps',10);
+          choose(eligible.filter(x=>x.status==='clean'&&x.issue==='refresh'),'refreshOnly',10);
+          console.log('NAV_ACTIVE_IMPACT '+JSON.stringify({
+            referenceNavDate:reference,checkpointSequence:checkpoint.sequence,updatedAt:checkpoint.updatedAt,
+            totals:checkpoint.counts,
+            counters,recentBreakdown,samples,
+            definition:'Recent = latest catalogue or saved NAV dated within N calendar days of most recent catalogue NAV; not independently verified to be open for investment.',
+            auditAt:new Date().toISOString()
+          }));
+          NODE
