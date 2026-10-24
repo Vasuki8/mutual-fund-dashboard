@@ -1,0 +1,30 @@
+name: FundScope archive data health
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Read-only daily check. Cron is a request, not a guaranteed start time.
+    - cron: '13 9 * * *'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/archive-data-audit.ts'
+      - '.github/workflows/archive-data-audit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    if: github.repository == 'Vasuki8/mutual-fund-dashboard'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Audit the currently verified checkpoint (read only)
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node --experimental-strip-types scripts/archive-data-audit.ts
