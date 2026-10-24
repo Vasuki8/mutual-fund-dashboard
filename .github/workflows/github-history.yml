@@ -10,6 +10,8 @@ on:
       - 'scripts/backfill-control.ts'
       # Recover safely after a reviewed GitHub Release asset transport fix.
       - 'scripts/archive-store.ts'
+      # A reviewed source-quality and reconciliation change seeds one bounded run.
+      - 'scripts/github-history-v2.ts'
   schedule:
     - cron: '7,22,37,52 * * * *'
   workflow_dispatch:
