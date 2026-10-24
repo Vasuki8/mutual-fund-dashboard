@@ -162,11 +162,28 @@ export interface TrancheResult {
   attempted: number;
   firstAttempted: number;
   historiesAdded: number;
+  /** True only when an existing verified checkpoint has fewer unresolved issues or more clean histories. */
+  reconciliationAdvanced: boolean;
   deferred: number;
   counts: ArchiveCheckpoint['counts'] | null;
   lastCatalogueError: string | null;
   sourceRetryAt: string | null;
 }
+/**
+ * Measure improvement without adding overlapping backlogs as if they were
+ * distinct fund identities. Require a comparable unchanged catalogue size.
+ * Time- or source-driven increases alone do not claim a repair.
+ */
+export function hasVerifiedReconciliationProgress(
+  previous: ArchiveCheckpoint['counts'] | null | undefined,
+  next: ArchiveCheckpoint['counts']): boolean {
+  if (!previous || previous.total !== next.total) return false;
+  return next.clean > previous.clean
+    || next.qualityIssues < previous.qualityIssues
+    || next.sourceGaps < previous.sourceGaps
+    || next.refreshPending < previous.refreshPending;
+}
+
 export async function runTranche(options: TrancheOptions): Promise<TrancheResult> {
   const now = options.now ?? Date.now;
   const deadline = options.deadline ?? now() + WORK_MS;
@@ -216,7 +233,7 @@ export async function runTranche(options: TrancheOptions): Promise<TrancheResult
       changed ||= catalogueError !== previous?.checkpoint.lastCatalogueError;
     }
   }
-  if (!catalogue || !catalogueRef) return { changed: false, sequence: null, attempted: 0, firstAttempted: 0, historiesAdded: 0, deferred: 0, counts: null,
+  if (!catalogue || !catalogueRef) return { changed: false, sequence: null, attempted: 0, firstAttempted: 0, historiesAdded: 0, reconciliationAdvanced: false, deferred: 0, counts: null,
     lastCatalogueError: catalogueError, sourceRetryAt };
   const states = structuredClone(previous?.checkpoint.states ?? {}) as Record<string, ArchiveSchemeState>;
   for (const entry of catalogue.entries) states[entry.schemeCode] ??= pendingState(entry.schemeCode);
@@ -286,7 +303,7 @@ export async function runTranche(options: TrancheOptions): Promise<TrancheResult
       if (!options.source && now() + 150 < workDeadline) await sleep(150);
     }
   }));
-  if (!changed) return { changed: false, sequence: previous?.checkpoint.sequence ?? null, attempted: 0, firstAttempted: 0, historiesAdded: 0,
+  if (!changed) return { changed: false, sequence: previous?.checkpoint.sequence ?? null, attempted: 0, firstAttempted: 0, historiesAdded: 0, reconciliationAdvanced: false,
     deferred: selected.length, counts: previous?.checkpoint.counts ?? null, lastCatalogueError: catalogueError, sourceRetryAt };
   for (const bucket of [...changedBuckets].sort((a, b) => Number(a) - Number(b))) {
     const shard = validateHistoryShard(loaded.get(bucket), bucket);
@@ -302,7 +319,9 @@ export async function runTranche(options: TrancheOptions): Promise<TrancheResult
   const saved = await options.store.loadSnapshot();
   if (!saved || JSON.stringify(saved.checkpoint) !== JSON.stringify(checkpoint)) throw new Error('checkpoint_readback_invalid');
   return { changed: true, sequence: checkpoint.sequence, attempted, firstAttempted,
-    historiesAdded: checkpoint.counts.saved - (previous?.checkpoint.counts.saved ?? 0), deferred: selected.length - attempted,
+    historiesAdded: checkpoint.counts.saved - (previous?.checkpoint.counts.saved ?? 0),
+    reconciliationAdvanced: attempted > 0 && hasVerifiedReconciliationProgress(previous?.checkpoint.counts, checkpoint.counts),
+    deferred: selected.length - attempted,
     counts: checkpoint.counts, lastCatalogueError: catalogueError, sourceRetryAt };
 }
 
