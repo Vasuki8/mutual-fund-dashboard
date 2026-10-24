@@ -102,6 +102,47 @@ test('tampered or cross-checkpoint return indexes fail closed', async () => {
   await assert.rejects(f.reader.loadReturns(),/return index path/i);
 });
 
+test('full published directory and verified categories are loaded without history-shard downloads', async () => {
+  const f=fixture();
+  const payload={version:1,source:'mfapi.in',sequence:1,catalogueFetchedAt:NOW,
+    entries:[{schemeCode:CODE,schemeCategory:'Equity Scheme - Flexi Cap Fund'}]};
+  const categoryAsset=asset(payload,'categories-temp');
+  categoryAsset.descriptor.path='archive/categories-'+categoryAsset.descriptor.sha256+'.json.gz';
+  Object.assign(f.manifest,{categories:categoryAsset.descriptor});
+  f.files.set(categoryAsset.descriptor.path,categoryAsset.bytes);
+  assert.deepEqual(await f.reader.loadDirectory(),[
+    {schemeCode:CODE,schemeName:'Example Direct Growth'},
+  ]);
+  assert.deepEqual(await f.reader.loadCategories(),{[CODE]:'Equity Scheme - Flexi Cap Fund'});
+  assert.equal(f.requests.some(path=>path.includes('/history-')||path.includes('/shard')),false,
+    'Rendering 20/50/100 rows and the category selector must not download every history.');
+});
+
+test('category metadata cannot be injected from another checkpoint or unsafe asset', async () => {
+  const fixtureWithCategory=(payload:unknown)=>{
+    const f=fixture();
+    const stored=asset(payload,'categories-temp');
+    stored.descriptor.path='archive/categories-'+stored.descriptor.sha256+'.json.gz';
+    Object.assign(f.manifest,{categories:stored.descriptor});
+    f.files.set(stored.descriptor.path,stored.bytes);
+    return f;
+  };
+  const valid={version:1,source:'mfapi.in',sequence:1,catalogueFetchedAt:NOW,
+    entries:[{schemeCode:CODE,schemeCategory:'Debt Scheme - Liquid Fund'}]};
+  for(const changed of [
+    {...valid,sequence:2},
+    {...valid,entries:[]},
+    {...valid,entries:[{schemeCode:999999,schemeCategory:'Equity'}]},
+  ]) await assert.rejects(fixtureWithCategory(changed).reader.loadCategories(),/category|checkpoint/i);
+  const unsafe=fixture();
+  Object.assign(unsafe.manifest,{categories:{...unsafe.catalogue.descriptor,
+    path:'archive/../../secrets.json.gz'}});
+  await assert.rejects(unsafe.reader.loadCategories(),/asset|path/i);
+  const noIndex=fixture();
+  assert.equal(await noIndex.reader.loadCategories(),null,'Old manifests remain backward compatible.');
+  assert.equal((await noIndex.reader.loadDirectory())?.length,1);
+});
+
 test('disabled publication does not invent zero coverage or request a history shard', async () => {
   const f = fixture();
   f.files.set('archive/manifest.json', { version: 2, source: 'mfapi.in', status: 'disabled', generatedAt: NOW,
