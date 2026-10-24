@@ -19,7 +19,7 @@ export interface DataHealthReport {
   historyBehind: { oneDay: number; twoToSevenDays: number; eightToThirtyDays: number; overThirtyDays: number };
   retries: { due: number; future: number };
   recentNav: { referenceDate: string | null; windowDays: 7; schemes: number; saved: number;
-    sourceFailures: number; qualityFlags: number; pending: number };
+    missingHistories: number; sourceFailures: number; qualityFlags: number; pending: number };
 }
 
 function increase(group: Record<string,number>, key:string) {
@@ -40,7 +40,7 @@ export function auditArchiveSnapshot(snapshot: ArchiveSnapshot, now = Date.now()
     entry.latestDate && (!latest || entry.latestDate > latest) ? entry.latestDate : latest, null);
   const referenceMs = referenceDate ? Date.parse(referenceDate + 'T00:00:00Z') : null;
   const recentNav = { referenceDate, windowDays: 7 as const, schemes:0, saved:0,
-    sourceFailures:0, qualityFlags:0, pending:0 };
+    missingHistories:0, sourceFailures:0, qualityFlags:0, pending:0 };
   for(const entry of catalogue.entries) {
     const state = checkpoint.states[entry.schemeCode];
     if(!state) throw new Error('audit_scheme_state_missing');
@@ -49,7 +49,8 @@ export function auditArchiveSnapshot(snapshot: ArchiveSnapshot, now = Date.now()
       if(dateMs >= referenceMs - 7 * 86400_000 && dateMs <= referenceMs) {
         recentNav.schemes++;
         if(state.observationCount > 0) recentNav.saved++;
-        if(state.status === 'source-error') recentNav.sourceFailures++;
+        if(state.status === 'source-error') { recentNav.sourceFailures++;
+          if(state.observationCount === 0) recentNav.missingHistories++; }
         if(state.quality) recentNav.qualityFlags++;
         if(state.attempts === 0) recentNav.pending++;
       }
@@ -86,6 +87,8 @@ export function auditArchiveSnapshot(snapshot: ArchiveSnapshot, now = Date.now()
   if(count!==checkpoint.counts.total ||
     Object.values(sourceErrors).reduce((sum,value)=>sum+value,0)!==checkpoint.counts.sourceGaps ||
     Object.values(quality).reduce((sum,value)=>sum+value,0)!==checkpoint.counts.qualityIssues ||
+    recentNav.saved + recentNav.missingHistories + recentNav.pending !== recentNav.schemes ||
+    recentNav.sourceFailures < recentNav.missingHistories ||
     recentNav.saved > checkpoint.counts.saved ||
     recentNav.sourceFailures > checkpoint.counts.sourceGaps ||
     recentNav.qualityFlags > checkpoint.counts.qualityIssues ||
@@ -114,7 +117,8 @@ function reportMarkdown(report:DataHealthReport):string {
     + `| Measure | Schemes |\n| --- | ---: |\n`
     + `| Recently reported | ${report.recentNav.schemes} |\n`
     + `| With saved observations | ${report.recentNav.saved} |\n`
-    + `| With source failure | ${report.recentNav.sourceFailures} |\n`
+    + `| Missing saved histories | ${report.recentNav.missingHistories} |\n`
+    + `| Source failures (may retain saved observations) | ${report.recentNav.sourceFailures} |\n`
     + `| With saved quality warnings | ${report.recentNav.qualityFlags} |\n`
     + `| Awaiting first attempt | ${report.recentNav.pending} |\n\n`
     + `### Source errors\n\n| Safe error code | Schemes |\n| --- | ---: |\n${errors}\n\n`
