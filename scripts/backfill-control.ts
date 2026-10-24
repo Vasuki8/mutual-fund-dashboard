@@ -184,7 +184,7 @@ function trancheResult(raw: unknown): TrancheResult {
     && Number(value.firstAttempted) <= Number(value.attempted)
     && Number(value.historiesAdded) <= Number(value.attempted)
     && (value.changed || value.attempted === 0 && value.firstAttempted === 0 && value.historiesAdded === 0)
-    && (value.changed && value.attempted > 0 || value.reconciliationAdvanced === false), 'backfill_result_invalid');
+    && (value.changed && Number(value.attempted) > 0 || value.reconciliationAdvanced === false), 'backfill_result_invalid');
   return value as unknown as TrancheResult;
 }
 function published(raw: unknown, checkpoint: ArchiveCheckpoint): boolean {
