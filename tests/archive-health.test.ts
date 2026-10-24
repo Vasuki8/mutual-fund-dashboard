@@ -27,10 +27,10 @@ test('verified archive issue groups reconcile to checkpoint denominators without
 
 test('recent NAV counts are optional, but must reconcile with the checkpoint',()=>{
   const recentNav={referenceDate:'2026-10-23',windowDays:7,schemes:5,saved:4,
-    sourceFailures:1,qualityFlags:2,pending:0};
+    missingHistories:1,sourceFailures:1,qualityFlags:2,pending:0};
   assert.deepEqual(validateArchiveHealthSummary({...valid,recentNav},counts).recentNav,recentNav);
   for(const broken of [
-    {...recentNav,schemes:4},{...recentNav,sourceFailures:2},
+    {...recentNav,schemes:4},{...recentNav,sourceFailures:0},
     {...recentNav,windowDays:30},{...recentNav,qualityFlags:5},
     {...recentNav,referenceDate:'not-a-date'},{...recentNav,unexpected:1},
   ]) assert.throws(()=>validateArchiveHealthSummary({...valid,recentNav:broken},counts),/recent NAV/i);
