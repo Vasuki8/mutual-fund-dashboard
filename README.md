@@ -102,6 +102,7 @@ All sync writes require `FUNDSCOPE_SYNC_TOKEN`. Credentials belong in the runtim
 
 - [Deployment status and next steps](docs/DEPLOYMENT.md): active GitHub development direction and standalone deployment requirements.
 - [GitHub archive operations](docs/GITHUB_ARCHIVE.md): opt-in Actions/Release history collection, verified Pages delivery, twice-daily catalogue discovery and visible source gaps. Public redistribution permission must be checked before activation.
+- [Data quality and reconciliation audit](docs/DATA_HEALTH.md): verified clean-vs-saved coverage, source zero-NAV samples, invalid observations, historical date mismatches, recent-first repair priority, and a daily read-only audit workflow.
 - [Archived hosted update runbook](docs/SYNC_OPERATIONS.md): historical import and recovery details; the linked task is paused.
 - [Archived Site deployment notes](docs/LEGACY_SITE_DEPLOYMENT.md): retained for reference, not an active release procedure.
 - [Capability roadmap](docs/ROADMAP.md): implemented features and future data-dependent work.

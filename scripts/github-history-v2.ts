@@ -14,6 +14,8 @@ const COMMIT_RESERVE_MS = 2 * 60_000;
 const MAX_SOURCE_BYTES = 32 * 1024 * 1024;
 const BACKOFF_MIN_MS = 15 * 60_000;
 const BACKOFF_MAX_MS = 24 * 3600_000;
+const HISTORICAL_ZERO_RECHECK_MS = 7 * 86400_000;
+const RECENT_NAV_WINDOW_MS = 90 * 86400_000;
 
 export function catalogueSlot(now: number): string {
   const date = new Date(now); const hour = date.getUTCHours();
@@ -31,9 +33,24 @@ export function selectWork(catalogue: Catalogue, states: Record<string, ArchiveS
     || !Number.isInteger(maxShards) || maxShards < 1 || maxShards > 16) throw new Error('work_limits_invalid');
   const priority = (entry: Catalogue['entries'][number]) => {
     const state = states[entry.schemeCode];
-    return state.attempts === 0 ? 0 : entry.latestDate && (!state.coverageEnd || entry.latestDate > state.coverageEnd
-      || entry.latestDate === state.coverageEnd && entry.nav && state.latestNav && !sameNav(entry.nav, state.latestNav)) ? 1
-      : state.status === 'source-error' || state.quality ? 2 : 3;
+    if (state.attempts === 0) return 0;
+    // Many retained MFAPI identities last reported NAV years ago. Their old
+    // one-day catalogue/history disagreements should not crowd out recent
+    // fund reconciliation, but their histories/errors are NEVER discarded.
+    const recent = entry.latestDate !== null
+      && Date.parse(entry.latestDate + 'T00:00:00Z') >= now - RECENT_NAV_WINDOW_MS;
+    const behind = !!entry.latestDate && (!state.coverageEnd || entry.latestDate > state.coverageEnd
+      || entry.latestDate === state.coverageEnd && !!entry.nav && !!state.latestNav && !sameNav(entry.nav, state.latestNav));
+    const noHistory = state.observationCount === 0;
+    if (recent && behind) return 1;
+    if (recent && state.status === 'source-error' && noHistory) return 2;
+    if (recent && (state.status === 'source-error' || state.quality)) return 3;
+    if (recent) return 4;
+    if (state.status === 'source-error' && noHistory) return 5;
+    if (state.quality) return 6;
+    if (state.status === 'source-error') return 7;
+    if (behind) return 7;
+    return 8;
   };
   const candidates = catalogue.entries.filter(entry => due(entry, states[entry.schemeCode], now)).sort((left, right) =>
     priority(left) - priority(right)
@@ -57,6 +74,28 @@ class SourceError extends Error {
 }
 export function safeFailure(error: unknown): string {
   return error instanceof SourceError ? error.message : 'source_unavailable';
+}
+
+/**
+ * Classify invalid MFAPI payloads using a closed set of safe error codes.
+ * Never copy arbitrary provider responses, NAV rows or exception messages
+ * into saved checkpoint diagnostics.
+ */
+export function classifyInvalidHistory(raw: unknown): { code: string; recheckMs: number } {
+  const generic = { code: 'source_history_invalid', recheckMs: 0 };
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return generic;
+  const body = raw as Record<string, unknown>;
+  if (body.status !== 'SUCCESS') return { code: 'source_history_unsuccessful', recheckMs: 0 };
+  if (!Array.isArray(body.data)) return generic;
+  if (body.data.length === 0) return { code: 'source_history_empty', recheckMs: HISTORICAL_ZERO_RECHECK_MS };
+  if (body.data.length > 100_000) return { code: 'source_history_oversize', recheckMs: 0 };
+  const zero = (value: unknown): boolean => typeof value === 'string'
+    && /^0+(?:\.0+)?$/.test(value.trim());
+  if (body.data.every(row => row && typeof row === 'object' && !Array.isArray(row)
+    && zero((row as Record<string, unknown>).nav))) {
+    return { code: 'source_history_zero_nav_only', recheckMs: HISTORICAL_ZERO_RECHECK_MS };
+  }
+  return generic;
 }
 function retryAfter(value: string | null, now: number): number | null {
   if (value === null || !value.trim()) return null;
@@ -212,7 +251,10 @@ export async function runTranche(options: TrancheOptions): Promise<TrancheResult
         if (!started) throw new Error('source_start_unreported');
         let parsed: ReturnType<typeof validateHistory>;
         try { parsed = validateHistory(raw, entry.schemeCode); }
-        catch { throw new SourceError('source_history_invalid'); }
+        catch {
+          const reason = classifyInvalidHistory(raw);
+          throw new SourceError(reason.code, reason.recheckMs);
+        }
         const previousDoc = shard.records.find(doc => doc.schemeCode === entry.schemeCode) ?? null;
         const document: HistoryDocument = mergeHistory(parsed, previousDoc, at, new Date(now()).toISOString(), entry.latestDate);
         document.unresolved ||= document.warnings.some(isQualityWarning);
