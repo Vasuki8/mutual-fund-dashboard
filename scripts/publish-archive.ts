@@ -6,6 +6,8 @@ import { pathToFileURL } from 'node:url';
 import { gunzipSync, gzipSync } from 'node:zlib';
 import { archivedFundReturns, validateReturnIndex, type FundReturns, type ArchivedReturnIndex } from '../src/lib/fund-sort.ts';
 import { archiveCategory, validateCategoryIndex, type ArchivedCategory, type ArchivedCategoryIndex } from '../src/lib/fund-directory.ts';
+import { validateArchiveHealthSummary } from '../src/lib/archive-health.ts';
+import { auditArchiveSnapshot } from './archive-data-audit.ts';
 import type { UnavailableArchiveManifest } from '../src/lib/archive-types.ts';
 import type { ArchiveAssetRef, ArchiveSnapshot } from './archive-model.ts';
 import type { ReadyArchiveManifest } from '../src/lib/archive-types.ts';
@@ -119,10 +121,17 @@ export async function materializeSnapshot(options: { snapshot: ArchiveSnapshot;
     ...(checkpoint.lastCatalogueError
       ? [`The last catalogue refresh failed (${checkpoint.lastCatalogueError}); the previous verified catalogue was retained.`] : []),
     ...catalogue.warnings].slice(0, 100);
+    // This additional small summary is derived from the SAME validated saved
+    // checkpoint. It never fabricates fund prices or contacts MFAPI.
+    const audit = auditArchiveSnapshot({ checkpoint, catalogue }, Date.parse(now));
+    const health = validateArchiveHealthSummary({
+      version: 1, sourceErrors: audit.sourceErrors, quality: audit.quality,
+      latestNav: audit.latestNav, historyBehind: audit.historyBehind, retries: audit.retries,
+    }, checkpoint.counts);
     const manifest: ReadyArchiveManifest = { version: 2, source: 'mfapi.in', status: 'ready', collectionEnabled: options.collectionEnabled === true,
       sequence: checkpoint.sequence, generatedAt: now, checkpointAt: checkpoint.updatedAt,
       catalogueFetchedAt: checkpoint.catalogueFetchedAt, latestNavDate: latestDates.at(-1) ?? null,
-      counts: checkpoint.counts, catalogue: publicRef(checkpoint.catalogue), returns: returnRef, categories: categoryRef,
+      counts: checkpoint.counts, health, catalogue: publicRef(checkpoint.catalogue), returns: returnRef, categories: categoryRef,
       shards: Object.fromEntries(shards.map(([bucket, ref]) => [bucket, publicRef(ref)])),
       issues: archiveIssues(checkpoint.states, 20), warnings };
     await writeFile(join(staging, 'manifest.json'), JSON.stringify(manifest) + '\n');

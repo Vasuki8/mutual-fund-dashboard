@@ -1,3 +1,4 @@
+import type { ArchiveHealthSummary } from './archive-health.ts';
 /** Public, same-origin GitHub Pages archive contract. No credentials or Release API URLs. */
 export interface PublicArchiveAsset {
   path: string;
@@ -38,6 +39,8 @@ export interface ReadyArchiveManifest {
   catalogueFetchedAt: string;
   latestNavDate: string | null;
   counts: ArchiveCounts;
+  /** Optional for backwards compatibility. Audited groups may overlap, but each group is checkpoint-tied. */
+  health?: ArchiveHealthSummary;
   catalogue: PublicArchiveAsset;
   /** Optional for backwards compatibility with older published checkpoints. */
   returns?: PublicArchiveAsset;

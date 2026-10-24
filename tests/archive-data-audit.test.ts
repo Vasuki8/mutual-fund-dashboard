@@ -39,7 +39,7 @@ test('audit differentiates missing, quality, stale dates, old scheme ages and re
   assert.equal(report.sequence,102);
   assert.deepEqual(report.sourceErrors,{source_history_zero_nav_only:1});
   assert.deepEqual(report.quality,{invalidOnly:1,discontinuityOnly:1,both:0,other:0});
-  assert.deepEqual(report.latestNav,{missingValue:1,before2010:2,from2010Through2020:0,since2021:2});
+  assert.deepEqual(report.latestNav,{missingValue:1,missingDate:0,before2010:2,from2010Through2020:0,since2021:2});
   assert.deepEqual(report.historyBehind,{oneDay:1,twoToSevenDays:1,eightToThirtyDays:0,overThirtyDays:0});
   assert.deepEqual(report.retries,{due:1,future:2});
   assert.equal(report.counts.saved,3);

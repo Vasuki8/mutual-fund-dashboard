@@ -100,6 +100,15 @@ test('a verified snapshot publishes every history and honest partial coverage in
     assert.equal(manifest.counts.saved, 1);
     assert.equal(manifest.counts.pending, 1);
     assert.equal(manifest.counts.coverageComplete, false);
+    assert.ok(manifest.health,'A checkpoint-derived issue taxonomy is published alongside NAV histories.');
+    assert.equal(manifest.health.quality.invalidOnly,0);
+    assert.equal(manifest.health.quality.discontinuityOnly,0);
+    assert.deepEqual(manifest.health.sourceErrors,{});
+    assert.equal(manifest.health.latestNav.since2021,2);
+    assert.equal(manifest.health.latestNav.missingDate,0);
+    assert.equal(manifest.health.historyBehind.oneDay,0);
+    assert.deepEqual(manifest.health.retries,{due:0,future:0});
+
     assert.equal(manifest.catalogueFetchedAt, fixture.snapshot.catalogue.fetchedAt);
     assert.equal(manifest.checkpointAt, fixture.snapshot.checkpoint.updatedAt);
     assert.ok(manifest.catalogue.path.startsWith('archive/catalogue-'));
@@ -215,6 +224,9 @@ test('published compressed files load through the real Pages reader with matchin
       'The public site can rank the full verified population from one small asset.');
     const manifest = await client.loadManifest();
     assert.equal(manifest.status, 'ready');
+    if(manifest.status !== 'ready') throw new Error('Expected verified archive');
+    assert.equal(manifest.health?.latestNav.since2021,2);
+    assert.equal(manifest.health?.quality.invalidOnly,0);
     assert.equal(manifest.collectionEnabled, true);
     assert.equal(manifest.counts.coverageComplete, false);
   } finally { await rm(directory, { recursive: true, force: true }); }

@@ -4,6 +4,7 @@ import type { ArchiveProvenance } from './sync-types.ts';
 import type { Scheme } from './types.ts';
 import { normalizeNavRecords, validSchemeCode, validateScheme } from './storage.ts';
 import { validateCategoryIndex, type CategoryLookup } from './fund-directory.ts';
+import { validateArchiveHealthSummary } from './archive-health.ts';
 import { validateReturnIndex, type FundReturnLookup } from './fund-sort.ts';
 
 const MAX_COMPRESSED = 32 * 1024 * 1024;
@@ -92,9 +93,12 @@ export function validateSharedManifest(value: unknown): PublicArchiveManifest {
       || typeof issue.message !== 'string' || issue.message.length > 1000) throw new Error('Invalid shared archive issue.');
     return { code: issue.code, attempts: issue.attempts, lastAttemptAt: issue.lastAttemptAt, message: issue.message };
   });
+  const validatedCounts = counts(item.counts);
   return { version: 2, source: 'mfapi.in', status: 'ready', collectionEnabled: item.collectionEnabled, sequence: item.sequence,
     generatedAt: item.generatedAt, checkpointAt: item.checkpointAt, catalogueFetchedAt: item.catalogueFetchedAt,
-    latestNavDate: item.latestNavDate, counts: counts(item.counts), catalogue: asset(item.catalogue, MAX_CATALOGUE_EXPANDED),
+    latestNavDate: item.latestNavDate, counts: validatedCounts,
+    ...(item.health === undefined ? {} : { health: validateArchiveHealthSummary(item.health, validatedCounts) }),
+    catalogue: asset(item.catalogue, MAX_CATALOGUE_EXPANDED),
     ...(item.returns === undefined ? {} : {
       returns: (() => {
         const index = asset(item.returns, MAX_CATALOGUE_EXPANDED);
