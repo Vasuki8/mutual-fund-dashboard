@@ -73,7 +73,7 @@ function fixture() {
   const context = () => ({ rootRunId: '100', parentRunId: null, runId: env.GITHUB_RUN_ID,
     runAttempt: Number(env.GITHUB_RUN_ATTEMPT), position: 1, deadline: iso(START + 4 * 3600_000), startingSequence: 6 });
   const result = () => ({ changed: true, sequence: saved!.checkpoint.sequence, attempted: 5, firstAttempted: 5,
-    historiesAdded: 5, deferred: 0, counts: structuredClone(saved!.checkpoint.counts),
+    historiesAdded: 5, reconciliationAdvanced: false, deferred: 0, counts: structuredClone(saved!.checkpoint.counts),
     sourceRetryAt: saved!.checkpoint.sourceRetryAt, lastCatalogueError: saved!.checkpoint.lastCatalogueError });
   return { options, env, runs, requests, waits, context, result, live,
     get saved() { return saved; }, set saved(value) { saved = value; },
@@ -362,6 +362,57 @@ test('chain cap, recovery attempt, no progress, no pending work, pause and windo
     const continued = await continueBackfill({ ...value.options, context, result });
     assert.equal(continued.dispatched, false, stop);
     assert.equal(value.requests.length, 1, stop); assert.equal(value.requests[0].method, 'GET');
+  }
+});
+
+test('a finished first pass continues only after the collector verifies real repair progress', async()=>{
+  const value=fixture();
+  value.saved!.checkpoint.counts.pending=0;
+  value.saved!.checkpoint.counts.attempted=20;
+  value.saved!.checkpoint.counts.bulkPassComplete=true;
+  value.saved!.checkpoint.counts.qualityIssues=4;
+  value.saved!.checkpoint.counts.clean=16;
+  value.saved!.checkpoint.counts.saved=20;
+  value.saved!.checkpoint.counts.refreshPending=9;
+  value.saved!.checkpoint.counts.coverageComplete=false;
+  const result=value.result();
+  result.firstAttempted=0;result.historiesAdded=0;result.reconciliationAdvanced=true;
+  result.counts=structuredClone(value.saved!.checkpoint.counts);
+  const outcome=await continueBackfill({...value.options,context:value.context(),result});
+  assert.equal(outcome.dispatched,true);
+  assert.equal(outcome.childRunId,102);
+  assert.equal(value.requests.filter(x=>x.method==='POST').length,1,
+    'A successful after-pass cleanup can dispatch one fenced bounded successor.');
+});
+
+test('completed-first-pass work with no verified issue reduction stops instead of looping', async()=>{
+  const value=fixture();
+  value.saved!.checkpoint.counts.pending=0;
+  value.saved!.checkpoint.counts.attempted=20;
+  value.saved!.checkpoint.counts.bulkPassComplete=true;
+  value.saved!.checkpoint.counts.qualityIssues=4;
+  value.saved!.checkpoint.counts.clean=16;
+  value.saved!.checkpoint.counts.saved=20;
+  value.saved!.checkpoint.counts.refreshPending=9;
+  const result=value.result();
+  result.firstAttempted=0;result.historiesAdded=0;result.reconciliationAdvanced=false;
+  result.counts=structuredClone(value.saved!.checkpoint.counts);
+  const outcome=await continueBackfill({...value.options,context:value.context(),result});
+  assert.equal(outcome.dispatched,false);
+  assert.equal(outcome.reason,'no_reconciliation_progress');
+  assert.equal(value.requests.filter(x=>x.method==='POST').length,0);
+});
+
+test('a fabricated repair flag without source attempts or a checkpoint change fails closed', async()=>{
+  for (const scenario of ['no-attempt','unchanged','not-bool']) {
+    const value=fixture(); const result=value.result();
+    result.reconciliationAdvanced=true;
+    if(scenario==='no-attempt'){result.attempted=0; result.firstAttempted=0;result.historiesAdded=0;}
+    if(scenario==='unchanged'){result.changed=false; result.attempted=0;result.firstAttempted=0;
+      result.historiesAdded=0;value.context().startingSequence=7;}
+    if(scenario==='not-bool') Object.assign(result,{reconciliationAdvanced:'yes'});
+    await assert.rejects(continueBackfill({...value.options,context:value.context(),result}),/backfill_result_invalid/);
+    assert.equal(value.requests.length,0);
   }
 });
 

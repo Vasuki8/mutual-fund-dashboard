@@ -180,9 +180,11 @@ function trancheResult(raw: unknown): TrancheResult {
   for (const key of ['attempted', 'firstAttempted', 'historiesAdded', 'deferred']) {
     requireValue(Number.isSafeInteger(value[key]) && Number(value[key]) >= 0 && Number(value[key]) <= 512, 'backfill_result_invalid');
   }
-  requireValue(typeof value.changed === 'boolean' && Number(value.firstAttempted) <= Number(value.attempted)
+  requireValue(typeof value.changed === 'boolean' && typeof value.reconciliationAdvanced === 'boolean'
+    && Number(value.firstAttempted) <= Number(value.attempted)
     && Number(value.historiesAdded) <= Number(value.attempted)
-    && (value.changed || value.attempted === 0 && value.firstAttempted === 0 && value.historiesAdded === 0), 'backfill_result_invalid');
+    && (value.changed || value.attempted === 0 && value.firstAttempted === 0 && value.historiesAdded === 0)
+    && (value.changed && Number(value.attempted) > 0 || value.reconciliationAdvanced === false), 'backfill_result_invalid');
   return value as unknown as TrancheResult;
 }
 function published(raw: unknown, checkpoint: ArchiveCheckpoint): boolean {
@@ -205,6 +207,7 @@ export async function continueBackfill(options: Options & { context: unknown; re
   const finish = (reason: string, childRunId?: number): Continued => {
     const dispatched = reason === 'dispatched'; log({ phase: 'backfill_continue', ...context, reason, dispatched,
       sequence: result.sequence, counts: result.counts, firstAttempted: result.firstAttempted, historiesAdded: result.historiesAdded,
+      reconciliationAdvanced: result.reconciliationAdvanced,
       ...(childRunId ? { childRunId } : {}) });
     return { dispatched, reason, ...(childRunId ? { childRunId } : {}) };
   };
@@ -232,8 +235,16 @@ export async function continueBackfill(options: Options & { context: unknown; re
     checkpointAt: checkpoint.updatedAt, counts: checkpoint.counts });
   if (inputNumber(options.env.GITHUB_RUN_ATTEMPT) > 1) return finish('recovery_attempt');
   if (context.position >= MAX_RUNS) return finish('chain_limit');
-  if (!result.changed || result.firstAttempted === 0 || result.historiesAdded === 0) return finish('no_first_pass_progress');
-  if (checkpoint.counts.pending === 0) return finish('first_pass_complete');
+  if (!result.changed || result.attempted === 0) return finish('no_source_progress');
+  if (checkpoint.counts.pending > 0) {
+    // Preserve the first-pass rule while any catalogue identity is unattempted.
+    if (result.firstAttempted === 0 || result.historiesAdded === 0) return finish('no_first_pass_progress');
+  } else {
+    // With the first pass finished, continue ONLY after a verified decrease
+    // in unresolved quality/source/refresh counts or an increase in clean
+    // histories. This still has the same twelve-run and four-hour ceiling.
+    if (!result.reconciliationAdvanced) return finish('no_reconciliation_progress');
+  }
   if (pause(checkpoint, now())) return finish('source_paused');
   if (checkpoint.lastCatalogueError) return finish('catalogue_error');
   if (wakeAt(checkpoint, now()) + WORK_MS > instant(context.deadline)) return finish('chain_window_exhausted');
