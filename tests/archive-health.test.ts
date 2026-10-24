@@ -25,6 +25,17 @@ test('verified archive issue groups reconcile to checkpoint denominators without
     'Date-lag counts are not a disjoint replacement for the refresh backlog of 5.');
 });
 
+test('recent NAV counts are optional, but must reconcile with the checkpoint',()=>{
+  const recentNav={referenceDate:'2026-10-23',windowDays:7,schemes:5,saved:4,
+    sourceFailures:1,qualityFlags:2,pending:0};
+  assert.deepEqual(validateArchiveHealthSummary({...valid,recentNav},counts).recentNav,recentNav);
+  for(const broken of [
+    {...recentNav,schemes:4},{...recentNav,sourceFailures:2},
+    {...recentNav,windowDays:30},{...recentNav,qualityFlags:5},
+    {...recentNav,referenceDate:'not-a-date'},{...recentNav,unexpected:1},
+  ]) assert.throws(()=>validateArchiveHealthSummary({...valid,recentNav:broken},counts),/recent NAV/i);
+});
+
 test('missing latest dates are counted separately from invalid NAV values',()=>{
   const validMissing={...valid,latestNav:{...valid.latestNav,missingDate:2,before2010:8}};
   assert.deepEqual(validateArchiveHealthSummary(validMissing,counts).latestNav,validMissing.latestNav);
