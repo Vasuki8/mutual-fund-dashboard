@@ -119,12 +119,13 @@ jobs:
               const raw=JSON.parse(text);
               const rows=Array.isArray(raw.data)?raw.data:[];
               const invalid=rows.filter(r=>!r||typeof r.nav!=='string'
-                ||!/^\\d+(?:\\.\\d+)?$/.test(r.nav)||!(Number(r.nav)>0)).length;
+                ||!/^\d+(?:\.\d+)?$/.test(r.nav)||!(Number(r.nav)>0)).length;
               reports.push({code,http:response.status,status:raw.status??null,
                 meta:raw.meta?{schemeCode:raw.meta.scheme_code,category:raw.meta.scheme_category}:null,
                 dataType:Array.isArray(raw.data)?'array':typeof raw.data,
                 count:rows.length,firstDate:rows[0]?.date??null,lastDate:rows.at(-1)?.date??null,
-                invalidNavShape:invalid,bodyBytes:text.length});
+                invalidNavShape:invalid,zeroNav:rows.filter(r=>r?.nav==='0'||r?.nav==='0.0000'||r?.nav==='0.00').length,
+                firstNav:rows[0]?.nav??null,lastNav:rows.at(-1)?.nav??null,bodyBytes:text.length});
               if(response.status===429||response.status===503)break;
             }catch(error){reports.push({code,error:error instanceof Error?error.name:'unexpected'});}
             await new Promise(resolve=>setTimeout(resolve,1200));
