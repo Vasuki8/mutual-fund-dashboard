@@ -1,0 +1,106 @@
+name: Temporary FundScope archive data diagnosis
+on:
+  push:
+    branches: [audit/archive-data-health]
+permissions:
+  contents: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Inspect verified archive status without writing data
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'NODE'
+          
+          import { createHash } from 'node:crypto';
+          import { gunzipSync } from 'node:zlib';
+          const repo=process.env.GITHUB_REPOSITORY, token=process.env.GITHUB_TOKEN;
+          if(repo!=='Vasuki8/mutual-fund-dashboard'||!token)throw Error('repository_or_token_missing');
+          const apiBase='https://api.github.com/repos/'+repo;
+          const headers={Authorization:'Bearer '+token,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'};
+          async function getJSON(path){
+            const response=await fetch(apiBase+path,{headers,redirect:'error',signal:AbortSignal.timeout(30000)});
+            if(!response.ok)throw Error('github_api_http_'+response.status);
+            return response.json();
+          }
+          async function asset(ref){
+            const metadata=await getJSON('/releases/assets/'+ref.id);
+            if(metadata.id!==ref.id||metadata.name!==ref.name||metadata.state!=='uploaded'
+              ||metadata.size!==ref.bytes||metadata.digest!=='sha256:'+ref.sha256)throw Error('asset_metadata_invalid');
+            const response=await fetch(apiBase+'/releases/assets/'+ref.id,{
+              headers:{...headers,Accept:'application/octet-stream'},redirect:'manual',signal:AbortSignal.timeout(30000)});
+            let result=response;
+            if([301,302,303,307,308].includes(response.status)){
+              const url=new URL(response.headers.get('location'));
+              if(url.protocol!=='https:'||!['objects.githubusercontent.com','release-assets.githubusercontent.com'].includes(url.hostname))
+                throw Error('untrusted_asset_redirect');
+              await response.body?.cancel();
+              result=await fetch(url,{redirect:'error',headers:{Accept:'application/octet-stream'},signal:AbortSignal.timeout(30000)});
+            }
+            if(!result.ok)throw Error('asset_http_'+result.status);
+            const binary=Buffer.from(await result.arrayBuffer());
+            if(binary.byteLength!==ref.bytes||createHash('sha256').update(binary).digest('hex')!==ref.sha256)
+              throw Error('asset_integrity_failed');
+            return JSON.parse(gunzipSync(binary,{maxOutputLength:100*1024*1024}).toString('utf8'));
+          }
+          const release=await getJSON('/releases/tags/fundscope-mfapi-history-v2');
+          const pointer=JSON.parse(release.body);
+          const checkpoint=await asset(pointer.checkpoint);
+          const catalogue=await asset(checkpoint.catalogue);
+          if(catalogue.entries.length!==checkpoint.counts.total)throw Error('catalogue_count_mismatch');
+          const groups={lastError:{},qualityWarning:{},retainedHistory:0,status:{},attempts:{one:0,two:0,threeToFive:0,sixPlus:0},
+            catalogue:{current:0,removed:0},sourceGap:{noSaved:0,hasSaved:0,current:0,removed:0},retry:{due:0,future:0,pastDue:0},
+            refresh:{behind:0,sameDateNavMismatch:0,oldHistory:0},qualities:{byStatus:{},warnings:0}};
+          const inc=(target,key)=>{target[key]=(target[key]||0)+1};
+          const samples={source:[],quality:[],behind:[]};
+          const now=Date.now(), dayMs=86400000;
+          for(const entry of catalogue.entries){
+            const state=checkpoint.states[entry.schemeCode];
+            if(!state)throw Error('missing_state');
+            inc(groups.status,state.status);
+            inc(groups.catalogue,entry.current?'current':'removed');
+            if(state.attempts===1)groups.attempts.one++;
+            else if(state.attempts===2)groups.attempts.two++;
+            else if(state.attempts>=3&&state.attempts<=5)groups.attempts.threeToFive++;
+            else if(state.attempts>=6)groups.attempts.sixPlus++;
+            if(state.nextAttemptAt){
+              if(Date.parse(state.nextAttemptAt)<=now)groups.retry.due++;
+              else groups.retry.future++;
+            }
+            if(state.status==='source-error'){
+              inc(groups.lastError,state.lastError||'unknown');
+              inc(groups.sourceGap,state.observationCount>0?'hasSaved':'noSaved');
+              inc(groups.sourceGap,entry.current?'current':'removed');
+              if(samples.source.length<15)samples.source.push({code:entry.schemeCode,error:state.lastError,
+                current:entry.current,attempts:state.attempts,latestDate:entry.latestDate});
+            }
+            if(state.quality){
+              inc(groups.qualities.byStatus,state.status);
+              let any=false;
+              for(const warning of state.warnings){
+                const key=/^Invalid NAV/.test(warning)?'invalid_nav'
+                  :/^Conflicting NAV/.test(warning)?'conflicting_nav'
+                  :/^Unresolved discontinuity/.test(warning)?'discontinuity'
+                  :null;
+                if(key){inc(groups.qualityWarning,key);any=true;}
+              }
+              if(!any)inc(groups.qualityWarning,'unspecified');
+              if(samples.quality.length<12)samples.quality.push({code:entry.schemeCode,warnings:state.warnings.filter(w=>/^(Invalid NAV|Conflicting NAV|Unresolved discontinuity)/.test(w)).slice(0,3),attempts:state.attempts});
+            }
+            if(state.observationCount>0){
+              if(entry.latestDate&&state.coverageEnd<entry.latestDate){
+                groups.refresh.behind++;if(samples.behind.length<10)samples.behind.push({code:entry.schemeCode,latestDate:entry.latestDate,coverageEnd:state.coverageEnd,attempts:state.attempts});
+              } else if(entry.latestDate&&state.coverageEnd===entry.latestDate && entry.nav!==state.latestNav){
+                groups.refresh.sameDateNavMismatch++;
+              }
+              if(state.historyFetchedAt&&now-Date.parse(state.historyFetchedAt)>24*dayMs)groups.refresh.oldHistory++;
+            }
+          }
+          console.log('AUDIT_V1 '+JSON.stringify({at:new Date().toISOString(),sequence:checkpoint.sequence,counts:checkpoint.counts,
+            catalogueWarnings:catalogue.warnings,sourceRetryAt:checkpoint.sourceRetryAt,lastCatalogueError:checkpoint.lastCatalogueError,
+            aggregates:groups,samples}));
+          
+          NODE
