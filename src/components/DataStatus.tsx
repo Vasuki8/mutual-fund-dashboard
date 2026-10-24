@@ -130,7 +130,7 @@ function ArchiveHealthBreakdown({ health }: { health: ArchiveHealthSummary }) {
       <dl className="archive-facts">
         <div><dt>Recently reporting identities</dt><dd>{number(health.recentNav.schemes)}</dd></div>
         <div><dt>Recently reporting with saved histories</dt><dd>{number(health.recentNav.saved)}</dd></div>
-        <div><dt>Recently reporting with missing histories</dt><dd>{number(health.recentNav.sourceFailures)}</dd></div>
+        <div><dt>Recently reporting with missing histories</dt><dd>{number(health.recentNav.missingHistories)}</dd></div>
         <div><dt>Recently reporting with quality warnings</dt><dd>{number(health.recentNav.qualityFlags)}</dd></div>
         {health.recentNav.pending>0&&<div><dt>Recently reporting awaiting first attempt</dt><dd>{number(health.recentNav.pending)}</dd></div>}
       </dl>
