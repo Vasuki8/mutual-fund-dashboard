@@ -127,6 +127,7 @@ export async function materializeSnapshot(options: { snapshot: ArchiveSnapshot;
     const health = validateArchiveHealthSummary({
       version: 1, sourceErrors: audit.sourceErrors, quality: audit.quality,
       latestNav: audit.latestNav, historyBehind: audit.historyBehind, retries: audit.retries,
+      recentNav: audit.recentNav,
     }, checkpoint.counts);
     const manifest: ReadyArchiveManifest = { version: 2, source: 'mfapi.in', status: 'ready', collectionEnabled: options.collectionEnabled === true,
       sequence: checkpoint.sequence, generatedAt: now, checkpointAt: checkpoint.updatedAt,
