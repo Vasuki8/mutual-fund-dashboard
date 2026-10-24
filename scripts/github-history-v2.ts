@@ -47,7 +47,8 @@ export function selectWork(catalogue: Catalogue, states: Record<string, ArchiveS
     if (recent && (state.status === 'source-error' || state.quality)) return 3;
     if (recent) return 4;
     if (state.status === 'source-error' && noHistory) return 5;
-    if (state.status === 'source-error' || state.quality) return 6;
+    if (state.quality) return 6;
+    if (state.status === 'source-error') return 7;
     if (behind) return 7;
     return 8;
   };
