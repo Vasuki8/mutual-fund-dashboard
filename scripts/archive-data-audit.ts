@@ -15,7 +15,7 @@ export interface DataHealthReport {
   counts: ArchiveSnapshot['checkpoint']['counts'];
   sourceErrors: Record<string, number>;
   quality: { invalidOnly: number; discontinuityOnly: number; both: number; other: number };
-  latestNav: { missingValue: number; before2010: number; from2010Through2020: number; since2021: number };
+  latestNav: { missingValue: number; missingDate: number; before2010: number; from2010Through2020: number; since2021: number };
   historyBehind: { oneDay: number; twoToSevenDays: number; eightToThirtyDays: number; overThirtyDays: number };
   retries: { due: number; future: number };
 }
@@ -29,7 +29,7 @@ export function auditArchiveSnapshot(snapshot: ArchiveSnapshot, now = Date.now()
   const { checkpoint, catalogue } = snapshot;
   const sourceErrors: Record<string,number> = {};
   const quality = { invalidOnly:0, discontinuityOnly:0, both:0, other:0 };
-  const latestNav = { missingValue:0, before2010:0, from2010Through2020:0, since2021:0 };
+  const latestNav = { missingValue:0, missingDate:0, before2010:0, from2010Through2020:0, since2021:0 };
   const historyBehind = { oneDay:0, twoToSevenDays:0, eightToThirtyDays:0, overThirtyDays:0 };
   const retries = {due:0,future:0};
   for(const entry of catalogue.entries) {
@@ -48,7 +48,7 @@ export function auditArchiveSnapshot(snapshot: ArchiveSnapshot, now = Date.now()
         else if(days<=30)historyBehind.eightToThirtyDays++;
         else historyBehind.overThirtyDays++;
       }
-    }
+    } else latestNav.missingDate++;
     if(state.status==='source-error') increase(sourceErrors,state.lastError??'source_unknown');
     if(state.quality){
       const invalid=state.warnings.some(w=>/^Invalid NAV/.test(w));
@@ -91,6 +91,7 @@ function reportMarkdown(report:DataHealthReport):string {
     + `| Large discontinuity only | ${report.quality.discontinuityOnly} |\n`
     + `| Both classes | ${report.quality.both} |\n| Other | ${report.quality.other} |\n\n`
     + `### Catalogue / historical inconsistencies\n\n| Invalid latest NAV value | ${report.latestNav.missingValue} |\n`
+    + `| Missing latest NAV date | ${report.latestNav.missingDate} |\n`
     + `| History behind latest date by 1 day | ${report.historyBehind.oneDay} |\n`
     + `| History behind by 2–7 days | ${report.historyBehind.twoToSevenDays} |\n`
     + `| History behind by 8–30 days | ${report.historyBehind.eightToThirtyDays} |\n`
