@@ -26,6 +26,12 @@ These are observed snapshots, **not live guarantees**. Use the daily read-only `
 - **Discontinuities:** 1,109 schemes, of which **981** have only a >40% single-step NAV-move flag; **128** overlap the invalid-NAV group. Such moves may be genuine economic events, splits, distributions, or upstream errors. The NAV source alone cannot establish which; no automatic adjustment is justified.
 - **Latest catalogue anomalies:** 2,329 identities have an invalid or missing latest **NAV value**, although their latest NAV **date** was present. This is a source condition, not a browser-rendering failure.
 
+## Targeted invalid-NAV positioning sample
+
+On 24 October 2026 UTC, a **15-scheme, paced, read-only** follow-up checked selected `invalid-only` histories against MFAPI `/mf/{code}`. The five-digit scheme IDs sampled were `100218`, `100312`, `100313`, `100316`, `100317`, `100318`, `100319`, `100321`, `100323`, `100325`, `100332`, `100337`, `100338`, `100347`, and `100358`. All returned HTTP 200 and valid positive NAV observations **plus** source-supplied `0.00000` placeholders. Fourteen had zero NAV rows **inside** their otherwise positive historical date range; one (`100358`) had 41 zero rows only **before** its first positive NAV. Sample bad dates ranged from 2006 to 2010. Several sampled schemes also had positive NAV observations through 23 October 2026. The temporary audit workflow was removed after obtaining these aggregate observations. This sample is **not** a statistical estimate of all 2,412 invalid-only funds.
+
+This supports an important engineering distinction: a fund's full historical record can be unresolved while its more recent observed NAVs appear usable. However, **no recent performance or risk calculations are unblocked based on this sample alone**. A future period-scoped data-quality system would need to retain source-verified invalid observation dates and guarantee that the chosen metric's entire holding-period window is unaffected (including any preceding baseline), preserve full-history quality warnings, and independently test the cutoff. Invalid zeros must never be interpolated, counted as NAVs or silently treated as real losses.
+
 ## Historical-date discrepancies
 
 Of 3,958 saved histories whose latest NAV date trails the catalogue: **2,745** trail by one day, **469** by 2–7 days, **119** by 8–30 days, and **625** by more than 30 days. Do not infer missing observations or append a synthetic NAV to make these dates match.
