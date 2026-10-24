@@ -27,7 +27,7 @@ const health={
   latestNav:{missingValue:2329,missingDate:0,before2010:5473,from2010Through2020:18249,since2021:14269},
   historyBehind:{oneDay:2745,twoToSevenDays:469,eightToThirtyDays:119,overThirtyDays:625},
   retries:{due:4139,future:0},
-  recentNav:{referenceDate:'2026-10-23',windowDays:7,schemes:8776,saved:8668,sourceFailures:108,qualityFlags:602,pending:0},
+  recentNav:{referenceDate:'2026-10-23',windowDays:7,schemes:8776,saved:8668,missingHistories:108,sourceFailures:108,qualityFlags:602,pending:0},
 };
 const counts={total:37991,attempted:37991,saved:37373,clean:33852,
   qualityIssues:3521,sourceGaps:618,pending:0,refreshPending:5261,
