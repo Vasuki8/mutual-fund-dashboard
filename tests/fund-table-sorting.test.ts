@@ -77,6 +77,9 @@ test('fund names open full analysis directly while save and compare remain separ
   buttons.find(node=>node.props['aria-label']==='Save Fund Gamma to watchlist').props.onClick();
   buttons.find(node=>node.props['aria-label']==='Add Fund Gamma to comparison').props.onClick();
   assert.deepEqual(saved,[3]);assert.deepEqual(compared,[3]);assert.deepEqual(opened,[3]);
+  assert.equal(buttons.some(node=>node.props.className?.includes('analysis-trigger')),false,
+    'The redundant full-analysis arrow must be removed: fund name already opens analysis.');
+  assert.equal(buttons.some(node=>node.props['aria-label']?.startsWith('Open full analysis for')),false);
 });
 
 test('3Y max drawdown is shown beside returns using the globally sorted archive values',()=>{
@@ -111,4 +114,19 @@ test('the 3Y downside heading is sortable only when globally available',()=>{
   const unavailable=walk(build(false)).find(node=>node.type==='th'
     && node.props['aria-sort']==='descending');
   assert.equal(unavailable.props.children.props.disabled,true);
+});
+
+test('verified fund categories appear without opening each fund or requesting its history',()=>{
+  const html=renderToStaticMarkup(React.createElement(exported.FundTable,{
+    schemes,funds:{3:fund},errors:{},ensureFund:async()=>{},openFund(){},
+    watchlist:[],compared:[],toggleWatch(){},toggleCompare(){},
+    sort:{key:'name',desc:false},onSort(){},returnsByScheme:returns,
+    canSortReturns:true,canSortDrawdown:true,
+    categoryByScheme:{1:'Debt Scheme - Liquid Fund',2:'Equity Scheme - Flexi Cap Fund'},
+  }));
+  assert.match(html,/Liquid/);
+  assert.match(html,/Flexi Cap/);
+  assert.match(html,/Save \/ compare/);
+  assert.doesNotMatch(html,/Save \/ compare \/ open/);
+  assert.doesNotMatch(html,/Open full analysis for/);
 });
