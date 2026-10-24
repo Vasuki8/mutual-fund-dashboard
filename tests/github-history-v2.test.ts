@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { gzipSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
-import { runTranche as runCollector, catalogueSlot, selectWork, createSource, collectionEnabled, classifyInvalidHistory } from '../scripts/github-history-v2.ts';
+import { runTranche as runCollector, catalogueSlot, selectWork, createSource, collectionEnabled, classifyInvalidHistory, hasVerifiedReconciliationProgress } from '../scripts/github-history-v2.ts';
 import { calculateCounts, validateCheckpoint, validateHistoryShard,
   type ArchiveAssetRef, type ArchiveCheckpoint, type ArchiveSnapshot, type ArchiveSchemeState, type HistoryShard } from '../scripts/archive-model.ts';
 import type { ArchiveStore } from '../scripts/archive-store.ts';
@@ -176,6 +176,29 @@ test('continuation progress distinguishes newly saved first attempts from refres
   assert.equal(refresh.attempted, 2);
   assert.equal(refresh.firstAttempted, 0);
   assert.equal(refresh.historiesAdded, 0);
+});
+
+test('post-first-pass repair progress means verified lower backlog or more clean histories',()=>{
+  const previous={total:20,attempted:20,saved:18,clean:13,qualityIssues:5,
+    sourceGaps:2,pending:0,refreshPending:10,bulkPassComplete:true,coverageComplete:false};
+  assert.equal(hasVerifiedReconciliationProgress(null,previous),false);
+  assert.equal(hasVerifiedReconciliationProgress(previous,{...previous}),false);
+  assert.equal(hasVerifiedReconciliationProgress(previous,{...previous,refreshPending:9}),true);
+  assert.equal(hasVerifiedReconciliationProgress(previous,{...previous,qualityIssues:4,clean:14}),true);
+  assert.equal(hasVerifiedReconciliationProgress(previous,{...previous,sourceGaps:1,saved:19}),true);
+  assert.equal(hasVerifiedReconciliationProgress(previous,{...previous,sourceGaps:3,refreshPending:11}),false);
+  assert.equal(hasVerifiedReconciliationProgress(previous,{...previous,total:21,clean:14}),false,
+    'Adding or deleting catalogue schemes is not by itself source-quality cleanup.');
+});
+
+test('no-op collector never claims post-first-pass repair progress',async()=>{
+  const store=new MemoryStore();
+  await runTranche({store,now:()=>START,minCatalogueSize:1,
+    source:async path=>path==='/mf/latest'?rawCatalogue():history()});
+  const result=await runTranche({store,now:()=>START+60_000,minCatalogueSize:1,
+    source:async()=>{throw Error('No source request expected');}});
+  assert.equal(result.changed,false);
+  assert.equal(result.reconciliationAdvanced,false);
 });
 
 test('a stale continuation checkpoint fence stops before any source request or write', async () => {
