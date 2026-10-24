@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { gzipSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
-import { runTranche as runCollector, catalogueSlot, selectWork, createSource, collectionEnabled } from '../scripts/github-history-v2.ts';
+import { runTranche as runCollector, catalogueSlot, selectWork, createSource, collectionEnabled, classifyInvalidHistory } from '../scripts/github-history-v2.ts';
 import { calculateCounts, validateCheckpoint, validateHistoryShard,
   type ArchiveAssetRef, type ArchiveCheckpoint, type ArchiveSnapshot, type HistoryShard } from '../scripts/archive-model.ts';
 import type { ArchiveStore } from '../scripts/archive-store.ts';
@@ -98,6 +98,67 @@ test('source failure is durable, backs off, and cannot claim complete coverage',
   assert.equal(store.snapshot!.checkpoint.counts.bulkPassComplete, true);
   assert.equal(store.snapshot!.checkpoint.counts.coverageComplete, false);
   assert.equal(selectWork(store.snapshot!.catalogue, store.snapshot!.checkpoint.states, START + 1000).length, 0);
+});
+
+test('MFAPI zero-only histories are explicitly unavailable, preserve the checkpoint and recheck weekly', async () => {
+  const store = new MemoryStore();
+  const invalid = history(CODE, Array.from({length:4}, (_, i) => ({
+    date: `${String(21-i).padStart(2,'0')}-10-2026`, nav:'0.00000',
+  })));
+  const result = await runTranche({ store, now:()=>START, minCatalogueSize:1,
+    source: async path=>path==='/mf/latest'?rawCatalogue():invalid });
+  assert.equal(result.historiesAdded,0);
+  assert.equal(result.counts!.saved,0);
+  assert.equal(result.counts!.sourceGaps,1);
+  assert.equal(result.counts!.pending,0);
+  const state=store.snapshot!.checkpoint.states[CODE];
+  assert.equal(state.status,'source-error');
+  assert.equal(state.lastError,'source_history_zero_nav_only');
+  assert.equal(state.observationCount,0);
+  assert.equal(state.nextAttemptAt,new Date(START+7*86400_000).toISOString());
+  assert.equal(selectWork(store.snapshot!.catalogue,store.snapshot!.checkpoint.states,START+86400_000).length,0,
+    'Do not repeatedly request confirmed all-zero historical NAVs every 15 minutes.');
+  assert.equal(selectWork(store.snapshot!.catalogue,store.snapshot!.checkpoint.states,START+7*86400_000).length,1,
+    'Retest on a bounded cadence in case the provider fixes its history later.');
+});
+
+test('payload diagnostics are narrow safe codes, not untrusted source strings or zero-valued assets',()=>{
+  const good=history();
+  assert.deepEqual(classifyInvalidHistory(history(CODE,[{date:'21-10-2026',nav:'0.00000'}])),
+    {code:'source_history_zero_nav_only',recheckMs:7*86400_000});
+  assert.deepEqual(classifyInvalidHistory({...good,data:[]}),
+    {code:'source_history_empty',recheckMs:7*86400_000});
+  assert.equal(classifyInvalidHistory({...good,status:'FAILED;token=secret'}).code,'source_history_unsuccessful');
+  assert.equal(classifyInvalidHistory(history(CODE,[{date:'21-10-2026',nav:'10.00'},{date:'20-10-2026',nav:'0.00000'}])).code,
+    'source_history_invalid', 'Do not classify partially usable histories as entirely empty.');
+  assert.equal(classifyInvalidHistory({data:[{nav:'0.00000'}]}).code,'source_history_unsuccessful');
+  assert.equal(classifyInvalidHistory(null).code,'source_history_invalid');
+  assert.equal(classifyInvalidHistory({...good,data:[{date:'bad',nav:'zero'}]}).code,'source_history_invalid');
+  assert.equal(classifyInvalidHistory({...good,data:[{date:'bad',nav:'10.00'}]}).code,'source_history_invalid');
+});
+
+test('recent source discrepancies take precedence over obsolete historical date gaps',()=>{
+  const at=Date.parse('2026-10-23T12:00:00.000Z');
+  const make=(code:number,latestDate:string,coverageEnd:string,quality:boolean,hasSaved:boolean)=>{
+    const state={code,status:quality?'quality':'source-error',attempts:2,failures:2,
+      lastAttemptAt:'2026-10-22T12:00:00.000Z',nextAttemptAt:null,
+      historyFetchedAt:hasSaved?'2026-10-22T12:00:00.000Z':null,
+      coverageStart:hasSaved?'2006-01-01':null,coverageEnd:hasSaved?coverageEnd:null,
+      latestNav:hasSaved?'10.00':null,observationCount:hasSaved?10:0,
+      quality,warnings:quality?['Invalid NAV observations were excluded (1).']:[],lastError:quality?null:'source_history_invalid'};
+    return [ {schemeCode:code,schemeName:'Synthetic '+code,latestDate,nav:'10.00',current:true},state ] as const;
+  };
+  const old=make(10001,'2007-04-13','2007-04-12',false,true);
+  const active=make(10002,'2026-10-22','2026-10-21',true,true);
+  const missing=make(10003,'2026-10-20','',false,false);
+  const quality=make(10004,'2022-05-10','2022-05-10',true,true);
+  const entries=[old,active,missing,quality];
+  const catalogue={version:1 as const,fetchedAt:'2026-10-23T10:00:00.000Z',
+    warnings:[],entries:entries.map(x=>x[0])};
+  const states=Object.fromEntries(entries.map(([item,state])=>[item.schemeCode,state]));
+  assert.deepEqual(selectWork(catalogue,states,at,4,16).map(x=>x.schemeCode),[10002,10003,10004,10001],
+    'Old source-date mismatches are retained for eventual checks, not prioritized over recent reporting funds.');
+  assert.equal(selectWork(catalogue,states,at,1,16)[0].schemeCode,10002);
 });
 
 test('continuation progress distinguishes newly saved first attempts from refreshes and no-ops', async () => {
