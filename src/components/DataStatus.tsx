@@ -124,6 +124,18 @@ function ArchiveHealthBreakdown({ health }: { health: ArchiveHealthSummary }) {
   return <details className="archive-issues archive-health-breakdown">
     <summary>Why source gaps, quality flags and refresh work remain</summary>
     <p>These are independently verified checkpoint groups, not four separate queues. Source failures and quality issues may overlap, and historical date differences are not automatically missing NAV prices.</p>
+    {health.recentNav && <section aria-label="Recently reporting NAV schemes">
+      <h3>Recently reporting schemes</h3>
+      <p>Latest catalogue NAV date within seven calendar days of {health.recentNav.referenceDate ?? 'the latest source date'}. Recent reporting does not verify that a fund is open for investment.</p>
+      <dl className="archive-facts">
+        <div><dt>Recently reporting identities</dt><dd>{number(health.recentNav.schemes)}</dd></div>
+        <div><dt>Recently reporting with saved histories</dt><dd>{number(health.recentNav.saved)}</dd></div>
+        <div><dt>Recently reporting with missing histories</dt><dd>{number(health.recentNav.sourceFailures)}</dd></div>
+        <div><dt>Recently reporting with quality warnings</dt><dd>{number(health.recentNav.qualityFlags)}</dd></div>
+        {health.recentNav.pending>0&&<div><dt>Recently reporting awaiting first attempt</dt><dd>{number(health.recentNav.pending)}</dd></div>}
+      </dl>
+      <p>Missing-history and quality-warning counts describe different records. Warnings may also overlap refresh work. No unresolved NAV values are used for financial calculations.</p>
+    </section>}
     <div className="archive-health-grid">
       <section aria-label="Source failure breakdown">
         <h3>Source failures</h3>
