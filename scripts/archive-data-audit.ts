@@ -77,29 +77,29 @@ function reportMarkdown(report:DataHealthReport):string {
   const c=report.counts;
   const pct=(value:number)=>(100*value/c.total).toFixed(1)+'%';
   const errors=Object.entries(report.sourceErrors).sort((a,b)=>b[1]-a[1])
-    .map(([code,count])=>`| \`${code}\` | ${count} |`).join('\\n');
-  return `## FundScope archive health audit\\n\\nCheckpoint **${report.sequence}**, checked ${report.checkedAt}. Read only; no MFAPI requests.\\n\\n`
-    + `| Measure | Count |\\n| --- | ---: |\\n| Known scheme identities | ${c.total} |\\n`
-    + `| Saved histories | ${c.saved} (${pct(c.saved)}) |\\n`
-    + `| Saved histories without quality flags | ${c.clean} (${pct(c.clean)}) |\\n`
-    + `| No saved history after source failure | ${c.sourceGaps} |\\n`
-    + `| Histories with quality flags | ${c.qualityIssues} |\\n`
-    + `| First attempts pending | ${c.pending} |\\n`
-    + `| Refresh/reconciliation pending (overlapping issues) | ${c.refreshPending} |\\n\\n`
-    + `### Source errors\\n\\n| Safe error code | Schemes |\\n| --- | ---: |\\n${errors}\\n\\n`
-    + `### Quality flags (exclusive classification)\\n\\n| Invalid NAV only | ${report.quality.invalidOnly} |\\n`
-    + `| Large discontinuity only | ${report.quality.discontinuityOnly} |\\n`
-    + `| Both classes | ${report.quality.both} |\\n| Other | ${report.quality.other} |\\n\\n`
-    + `### Catalogue / historical inconsistencies\\n\\n| Invalid latest NAV value | ${report.latestNav.missingValue} |\\n`
-    + `| History behind latest date by 1 day | ${report.historyBehind.oneDay} |\\n`
-    + `| History behind by 2–7 days | ${report.historyBehind.twoToSevenDays} |\\n`
-    + `| History behind by 8–30 days | ${report.historyBehind.eightToThirtyDays} |\\n`
-    + `| History behind by more than 30 days | ${report.historyBehind.overThirtyDays} |\\n`
-    + `| Latest NAV dated before 2010 | ${report.latestNav.before2010} |\\n`
-    + `| Latest NAV dated 2010–2020 | ${report.latestNav.from2010Through2020} |\\n`
-    + `| Latest NAV dated 2021 or later | ${report.latestNav.since2021} |\\n`
-    + `| Retry backoffs due / future | ${report.retries.due} / ${report.retries.future} |\\n\\n`
-    + 'The source catalogue includes historical/discontinued-looking identities. Being listed is not proof of an active fund. No questionable NAV is treated as a valid price.\\n';
+    .map(([code,count])=>`| \`${code}\` | ${count} |`).join('\n');
+  return `## FundScope archive health audit\n\nCheckpoint **${report.sequence}**, checked ${report.checkedAt}. Read only; no MFAPI requests.\n\n`
+    + `| Measure | Count |\n| --- | ---: |\n| Known scheme identities | ${c.total} |\n`
+    + `| Saved histories | ${c.saved} (${pct(c.saved)}) |\n`
+    + `| Saved histories without quality flags | ${c.clean} (${pct(c.clean)}) |\n`
+    + `| No saved history after source failure | ${c.sourceGaps} |\n`
+    + `| Histories with quality flags | ${c.qualityIssues} |\n`
+    + `| First attempts pending | ${c.pending} |\n`
+    + `| Refresh/reconciliation pending (overlapping issues) | ${c.refreshPending} |\n\n`
+    + `### Source errors\n\n| Safe error code | Schemes |\n| --- | ---: |\n${errors}\n\n`
+    + `### Quality flags (exclusive classification)\n\n| Invalid NAV only | ${report.quality.invalidOnly} |\n`
+    + `| Large discontinuity only | ${report.quality.discontinuityOnly} |\n`
+    + `| Both classes | ${report.quality.both} |\n| Other | ${report.quality.other} |\n\n`
+    + `### Catalogue / historical inconsistencies\n\n| Invalid latest NAV value | ${report.latestNav.missingValue} |\n`
+    + `| History behind latest date by 1 day | ${report.historyBehind.oneDay} |\n`
+    + `| History behind by 2–7 days | ${report.historyBehind.twoToSevenDays} |\n`
+    + `| History behind by 8–30 days | ${report.historyBehind.eightToThirtyDays} |\n`
+    + `| History behind by more than 30 days | ${report.historyBehind.overThirtyDays} |\n`
+    + `| Latest NAV dated before 2010 | ${report.latestNav.before2010} |\n`
+    + `| Latest NAV dated 2010–2020 | ${report.latestNav.from2010Through2020} |\n`
+    + `| Latest NAV dated 2021 or later | ${report.latestNav.since2021} |\n`
+    + `| Retry backoffs due / future | ${report.retries.due} / ${report.retries.future} |\n\n`
+    + 'The source catalogue includes historical/discontinued-looking identities. Being listed is not proof of an active fund. No questionable NAV is treated as a valid price.\n';
 }
 
 async function main():Promise<void>{
