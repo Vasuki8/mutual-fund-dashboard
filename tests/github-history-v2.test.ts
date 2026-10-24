@@ -4,7 +4,7 @@ import { gzipSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
 import { runTranche as runCollector, catalogueSlot, selectWork, createSource, collectionEnabled, classifyInvalidHistory } from '../scripts/github-history-v2.ts';
 import { calculateCounts, validateCheckpoint, validateHistoryShard,
-  type ArchiveAssetRef, type ArchiveCheckpoint, type ArchiveSnapshot, type HistoryShard } from '../scripts/archive-model.ts';
+  type ArchiveAssetRef, type ArchiveCheckpoint, type ArchiveSnapshot, type ArchiveSchemeState, type HistoryShard } from '../scripts/archive-model.ts';
 import type { ArchiveStore } from '../scripts/archive-store.ts';
 
 const START = Date.parse('2026-10-21T08:00:00.000Z');
@@ -140,8 +140,8 @@ test('payload diagnostics are narrow safe codes, not untrusted source strings or
 test('recent source discrepancies take precedence over obsolete historical date gaps',()=>{
   const at=Date.parse('2026-10-23T12:00:00.000Z');
   const make=(code:number,latestDate:string,coverageEnd:string,quality:boolean,hasSaved:boolean)=>{
-    const state={code,status:quality?'quality':'source-error',attempts:2,failures:2,
-      lastAttemptAt:'2026-10-22T12:00:00.000Z',nextAttemptAt:null,
+    const state: ArchiveSchemeState={code,status:quality?'quality':'source-error',attempts:2,failures:2,
+      lastAttemptAt:'2026-10-22T12:00:00.000Z',nextAttemptAt:'2026-10-23T10:00:00.000Z',
       historyFetchedAt:hasSaved?'2026-10-22T12:00:00.000Z':null,
       coverageStart:hasSaved?'2006-01-01':null,coverageEnd:hasSaved?coverageEnd:null,
       latestNav:hasSaved?'10.00':null,observationCount:hasSaved?10:0,
