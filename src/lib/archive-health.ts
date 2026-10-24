@@ -60,7 +60,8 @@ function sum(values: Record<string, number>): number {
 /** Validate source categories against exact saved checkpoint totals. */
 export function validateArchiveHealthSummary(raw: unknown, totals: ArchiveCounts): ArchiveHealthSummary {
   const value = dictionary(raw, 'archive');
-  if (value.version !== 1 || ![6,7].includes(Object.keys(value).length)
+  if (value.version !== 1 || Object.keys(value).length !== (Object.hasOwn(value,'recentNav') ? 7 : 6)
+    || Object.keys(value).some(key => !['version','sourceErrors','quality','latestNav','historyBehind','retries','recentNav'].includes(key))
     || !['sourceErrors', 'quality', 'latestNav', 'historyBehind', 'retries'].every(k => k in value)
     || !Number.isSafeInteger(totals.total) || totals.total < 1) {
     throw new Error('Invalid archive health version.');
