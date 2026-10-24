@@ -25,7 +25,7 @@ export interface ArchiveHealthSummary {
   };
   retries: { due: number; future: number };
   recentNav?: { referenceDate: string | null; windowDays: 7; schemes: number; saved: number;
-    sourceFailures: number; qualityFlags: number; pending: number };
+    missingHistories: number; sourceFailures: number; qualityFlags: number; pending: number };
 }
 
 function dictionary(raw: unknown, name: string): Record<string, unknown> {
@@ -83,22 +83,25 @@ export function validateArchiveHealthSummary(raw: unknown, totals: ArchiveCounts
   let recentNav: ArchiveHealthSummary['recentNav'];
   if ('recentNav' in value) {
     const recent = dictionary(value.recentNav, 'recent NAV');
-    if (Object.keys(recent).length !== 7 || recent.windowDays !== 7 ||
+    if (Object.keys(recent).length !== 8 || recent.windowDays !== 7 ||
       !(recent.referenceDate === null || typeof recent.referenceDate === 'string' &&
         /^\\d{4}-\\d{2}-\\d{2}$/.test(recent.referenceDate) &&
         Number.isFinite(Date.parse(recent.referenceDate)) &&
         new Date(recent.referenceDate).toISOString().slice(0,10) === recent.referenceDate)) {
       throw new Error('Invalid recent NAV health fields.');
     }
-    const values = counts(recent,['schemes','saved','sourceFailures','qualityFlags','pending'],totals.total,'recent NAV');
-    if (values.saved + values.sourceFailures + values.pending !== values.schemes ||
+    const values = counts(recent,['schemes','saved','missingHistories','sourceFailures','qualityFlags','pending'],totals.total,'recent NAV');
+    if (values.saved + values.missingHistories + values.pending !== values.schemes ||
         values.saved > totals.saved || values.sourceFailures > totals.sourceGaps ||
+        values.sourceFailures < values.missingHistories ||
+        values.sourceFailures > values.saved + values.missingHistories ||
         values.qualityFlags > totals.qualityIssues || values.qualityFlags > values.saved ||
         values.pending > totals.pending || (recent.referenceDate === null && values.schemes !== 0)) {
       throw new Error('Recent NAV health counts do not match the checkpoint.');
     }
     recentNav = {referenceDate: recent.referenceDate as string | null,windowDays:7,
-      schemes:values.schemes,saved:values.saved,sourceFailures:values.sourceFailures,
+      schemes:values.schemes,saved:values.saved,missingHistories:values.missingHistories,
+      sourceFailures:values.sourceFailures,
       qualityFlags:values.qualityFlags,pending:values.pending};
   }
   if (sum(sourceErrors) !== totals.sourceGaps || sum(quality) !== totals.qualityIssues
