@@ -104,3 +104,31 @@ jobs:
             aggregates:groups,samples}));
           
           NODE
+
+      - name: Read-only MFAPI sample payload shape check (seven paced requests maximum)
+        run: |
+          node --input-type=module <<'NODE'
+          
+          const codes=[100555,100606,100717,101160,101745,100041,100381];
+          let reports=[];
+          for(const code of codes){
+            try{
+              const response=await fetch('https://api.mfapi.in/mf/'+code,{credentials:'omit',redirect:'error',
+                headers:{Accept:'application/json'},signal:AbortSignal.timeout(12000)});
+              const text=await response.text();
+              const raw=JSON.parse(text);
+              const rows=Array.isArray(raw.data)?raw.data:[];
+              const invalid=rows.filter(r=>!r||typeof r.nav!=='string'
+                ||!/^\\d+(?:\\.\\d+)?$/.test(r.nav)||!(Number(r.nav)>0)).length;
+              reports.push({code,http:response.status,status:raw.status??null,
+                meta:raw.meta?{schemeCode:raw.meta.scheme_code,category:raw.meta.scheme_category}:null,
+                dataType:Array.isArray(raw.data)?'array':typeof raw.data,
+                count:rows.length,firstDate:rows[0]?.date??null,lastDate:rows.at(-1)?.date??null,
+                invalidNavShape:invalid,bodyBytes:text.length});
+              if(response.status===429||response.status===503)break;
+            }catch(error){reports.push({code,error:error instanceof Error?error.name:'unexpected'});}
+            await new Promise(resolve=>setTimeout(resolve,1200));
+          }
+          console.log('MFAPI_SHAPE '+JSON.stringify({time:new Date().toISOString(),reports}));
+          
+          NODE
