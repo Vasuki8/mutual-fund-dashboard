@@ -105,7 +105,10 @@ export function returnValue(row: FundReturns | undefined, key: Exclude<FundSortK
 
 /** Sort the whole filtered population; slice into pages only after this function. */
 export function sortFundSchemes(schemes: Scheme[], sort: FundSort, returns: FundReturnLookup): Scheme[] {
-  const byName = (left: Scheme, right: Scheme) => left.schemeName.localeCompare(right.schemeName, 'en', { sensitivity: 'base' })
+  // One reusable collator avoids constructing locale options for every
+  // comparison when browsing the complete ~38K-scheme catalogue.
+  const collator = new Intl.Collator('en', { sensitivity: 'base' });
+  const byName = (left: Scheme, right: Scheme) => collator.compare(left.schemeName, right.schemeName)
     || left.schemeCode - right.schemeCode;
   return [...schemes].sort((a, b) => {
     if (sort.key === 'name') return (sort.desc ? -1 : 1) * byName(a, b);

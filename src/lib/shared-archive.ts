@@ -3,6 +3,7 @@ import type { ArchiveCounts, PublicArchiveAsset, PublicArchiveManifest, ReadyArc
 import type { ArchiveProvenance } from './sync-types.ts';
 import type { Scheme } from './types.ts';
 import { normalizeNavRecords, validSchemeCode, validateScheme } from './storage.ts';
+import { validateCategoryIndex, type CategoryLookup } from './fund-directory.ts';
 import { validateReturnIndex, type FundReturnLookup } from './fund-sort.ts';
 
 const MAX_COMPRESSED = 32 * 1024 * 1024;
@@ -100,6 +101,16 @@ export function validateSharedManifest(value: unknown): PublicArchiveManifest {
         if (!/^archive\/returns-[a-f0-9]{64}\.json\.gz$/.test(index.path)
           || index.path !== `archive/returns-${index.sha256}.json.gz`) {
           throw new Error('Invalid shared return index path.');
+        }
+        return index;
+      })(),
+    }),
+    ...(item.categories === undefined ? {} : {
+      categories: (() => {
+        const index = asset(item.categories, MAX_CATALOGUE_EXPANDED);
+        if (!/^archive\/categories-[a-f0-9]{64}\.json\.gz$/.test(index.path)
+          || index.path !== `archive/categories-${index.sha256}.json.gz`) {
+          throw new Error('Invalid shared category index path.');
         }
         return index;
       })(),
@@ -255,6 +266,18 @@ export function createSharedArchiveClient(options: { baseUrl?: string; fetch?: t
     catch (error) { if (files.get(key) === pending) files.delete(key); throw error; }
   }
   async function catalogue(manifest: ReadyArchiveManifest) { return validateCatalogue(await loadAsset(manifest.catalogue), manifest); }
+  async function loadDirectory(): Promise<Scheme[] | null> {
+    const manifest = await loadManifest();
+    if (manifest.status !== 'ready') return null;
+    const list = await catalogue(manifest);
+    return list.entries.map(entry => validateScheme(entry));
+  }
+  async function loadCategories(): Promise<CategoryLookup | null> {
+    const manifest = await loadManifest();
+    if (manifest.status !== 'ready' || !manifest.categories) return null;
+    const [raw, list] = await Promise.all([loadAsset(manifest.categories), catalogue(manifest)]);
+    return validateCategoryIndex(raw, manifest.sequence, manifest.catalogueFetchedAt, list, manifest.counts.saved);
+  }
   async function loadReturns(): Promise<FundReturnLookup | null> {
     const manifest = await loadManifest();
     if (manifest.status !== 'ready' || !manifest.returns) return null;
@@ -300,11 +323,13 @@ export function createSharedArchiveClient(options: { baseUrl?: string; fetch?: t
     return list.entries.filter(item => words.every(word => item.schemeName.toLocaleLowerCase().includes(word)
       || String(item.schemeCode).includes(word))).map(item => validateScheme(item));
   }
-  return { loadManifest, loadFund, loadReturns, search };
+  return { loadManifest, loadFund, loadReturns, loadDirectory, loadCategories, search };
 }
 
 const sharedArchive = createSharedArchiveClient();
 export const loadSharedManifest = sharedArchive.loadManifest;
 export const loadSharedFund = sharedArchive.loadFund;
 export const loadSharedReturnIndex = sharedArchive.loadReturns;
+export const loadSharedDirectory = sharedArchive.loadDirectory;
+export const loadSharedCategoryIndex = sharedArchive.loadCategories;
 export const searchSharedCatalogue = sharedArchive.search;
