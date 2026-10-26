@@ -8,6 +8,27 @@ import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 import type { ArchiveSnapshot } from './archive-model.ts';
 import { createGitHubStore } from './archive-store.ts';
+import { isCurrentlyReportingOpenEnded, OFFICIAL_SCHEME_ROSTER_DATE,
+  RECENT_NAV_WINDOW_DAYS } from '../src/lib/current-official-schemes.ts';
+
+export interface CurrentFundHealth {
+  /** UTC date of this audit, not an assertion that funds are purchasable. */
+  asOfDate: string;
+  manualRosterDate: string;
+  navRecencyDays: number;
+  reporting: number;
+  noSavedHistory: number;
+  failedRefreshWithHistory: number;
+  firstAttemptPending: number;
+  invalidOnly: number;
+  discontinuityOnly: number;
+  both: number;
+  other: number;
+  historyBehindCatalogue: number;
+  /** Bounded numeric scheme IDs to guide follow-up, never raw NAV data. */
+  examples: { noSavedHistory: number[]; invalidOnly: number[];
+    discontinuityOnly: number[]; both: number[]; other: number[] };
+}
 
 export interface DataHealthReport {
   checkedAt: string;
@@ -18,6 +39,8 @@ export interface DataHealthReport {
   latestNav: { missingValue: number; missingDate: number; before2010: number; from2010Through2020: number; since2021: number };
   historyBehind: { oneDay: number; twoToSevenDays: number; eightToThirtyDays: number; overThirtyDays: number };
   retries: { due: number; future: number };
+  /** Overlapping subsets of verified archive totals, not separate work queues. */
+  currentlyReporting: CurrentFundHealth;
 }
 
 function increase(group: Record<string,number>, key:string) {
@@ -32,9 +55,38 @@ export function auditArchiveSnapshot(snapshot: ArchiveSnapshot, now = Date.now()
   const latestNav = { missingValue:0, missingDate:0, before2010:0, from2010Through2020:0, since2021:0 };
   const historyBehind = { oneDay:0, twoToSevenDays:0, eightToThirtyDays:0, overThirtyDays:0 };
   const retries = {due:0,future:0};
+  const current: CurrentFundHealth = {
+    asOfDate:new Date(now).toISOString().slice(0,10),
+    manualRosterDate:OFFICIAL_SCHEME_ROSTER_DATE,navRecencyDays:RECENT_NAV_WINDOW_DAYS,
+    reporting:0,noSavedHistory:0,failedRefreshWithHistory:0,firstAttemptPending:0,
+    invalidOnly:0,discontinuityOnly:0,both:0,other:0,historyBehindCatalogue:0,
+    examples:{noSavedHistory:[],invalidOnly:[],discontinuityOnly:[],both:[],other:[]},
+  };
+  function example(bucket: keyof CurrentFundHealth['examples'], code: number) {
+    if(current.examples[bucket].length<5) current.examples[bucket].push(code);
+  }
   for(const entry of catalogue.entries) {
     const state = checkpoint.states[entry.schemeCode];
     if(!state) throw new Error('audit_scheme_state_missing');
+    if(isCurrentlyReportingOpenEnded(entry,now)){
+      current.reporting++;
+      if(state.attempts===0) current.firstAttemptPending++;
+      if(state.status==='source-error'){
+        if(state.observationCount===0){
+          current.noSavedHistory++;
+          example('noSavedHistory',entry.schemeCode);
+        } else current.failedRefreshWithHistory++;
+      }
+      if(state.quality){
+        const invalid=state.warnings.some(w=>/^Invalid NAV/.test(w));
+        const jump=state.warnings.some(w=>/^Unresolved discontinuity/.test(w));
+        const group = invalid&&jump?'both':invalid?'invalidOnly':jump?'discontinuityOnly':'other';
+        current[group]++;
+        example(group,entry.schemeCode);
+      }
+      if(state.coverageEnd&&entry.latestDate&&state.coverageEnd<entry.latestDate)
+        current.historyBehindCatalogue++;
+    }
     if(entry.nav===null) latestNav.missingValue++;
     if(entry.latestDate){
       const year=Number(entry.latestDate.slice(0,4));
@@ -66,11 +118,16 @@ export function auditArchiveSnapshot(snapshot: ArchiveSnapshot, now = Date.now()
   const count = catalogue.entries.length;
   if(count!==checkpoint.counts.total ||
     Object.values(sourceErrors).reduce((sum,value)=>sum+value,0)!==checkpoint.counts.sourceGaps ||
-    Object.values(quality).reduce((sum,value)=>sum+value,0)!==checkpoint.counts.qualityIssues) {
+    Object.values(quality).reduce((sum,value)=>sum+value,0)!==checkpoint.counts.qualityIssues ||
+    current.noSavedHistory+current.failedRefreshWithHistory>checkpoint.counts.sourceGaps ||
+    current.invalidOnly+current.discontinuityOnly+current.both+current.other>checkpoint.counts.qualityIssues ||
+    current.reporting>checkpoint.counts.total ||
+    current.historyBehindCatalogue>current.reporting ||
+    current.firstAttemptPending>checkpoint.counts.pending) {
     throw new Error('audit_checkpoint_counts_inconsistent');
   }
   return { checkedAt:new Date(now).toISOString(),sequence:checkpoint.sequence,
-    counts:checkpoint.counts,sourceErrors,quality,latestNav,historyBehind,retries };
+    counts:checkpoint.counts,sourceErrors,quality,latestNav,historyBehind,retries,currentlyReporting:current };
 }
 
 function reportMarkdown(report:DataHealthReport):string {
@@ -86,6 +143,21 @@ function reportMarkdown(report:DataHealthReport):string {
     + `| Histories with quality flags | ${c.qualityIssues} |\n`
     + `| First attempts pending | ${c.pending} |\n`
     + `| Refresh/reconciliation pending (overlapping issues) | ${c.refreshPending} |\n\n`
+    + `### Currently reporting open-ended schemes (investor-first triage)\n\n`
+    + `Manual official scheme-code roster dated ${report.currentlyReporting.manualRosterDate}. As of ${report.currentlyReporting.asOfDate} UTC, a scheme must be in the latest MFAPI catalogue with a positive NAV dated within ${report.currentlyReporting.navRecencyDays} days. Recent NAV reporting does **not** establish purchase eligibility.\n\n`
+    + `| Measure | Scheme codes |\n| --- | ---: |\n`
+    + `| Recently NAV-reporting open-ended schemes | ${report.currentlyReporting.reporting} |\n`
+    + `| No saved history after source failure | ${report.currentlyReporting.noSavedHistory} |\n`
+    + `| Failed refresh with earlier saved history | ${report.currentlyReporting.failedRefreshWithHistory} |\n`
+    + `| Still awaiting first import attempt | ${report.currentlyReporting.firstAttemptPending} |\n`
+    + `| Saved quality: invalid NAV only | ${report.currentlyReporting.invalidOnly} |\n`
+    + `| Saved quality: large NAV move only | ${report.currentlyReporting.discontinuityOnly} |\n`
+    + `| Saved quality: both kinds | ${report.currentlyReporting.both} |\n`
+    + `| Saved quality: other flags | ${report.currentlyReporting.other} |\n`
+    + `| History NAV date behind catalogue | ${report.currentlyReporting.historyBehindCatalogue} |\n\n`
+    + `These sets overlap; a short publication lag is not proof of a permanently missing observation. Follow-up examples (scheme codes only, at most five per class):\n\n`
+    + Object.entries(report.currentlyReporting.examples)
+        .map(([name,codes])=>`- ${name}: ${codes.length?codes.join(', '):'none'}`).join('\n')+'\n\n'
     + `### Source errors\n\n| Safe error code | Schemes |\n| --- | ---: |\n${errors}\n\n`
     + `### Quality flags (exclusive classification)\n\n| Invalid NAV only | ${report.quality.invalidOnly} |\n`
     + `| Large discontinuity only | ${report.quality.discontinuityOnly} |\n`

@@ -4,6 +4,8 @@
 **Authoritative source:** GitHub Release control checkpoint **103** (`fundscope-mfapi-history-v2`), immutable data releases and source HTTP samples.  
 **Diagnostics:** [Read-only GitHub Actions audit #40044040378](https://github.com/Vasuki8/mutual-fund-dashboard/actions/runs/40044040378), [source sample #40044187403](https://github.com/Vasuki8/mutual-fund-dashboard/actions/runs/40044187403), [detailed discrepancy audit #40044317617](https://github.com/Vasuki8/mutual-fund-dashboard/actions/runs/40044317617).
 
+See [investor-first NAV discrepancy triage](NAV_DISCREPANCY_TRIAGE.md) for the October 26 official-scheme subset and daily read-only audit priorities. The historical baseline below remains unchanged.
+
 These are observed snapshots, **not live guarantees**. The Pages publisher now includes an optional, checkpoint-matched `health` breakdown in its small archive manifest. The Data Status page can explain the exact reasons behind source gaps, invalid-only histories, discontinuities, date lags and retry backoffs without opening every full history. It does **not** lower the warning counts, synthesize prices or reclassify an invalid history as clean. Use the daily read-only `FundScope archive data health` workflow to review new verified checkpoints and whether quality indicators genuinely improve. No raw NAV rows are emitted by that workflow.
 
 ## Verified coverage
