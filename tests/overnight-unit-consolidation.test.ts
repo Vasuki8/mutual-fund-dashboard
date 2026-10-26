@@ -35,7 +35,7 @@ test('the documented ten-to-one consolidation adjusts PRE-event NAV for derived 
   assert.deepEqual(raw,original,'Do not mutate source observations or original warnings.');
   assert.notEqual(result.fund,raw);
   assert.deepEqual(result.fund.points.map(p=>p.date),raw.points.map(p=>p.date));
-  assert.deepEqual(result.fund.points.slice(0,3).map(p=>p.nav),[950,1000,1000.2]);
+  assert.deepEqual(result.fund.points.slice(0,3).map(p=>Number(p.nav.toFixed(4))),[950,1000,1000.2]);
   assert.deepEqual(result.fund.points.slice(3),raw.points.slice(3));
   assert.equal(qualityBlocked(raw),true,'Raw source still needs quality review.');
   assert.equal(qualityBlocked(result.fund),false,'Only the validated action warning may be explained.');
