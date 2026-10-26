@@ -36,7 +36,7 @@ test('the static build uses MFAPI directly even in a browser', () => {
   assert.deepEqual(getApiConnection(), { baseUrl: 'https://api.mfapi.in', credentials: 'omit' });
 });
 
-test('static search and history requests use the direct source with no credentials', async t => {
+test('static public discovery fails closed but direct history refresh remains available', async t => {
   browser();
   runtimeGlobal.__FUNDSCOPE_STATIC__ = true;
   const { searchSchemes, getFund } = await import('../src/lib/api.ts?runtime-static');
@@ -51,9 +51,9 @@ test('static search and history requests use the direct source with no credentia
     return Response.json({ status: 'SUCCESS', meta: { scheme_code: 122640, scheme_name: 'Static Test Direct Growth',
       fund_house: 'Test Mutual Fund', scheme_type: 'Open Ended', scheme_category: 'Equity' }, data: [{ date: '19-10-2026', nav: '100' }] });
   });
-  assert.equal((await searchSchemes('Static source routing test'))[0].schemeCode, 122640);
+  await assert.rejects(searchSchemes('Static source routing test'), /current open-ended fund directory is unavailable/i);
   assert.equal((await getFund(122640, { force: true })).points[0].nav, 100);
-  assert.deepEqual(paths, ['/mf/search', '/mf/122640']);
+  assert.deepEqual(paths, ['/mf/122640'], 'Unverified discovery must not silently fall back to the raw source.');
 });
 
 test('the legacy browser client keeps same-origin requests and credentials', async t => {

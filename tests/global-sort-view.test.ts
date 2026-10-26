@@ -254,7 +254,7 @@ test('unavailable category archive keeps catalogue browsable but does not guess 
 test('without a verified current directory the explorer does not show unverified starter examples', async()=>{
   const view=pageView(true,false,2,75,false,false);
   await view.ready();
-  assert.ok(!view.all().some(node=>node.type===Symbol.for('FundTable')));
   assert.match(JSON.stringify(view.all().map(n=>n.props.children)),/current directory unavailable/i);
+  assert.doesNotMatch(JSON.stringify(view.all().map(n=>n.props.children)),/showing starter examples/i);
   view.unmount();
 });
