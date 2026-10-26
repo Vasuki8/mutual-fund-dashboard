@@ -3,10 +3,9 @@ import { Search, ArrowRight, ArrowUpRight, GitCompareArrows, ShieldCheck, ChartN
 import type { Scheme } from '../lib/types.ts';
 import { searchSchemes } from '../lib/api.ts';
 import { isGrowthScheme } from '../lib/analytics.ts';
-import { loadSharedReturnIndex, loadSharedDirectory, loadSharedCategoryIndex } from '../lib/shared-archive.ts';
+import { loadSharedReturnIndex, loadCurrentOpenEndedDirectory, loadSharedCategoryIndex } from '../lib/shared-archive.ts';
 import { categoryOptions, inCategory, pageFor, PAGE_SIZES, type CategoryLookup, type PageSize } from '../lib/fund-directory.ts';
 import { localFundReturns, sortFundSchemes, type FundReturnLookup, type FundSort, type FundSortKey } from '../lib/fund-sort.ts';
-import { STARTER_FUNDS } from '../lib/catalog.ts';
 import { FundTable } from './FundTable.tsx';
 import type { FundTableProps } from './FundTable.tsx';
 
@@ -25,7 +24,7 @@ export function Home(props:Props) {
   const [categoriesByScheme,setCategoriesByScheme]=useState<CategoryLookup | null>(null);
   const [categoryState,setCategoryState]=useState<'loading'|'ready'|'unavailable'>('loading');
   useEffect(()=>{let cancelled=false;
-    loadSharedDirectory().then(value=>{if(!cancelled){setDirectory(value);setDirectoryState(value?'ready':'unavailable');}})
+    loadCurrentOpenEndedDirectory().then(value=>{if(!cancelled){setDirectory(value);setDirectoryState(value?'ready':'unavailable');}})
       .catch(()=>{if(!cancelled){setDirectory(null);setDirectoryState('unavailable');}});
     loadSharedCategoryIndex().then(value=>{if(!cancelled){setCategoriesByScheme(value);setCategoryState(value?'ready':'unavailable');}})
       .catch(()=>{if(!cancelled){setCategoriesByScheme(null);setCategoryState('unavailable');}});
@@ -49,9 +48,12 @@ export function Home(props:Props) {
     return()=>{cancelled=true;clearTimeout(timer);};
   },[query,props.savedOnly,attempt]);
   const categoryMap=categoriesByScheme??{};
-  const choices=useMemo(()=>categoryOptions(categoryMap),[categoriesByScheme]);
+  const choices=useMemo(()=>categoryOptions(Object.fromEntries(
+    (props.savedOnly?props.watchlist:directory??[]).filter(scheme=>categoryMap[scheme.schemeCode])
+      .map(scheme=>[scheme.schemeCode,categoryMap[scheme.schemeCode]]))),
+    [categoriesByScheme,directory,props.savedOnly,props.watchlist]);
   const directoryBusy=!props.savedOnly&&!query.trim()&&directoryState==='loading';
-  const directoryFunds=directory??STARTER_FUNDS;
+  const directoryFunds=directory??[];
   const hasUnclassified=directoryFunds.some(scheme=>categoryMap[scheme.schemeCode]===undefined);
   const list=useMemo(()=>{
     const base=props.savedOnly?props.watchlist:query.trim()?results:directoryFunds;
@@ -80,7 +82,7 @@ export function Home(props:Props) {
   const visible=useMemo(()=>ordered.slice(paging.start,paging.end),[ordered,paging.start,paging.end]);
   const onSort=(key:FundSortKey)=>{if((key==='dd3'&&!canSortDrawdown)||(key!=='name'&&!canSortReturns))return;
     setSort(current=>({key,desc:current.key===key?!current.desc:key!=='name'}));setPage(0);};
-  const researchFund=(!busy&&!error?visible[0]:undefined)??STARTER_FUNDS[0];
+  const researchFund=(!busy&&!error?visible[0]:undefined)??directory?.[0];
   const resetFilters=()=>{setQuery('');setDirectOnly(!props.savedOnly);setCategory('all');setPage(0);};
   return <>
     <section className="page-heading compact"><div><div className="eyebrow">MUTUAL FUND RESEARCH</div><h1>{props.savedOnly?'Your watchlist':'Explore funds'}</h1><p>{props.savedOnly?'Saved funds, performance, and risk in one workspace.':'Find a fund. Inspect its history. Build your comparison.'}</p></div><button className="button secondary small" onClick={props.openCompare}><GitCompareArrows size={15}/>Compare funds</button></section>
@@ -94,9 +96,9 @@ export function Home(props:Props) {
     {!props.savedOnly&&<div className="search-suggestions"><span>Browse</span>{[['Flexi cap','Flexi cap'],['Large cap','Large cap'],['Small cap','Small cap'],['Index','Index funds'],['Liquid','Liquid funds']].map(([term,label])=><button key={term} className={query===term?'selected':''} aria-pressed={query===term} onClick={()=>setQuery(query===term?'':term)}>{label}<ArrowUpRight size={11}/></button>)}</div>}
     {categoryState==='unavailable'&&<p className="quiet-note" role="status">Category filtering is unavailable until the next verified archive publication.</p>}
     <section className="fund-list-section">
-      <div className="section-heading"><div><h2>{props.savedOnly?'Saved funds':query.trim()?'Search results':directory?'All funds':'Starter collection'}<span className="count-badge" aria-live="polite">{busy?'…':list.length}</span></h2><p>{props.savedOnly?'Stored in this browser. Export a backup from Data & backups.':query.trim()?`Matching “${query}” · Select a fund for full analysis`:directory?'Browse the published MFAPI catalogue. Categories are sourced from saved histories, not guessed from names.':'Showing starter examples while the full catalogue is unavailable.'}</p></div></div>
+      <div className="section-heading"><div><h2>{props.savedOnly?'Saved funds':query.trim()?'Search results':directory?'Currently reporting funds':'Directory unavailable'}<span className="count-badge" aria-live="polite">{busy?'…':list.length}</span></h2><p>{props.savedOnly?'Stored in this browser. Export a backup from Data & backups.':query.trim()?`Matching “${query}” · Select a fund for full analysis`:directory?'Open-ended codes from the manual AMFI snapshot (26 Oct 2026), with a positive MFAPI NAV dated within seven days. Purchase eligibility is not verified.':'The verified current-fund directory is unavailable. Older funds are not substituted.'}</p></div></div>
       <div className="panel table-panel">
-        {directoryBusy?<div className="search-loading" role="status"><Loader2 className="spin" size={24}/><h3>Loading the complete fund directory</h3><p>Reading the verified scheme catalogue…</p></div>:busy&&!props.savedOnly?<div className="search-loading" role="status"><Loader2 className="spin" size={24}/><h3>Finding your funds</h3><p>Searching MFAPI’s scheme directory…</p></div>:error&&!props.savedOnly?<div className="empty-state" role="status"><h3>Search is temporarily unavailable</h3><p>{error}</p><button className="button secondary" onClick={()=>setAttempt(value=>value+1)}>Retry search</button></div>:!list.length?<div className="empty-state"><span className="empty-icon">{props.savedOnly?<Bookmark size={24}/>:<Search size={24}/>}</span><h3>{props.savedOnly&&props.watchlist.length===0?'No saved funds yet':'No funds match these filters'}</h3><p>{props.savedOnly&&props.watchlist.length===0?'Save a fund from the explorer to keep it here.':'Try a shorter name, a scheme code, or include all plan types.'}</p>{props.savedOnly&&props.watchlist.length===0?<button className="button primary" onClick={props.browse}>Explore funds <ArrowRight size={15}/></button>:<button className="button secondary" onClick={resetFilters}>Reset filters</button>}</div>:<FundTable {...props} schemes={visible} sort={activeSort} onSort={onSort} returnsByScheme={returnsByScheme} canSortReturns={canSortReturns} canSortDrawdown={canSortDrawdown} categoryByScheme={categoryMap}/>}
+        {directoryBusy?<div className="search-loading" role="status"><Loader2 className="spin" size={24}/><h3>Loading the complete fund directory</h3><p>Reading the verified scheme catalogue…</p></div>:busy&&!props.savedOnly?<div className="search-loading" role="status"><Loader2 className="spin" size={24}/><h3>Finding your funds</h3><p>Searching MFAPI’s scheme directory…</p></div>:error&&!props.savedOnly?<div className="empty-state" role="status"><h3>Search is temporarily unavailable</h3><p>{error}</p><button className="button secondary" onClick={()=>setAttempt(value=>value+1)}>Retry search</button></div>:!list.length?<div className="empty-state"><span className="empty-icon">{props.savedOnly?<Bookmark size={24}/>:<Search size={24}/>}</span><h3>{props.savedOnly&&props.watchlist.length===0?'No saved funds yet':directoryState==='unavailable'&&!query.trim()?'Current directory unavailable':'No funds match these filters'}</h3><p>{props.savedOnly&&props.watchlist.length===0?'Save a fund from the explorer to keep it here.':directoryState==='unavailable'&&!query.trim()?'The current-fund list could not be verified. Try again after the shared archive is available.':'Try a shorter name, a scheme code, or include all plan types.'}</p>{props.savedOnly&&props.watchlist.length===0?<button className="button primary" onClick={props.browse}>Explore funds <ArrowRight size={15}/></button>:<button className="button secondary" onClick={resetFilters}>Reset filters</button>}</div>:<FundTable {...props} schemes={visible} sort={activeSort} onSort={onSort} returnsByScheme={returnsByScheme} canSortReturns={canSortReturns} canSortDrawdown={canSortDrawdown} categoryByScheme={categoryMap}/>}
         {!!list.length&&!busy&&!directoryBusy&&<div className="table-bottom">
           <span>1Y: absolute · 3Y / 5Y: annualized · 3Y max DD: largest observed decline
             {archiveReturns?' · Verified archive rankings':' · Global return sorting requires complete data'}
@@ -122,10 +124,10 @@ export function Home(props:Props) {
       </div>
       {!props.savedOnly&&<section className="research-section"><div className="section-heading"><div><h2>Research tools</h2><p>Explore the outcomes behind the latest return.</p></div></div><div className="research-grid">
         <button className="research-card" onClick={props.openCompare}><span className="research-icon"><GitCompareArrows size={19}/></span><span className="research-card-body"><strong>Compare funds</strong><span>Aligned dates and a shared starting amount.</span></span><ArrowUpRight size={16}/></button>
-        <button className="research-card" onClick={()=>props.openResearch(researchFund,'risk')}><span className="research-icon"><ShieldCheck size={19}/></span><span className="research-card-body"><strong>Risk & drawdown</strong><span>Volatility and the difficult periods.</span></span><ArrowUpRight size={16}/></button>
-        <button className="research-card" onClick={()=>props.openResearch(researchFund,'holding')}><span className="research-icon"><ChartNoAxesCombined size={19}/></span><span className="research-card-body"><strong>Holding periods</strong><span>Consistency across historical windows.</span></span><ArrowUpRight size={16}/></button>
+        <button className="research-card" onClick={()=>{if(researchFund)props.openResearch(researchFund,'risk');}} disabled={!researchFund}><span className="research-icon"><ShieldCheck size={19}/></span><span className="research-card-body"><strong>Risk & drawdown</strong><span>Volatility and the difficult periods.</span></span><ArrowUpRight size={16}/></button>
+        <button className="research-card" onClick={()=>{if(researchFund)props.openResearch(researchFund,'holding');}} disabled={!researchFund}><span className="research-icon"><ChartNoAxesCombined size={19}/></span><span className="research-card-body"><strong>Holding periods</strong><span>Consistency across historical windows.</span></span><ArrowUpRight size={16}/></button>
       </div></section>}
     </section>
-    <div className="quiet-note"><span className="status-dot"/>NAV histories supplied by MFAPI. Missing observations are never treated as zero.</div>
+    <div className="quiet-note"><span className="status-dot"/>NAV histories supplied by MFAPI. Open-ended classification uses a manually supplied AMFI scheme snapshot dated 26 Oct 2026. Recent NAV reporting does not confirm purchase eligibility. Missing observations are never treated as zero.</div>
   </>;
 }

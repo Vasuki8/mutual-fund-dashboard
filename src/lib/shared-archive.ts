@@ -6,6 +6,7 @@ import { normalizeNavRecords, validSchemeCode, validateScheme } from './storage.
 import { validateCategoryIndex, type CategoryLookup } from './fund-directory.ts';
 import { validateArchiveHealthSummary } from './archive-health.ts';
 import { validateReturnIndex, type FundReturnLookup } from './fund-sort.ts';
+import { filterCurrentlyReportingOpenEnded } from './current-official-schemes.ts';
 
 const MAX_COMPRESSED = 32 * 1024 * 1024;
 const MAX_EXPANDED = 64 * 1024 * 1024;
@@ -276,6 +277,13 @@ export function createSharedArchiveClient(options: { baseUrl?: string; fetch?: t
     const list = await catalogue(manifest);
     return list.entries.map(entry => validateScheme(entry));
   }
+  // Keep the full catalogue in the archive. This is a public-discovery view only.
+  async function loadCurrentOpenEndedDirectory(): Promise<Scheme[] | null> {
+    const manifest = await loadManifest();
+    if (manifest.status !== 'ready') return null;
+    const list = await catalogue(manifest);
+    return filterCurrentlyReportingOpenEnded(list.entries, now()).map(entry => validateScheme(entry));
+  }
   async function loadCategories(): Promise<CategoryLookup | null> {
     const manifest = await loadManifest();
     if (manifest.status !== 'ready' || !manifest.categories) return null;
@@ -327,7 +335,18 @@ export function createSharedArchiveClient(options: { baseUrl?: string; fetch?: t
     return list.entries.filter(item => words.every(word => item.schemeName.toLocaleLowerCase().includes(word)
       || String(item.schemeCode).includes(word))).map(item => validateScheme(item));
   }
-  return { loadManifest, loadFund, loadReturns, loadDirectory, loadCategories, search };
+  async function searchCurrentOpenEnded(query: string): Promise<Scheme[] | null> {
+    const manifest = await loadManifest();
+    if (manifest.status !== 'ready') return null;
+    const words = query.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
+    const list = await catalogue(manifest);
+    return filterCurrentlyReportingOpenEnded(list.entries, now())
+      .filter(item => words.every(word => item.schemeName.toLocaleLowerCase().includes(word)
+        || String(item.schemeCode).includes(word)))
+      .map(item => validateScheme(item));
+  }
+  return { loadManifest, loadFund, loadReturns, loadDirectory, loadCurrentOpenEndedDirectory,
+    loadCategories, search, searchCurrentOpenEnded };
 }
 
 const sharedArchive = createSharedArchiveClient();
@@ -335,5 +354,7 @@ export const loadSharedManifest = sharedArchive.loadManifest;
 export const loadSharedFund = sharedArchive.loadFund;
 export const loadSharedReturnIndex = sharedArchive.loadReturns;
 export const loadSharedDirectory = sharedArchive.loadDirectory;
+export const loadCurrentOpenEndedDirectory = sharedArchive.loadCurrentOpenEndedDirectory;
+export const searchCurrentOpenEndedCatalogue = sharedArchive.searchCurrentOpenEnded;
 export const loadSharedCategoryIndex = sharedArchive.loadCategories;
 export const searchSharedCatalogue = sharedArchive.search;
