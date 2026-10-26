@@ -56,7 +56,7 @@ function pageView(hasIndex = true, savedOnly = true, returnIndexVersion:1|2 = 1,
     '../lib/analytics.ts': analytics,
     '../lib/shared-archive.ts': {
       loadSharedReturnIndex:async()=>{readCount++;return hasIndex ? returnIndexVersion===2 ? archivedWithDrawdown : archived : null;},
-      loadSharedDirectory:async()=>{directoryReads++;return withDirectory?schemes:null;},
+      loadCurrentOpenEndedDirectory:async()=>{directoryReads++;return withDirectory?schemes:null;},
       loadSharedCategoryIndex:async()=>{categoryReads++;return withCategories?categories:null;},
     },
     '../lib/fund-directory.ts': directoryLib,
@@ -251,10 +251,10 @@ test('unavailable category archive keeps catalogue browsable but does not guess 
   view.unmount();
 });
 
-test('without a full catalogue the homepage truthfully falls back to starter examples', async()=>{
+test('without a verified current directory the explorer does not show unverified starter examples', async()=>{
   const view=pageView(true,false,2,75,false,false);
   await view.ready();
-  assert.equal(view.page().length,6);
-  assert.match(JSON.stringify(view.all().map(n=>n.props.children)),/starter examples/i);
+  assert.match(JSON.stringify(view.all().map(n=>n.props.children)),/current directory unavailable/i);
+  assert.doesNotMatch(JSON.stringify(view.all().map(n=>n.props.children)),/showing starter examples/i);
   view.unmount();
 });

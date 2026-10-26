@@ -1,7 +1,7 @@
 import type { FundData, Scheme } from './types.ts';
 import { validateArchiveProvenance } from './provenance.ts';
 import { getApiConnection, isStaticRuntime } from './runtime.ts';
-import { loadSharedFund, searchSharedCatalogue } from './shared-archive.ts';
+import { loadSharedFund, searchCurrentOpenEndedCatalogue } from './shared-archive.ts';
 import { getCachedFund, getCachedSearch, normalizeNavRecords, putCachedFund, putCachedSearch,
   assertStorageGeneration, getStorageGeneration, storageWarning, validSchemeCode, validateScheme } from './storage.ts';
 
@@ -243,13 +243,17 @@ export async function searchSchemes(query: string): Promise<Scheme[]> {
   const request = (async () => {
     let shared: Scheme[] | null = null;
     if (isStaticRuntime()) {
-      // The published directory includes schemes whose histories are still pending.
-      // Consult it before old query caches or the provider's limited search results.
-      try { shared = await searchSharedCatalogue(numericCode === null ? trimmed : String(numericCode)); }
-      catch { assertStorageGeneration(generation); }
+      // An empty verified match is a real result. Never fall back to a raw
+      // MFAPI query that would re-introduce closed or stale schemes.
+      try { shared = await searchCurrentOpenEndedCatalogue(numericCode === null ? trimmed : String(numericCode)); }
+      catch {
+        assertStorageGeneration(generation);
+        throw new Error('Current open-ended fund directory is unavailable. Check Data Status and retry.');
+      }
       assertStorageGeneration(generation);
-      if (numericCode !== null && shared) shared = shared.filter(scheme => scheme.schemeCode === numericCode);
-      if (shared?.length) return shared;
+      if (shared === null) throw new Error('Current open-ended fund directory is unavailable. Retry after archive publication.');
+      if (numericCode !== null) shared = shared.filter(scheme => scheme.schemeCode === numericCode);
+      return shared;
     }
     if (numericCode !== null) {
       const { meta } = await getFund(numericCode);
