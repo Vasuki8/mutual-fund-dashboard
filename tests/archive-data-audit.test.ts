@@ -43,7 +43,43 @@ test('audit differentiates missing, quality, stale dates, old scheme ages and re
   assert.deepEqual(report.historyBehind,{oneDay:1,twoToSevenDays:1,eightToThirtyDays:0,overThirtyDays:0});
   assert.deepEqual(report.retries,{due:1,future:2});
   assert.equal(report.counts.saved,3);
+  assert.equal(report.currentlyReporting.reporting,0,'Synthetic scheme codes are not on the official roster.');
   assert.ok(!JSON.stringify(report).includes('Historical equity'),'Audit outputs aggregate data, not raw source rows or scheme names.');
+});
+
+test('read-only investor triage separates recently reporting open-ended fund gaps from old histories',()=>{
+  const snapshot=fixture();
+  const remap:Record<number,number>={10001:100033,10002:119436,10003:154804,10004:100034};
+  snapshot.catalogue.entries=snapshot.catalogue.entries.map(entry=>({
+    ...entry,schemeCode:remap[entry.schemeCode],
+    ...(entry.schemeCode===10003?{latestDate:'2026-10-26',nav:'10.5'}:{}),
+  }));
+  snapshot.checkpoint.states=Object.fromEntries(Object.entries(snapshot.checkpoint.states)
+    .map(([old,state])=>[remap[Number(old)],{...state,code:remap[Number(old)]}]));
+  const report=auditArchiveSnapshot(snapshot,Date.parse('2026-10-26T16:00:00.000Z'));
+  assert.deepEqual(report.currentlyReporting,{
+    asOfDate:'2026-10-26',manualRosterDate:'2026-10-26',navRecencyDays:7,
+    reporting:3,noSavedHistory:1,failedRefreshWithHistory:0,firstAttemptPending:0,
+    invalidOnly:0,discontinuityOnly:1,both:0,other:0,historyBehindCatalogue:1,
+    examples:{noSavedHistory:[154804],invalidOnly:[],discontinuityOnly:[119436],both:[],other:[]},
+  });
+  assert.equal(report.counts.sourceGaps,1);
+  assert.equal(report.quality.invalidOnly,1,'Historical warning remains in total, not investor triage.');
+  assert.ok(!JSON.stringify(report).includes('Historical equity'),'Do not print scheme names or raw NAV.');
+});
+
+test('investor quality flags remain explicit even when sources report current NAV',()=>{
+  const snapshot=fixture();
+  snapshot.catalogue.entries[0]={...snapshot.catalogue.entries[0],
+    schemeCode:100033,latestDate:'2026-10-26',nav:'21.00'};
+  const original=snapshot.checkpoint.states[10001];
+  Reflect.deleteProperty(snapshot.checkpoint.states,'10001');
+  snapshot.checkpoint.states[100033]={...original,code:100033,
+    warnings:['Conflicting NAV values occur on 1 duplicate date(s); derived analytics are blocked.']};
+  const report=auditArchiveSnapshot(snapshot,Date.parse('2026-10-26T20:00:00.000Z'));
+  assert.equal(report.currentlyReporting.other,1);
+  assert.deepEqual(report.currentlyReporting.examples.other,[100033]);
+  assert.equal(report.counts.clean,1,'Quality counts do not get silently lowered.');
 });
 
 test('audit refuses missing or fabricated accounting rather than reporting inaccurate coverage',()=>{
