@@ -8,11 +8,17 @@ The announcement is reproduced in [the original AMC notice](https://fundsindia.c
 
 ## Calculation-only normalization
 
-When the saved MFAPI history contains **exactly one** >40% discontinuity warning, the derived-calculation layer checks the original ascending source NAV observations. It must observe a single positive approximately **10:1** jump across the published action date, with the previous NAV on 5–15 August 2022 and the following NAV on 16–23 August 2022. It verifies the series has no duplicate dates, invalid values or additional >40% movements.
+When the saved MFAPI history contains **exactly one** >40% discontinuity warning, the derived-calculation layer checks the original ascending source NAV observations. It must observe a single positive approximately **10:1** jump across the published action date, with the previous NAV dated exactly 16 August 2022 and the next NAV dated exactly 17 August 2022, as confirmed from the immutable FundScope checkpoint 180. It verifies the series has no duplicate dates, invalid values or additional >40% movements.
 
-**Only then** are pre-16-August-2022 NAV values multiplied by **10** in a temporary financial-analysis copy. The latest reported NAV, raw NAV chart, raw-history CSV, saved observations, source warnings and GitHub archive records remain unchanged. Any other unexplained discontinuity, invalid NAV, conflict, unrelated scheme, IDCW option or failed boundary check preserves the blocking safety gate.
+**Only then** are source NAV values through **16 August 2022** multiplied by **10** in a temporary financial-analysis copy. The latest reported NAV, raw NAV chart, raw-history CSV, saved observations, source warnings and GitHub archive records remain unchanged. Any other unexplained discontinuity, invalid NAV, conflict, unrelated scheme, IDCW option or failed boundary check preserves the blocking safety gate.
 
 The normalized copy may feed Growth-option performance, drawdowns, monthly risk, holding periods, SIP illustration and selected-fund comparisons. These results must clearly disclose the unit adjustment. The correction is not generalized to unrelated scheme codes or inferred from a threshold alone.
+
+## Observed boundary evidence (read-only)
+
+The 26 October 2026 diagnostic, [GitHub Actions run #40420487789](https://github.com/Vasuki8/mutual-fund-dashboard/actions/runs/40420487789), loaded checkpoint **180** and verified the immutable history shard with SHA-256 `722583a214af58914e1d194f1ef6670e0d47440591d0dbee42f805011abc0026`. Its 2,455 positive NAV observations contained exactly **one** move exceeding 40%: between 16 August 2022 (old unit basis) and 17 August 2022 (new unit basis), ratio **10.00138×**. Neither the diagnostic nor this adjustment overwrites the source history.
+
+The AMC notice gives an **effective corporate-action date of 16 August**, but the saved NAV observations switch their unit basis on **17 August**. We therefore use the verified NAV boundary, not the legal effective date, for the calculation-only transform.
 
 ## Remaining limits
 

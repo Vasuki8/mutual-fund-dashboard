@@ -260,7 +260,7 @@ test('holding periods remain explicitly full-history after a custom analysis ran
 test('verified Overnight Fund unit change unblocks clean 5Y returns without modifying raw NAV exports',()=>{
   const observations=[
     {date:'2021-10-25',nav:95},{date:'2022-08-11',nav:100},
-    {date:'2022-08-12',nav:100.02},{date:'2022-08-17',nav:1000.55},
+    {date:'2022-08-16',nav:100.02},{date:'2022-08-17',nav:1000.55},
     {date:'2023-10-25',nav:1100},{date:'2024-10-25',nav:1200},
     {date:'2025-10-25',nav:1350},{date:'2026-10-25',nav:1494.1154},
   ];
@@ -287,7 +287,7 @@ test('verified Overnight Fund unit change unblocks clean 5Y returns without modi
 
 test('unknown Overnight Fund price jumps retain the original investor safety warning',()=>{
   const values=[
-    {date:'2022-08-11',nav:100},{date:'2022-08-12',nav:100.02},
+    {date:'2022-08-11',nav:100},{date:'2022-08-16',nav:100.02},
     {date:'2022-08-17',nav:700},{date:'2025-10-25',nav:1100},
     {date:'2026-10-25',nav:1494},
   ];

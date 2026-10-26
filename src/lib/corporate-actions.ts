@@ -9,7 +9,11 @@ import type { FundData, NavPoint } from './types.ts';
  * and the raw observed NAV chart and CSV must stay unchanged.
  */
 export const OVERNIGHT_SCHEME_CODE = 145536;
-export const OVERNIGHT_CONSOLIDATION_DATE = '2022-08-16';
+export const OVERNIGHT_CONSOLIDATION_DATE = '2022-08-16'; // AMC effective date
+// The source NAV still uses the old unit denomination on 16 August.
+// The first verified new-denomination NAV is dated 17 August 2022.
+export const OVERNIGHT_LAST_OLD_BASIS_NAV_DATE = '2022-08-16';
+export const OVERNIGHT_FIRST_NEW_BASIS_NAV_DATE = '2022-08-17';
 export const OVERNIGHT_CONSOLIDATION_FACTOR = 10;
 export const OVERNIGHT_AMC_NOTICE =
   'https://fundsindia.com/blog/wp-content/uploads/2022/08/Attachment74998attachmentsChange-in-FV-Overnight-Fund.pdf';
@@ -61,13 +65,16 @@ function adjustedForKnownAction(raw: NavPoint[]): NavPoint[] | null {
   if (split<1) return null;
   const before=raw[split-1];
   const after=raw[split];
-  if (before.date<'2022-08-05'||before.date>=OVERNIGHT_CONSOLIDATION_DATE ||
-    after.date<OVERNIGHT_CONSOLIDATION_DATE||after.date>'2022-08-23') return null;
+  // Verified source-archive checkpoint 180 shows the only discontinuity
+  // between the 16-Aug-2022 old-basis NAV and the 17-Aug new-basis NAV.
+  // Do not infer a basis change on neighbouring dates for this scheme.
+  if (before.date!==OVERNIGHT_LAST_OLD_BASIS_NAV_DATE ||
+    after.date!==OVERNIGHT_FIRST_NEW_BASIS_NAV_DATE) return null;
   // Fund NAV fluctuations around this overnight event are very small.
   // Do not silently "explain" an unrelated large price move.
   const observedFactor=after.nav/before.nav;
   if (observedFactor<9.5||observedFactor>10.5) return null;
-  const adjusted=raw.map(p=>p.date<OVERNIGHT_CONSOLIDATION_DATE
+  const adjusted=raw.map(p=>p.date<OVERNIGHT_FIRST_NEW_BASIS_NAV_DATE
     ? {...p,nav:p.nav*OVERNIGHT_CONSOLIDATION_FACTOR} : {...p});
   for (let i=1;i<adjusted.length;i++) {
     if (largeMove(adjusted[i-1].nav,adjusted[i].nav)) return null;

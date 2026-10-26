@@ -9,7 +9,7 @@ import type { FundData, NavPoint } from '../src/lib/types.ts';
 const sourcePoints: NavPoint[] = [
   {date:'2021-10-25',nav:95},
   {date:'2022-08-11',nav:100.00},
-  {date:'2022-08-12',nav:100.02},
+  {date:'2022-08-16',nav:100.02},
   {date:'2022-08-17',nav:1000.55},
   {date:'2023-10-25',nav:1100},
   {date:'2024-10-25',nav:1200},
@@ -36,6 +36,10 @@ test('the documented ten-to-one consolidation adjusts PRE-event NAV for derived 
   assert.notEqual(result.fund,raw);
   assert.deepEqual(result.fund.points.map(p=>p.date),raw.points.map(p=>p.date));
   assert.deepEqual(result.fund.points.slice(0,3).map(p=>Number(p.nav.toFixed(4))),[950,1000,1000.2]);
+  assert.equal(result.fund.points[2].date,'2022-08-16',
+    'The last old-basis NAV must be adjusted despite the AMC effective date being 16 August.');
+  assert.equal(result.fund.points[3].date,'2022-08-17',
+    'The new unit denomination starts in the verified archive on 17 August.');
   assert.deepEqual(result.fund.points.slice(3),raw.points.slice(3));
   assert.equal(qualityBlocked(raw),true,'Raw source still needs quality review.');
   assert.equal(qualityBlocked(result.fund),false,'Only the validated action warning may be explained.');
@@ -58,10 +62,12 @@ test('fail closed for other schemes, options, event dates, extra NAV jumps and b
     example({warnings:[KNOWN_OVERNIGHT_WARNING,'Conflicting NAV values occur on 1 duplicate date(s); analytics are blocked.']}),
     example({warnings:['Unresolved discontinuity: 2 single-observation move(s) exceed 40%; derived analytics are blocked.']}),
     example({points:sourcePoints.map(p=>({...p,...(p.date==='2022-08-17'?{nav:700}: {})}))}),
-    example({points:sourcePoints.map(p=>({...p,...(p.date==='2022-08-12'?{date:'2022-06-12'}:{})}))}),
+    example({points:sourcePoints.map(p=>({...p,...(p.date==='2022-08-16'?{date:'2022-06-12'}:{})}))}),
+    example({points:sourcePoints.map(p=>({...p,...(p.date==='2022-08-16'?{date:'2022-08-15'}:{})}))}),
+    example({points:sourcePoints.map(p=>({...p,...(p.date==='2022-08-17'?{date:'2022-08-18'}:{})}))}),
     example({points:sourcePoints.map(p=>({...p,...(p.date==='2024-10-25'?{nav:2300}:{})}))}),
     example({points:[...sourcePoints].reverse()}),
-    example({points:sourcePoints.map(p=>({...p,...(p.date==='2022-08-12'?{nav:0}:{})}))}),
+    example({points:sourcePoints.map(p=>({...p,...(p.date==='2022-08-16'?{nav:0}:{})}))}),
   ];
   for(const raw of variants) {
     const result=financialNavBasis(raw);

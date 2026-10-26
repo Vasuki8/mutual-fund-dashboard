@@ -46,7 +46,7 @@ export function FundDetail(props:Props) {
     {(fund.stale||visibleWarnings.length>0)&&<div className={`notice ${blocked?'warning':''}`}><AlertCircle size={16}/><span>{fund.stale?'Showing cached data. The latest refresh could not be completed. ':''}{visibleWarnings.join(' ')}</span></div>}
     {basis?.adjusted&&<div className="notice" role="status"><ShieldCheck size={18}/><span>
       Performance and risk use NAV adjusted for the verified 10-to-1 ICICI Prudential Overnight Fund unit consolidation effective 16 August 2022.
-      Pre-consolidation NAVs are multiplied by 10 for calculations only. The latest NAV, raw NAV chart and exported source observations are unchanged.
+      Reported NAVs through 16 August 2022 use the old unit basis and are multiplied by 10 for calculations only. The source series switches basis on 17 August. The latest NAV, raw NAV chart and exported source observations are unchanged.
       <a href={OVERNIGHT_AMC_NOTICE} target="_blank" rel="noreferrer"> Read the AMC notice.</a>
     </span></div>}
     {!growth&&<div className="notice warning"><Info size={16}/><span>This scheme is not a confirmed Growth option. Raw NAV is available. Total-return and risk analytics need distribution-adjusted data for IDCW or dividend options.</span></div>}

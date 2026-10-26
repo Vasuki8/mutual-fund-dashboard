@@ -39,7 +39,7 @@ export function SipSimulator({ fund, unitAdjusted = false }: Props) {
       ['Fund', fund.meta.schemeName],
       ['Scheme code', fund.meta.schemeCode],
       ['NAV source', 'https://api.mfapi.in/mf/' + fund.meta.schemeCode],
-      ['NAV calculation basis', unitAdjusted ? 'Pre-16-Aug-2022 source NAV multiplied by 10 for verified unit consolidation; original observations unchanged' : 'Source reported NAV'],
+      ['NAV calculation basis', unitAdjusted ? 'Source NAV through 16-Aug-2022 multiplied by 10 for verified unit consolidation; first new-basis NAV dated 17-Aug-2022; original observations unchanged' : 'Source reported NAV'],
       ['Original NAV retrieval', fund.fetchedAt],
       ['Calculation', 'Hypothetical fixed monthly contribution; no real transactions'],
       ['Monthly anchor', 'Requested start day (clamped to month-end when needed)'],
