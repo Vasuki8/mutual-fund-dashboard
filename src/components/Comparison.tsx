@@ -35,7 +35,7 @@ export function Comparison(props:Props) {
   });
   useEffect(()=>{for(const s of props.schemes)void props.ensureFund(s.schemeCode);},[props.schemes,props.ensureFund]);
   useEffect(()=>{let active=true;setError('');if(!query.trim()){setResults([]);setBusy(false);return;}setBusy(true);const timer=setTimeout(()=>{searchSchemes(query).then(r=>{if(active)setResults(r.filter(s=>/\b(?:direct|regular)\s+plan\b/i.test(s.schemeName)&&isGrowthScheme(s.schemeName)).slice(0,8));}).catch(e=>{if(active){setResults([]);setError(e instanceof Error?e.message:'Search unavailable');}}).finally(()=>{if(active)setBusy(false);});},300);return()=>{active=false;clearTimeout(timer);};},[query]);
-  const datasets=useMemo(()=>props.schemes.map(s=>props.funds[s.schemeCode]?financialNavBasis(props.funds[s.schemeCode]).fund:undefined),[props.schemes,props.funds]);
+  const datasets=useMemo(()=>props.schemes.map(s=>{const fund=props.funds[s.schemeCode];return fund?financialNavBasis(fund).fund:fund;}),[props.schemes,props.funds]);
   const unitAdjusted=props.schemes.some(s=>props.funds[s.schemeCode]&&financialNavBasis(props.funds[s.schemeCode]).adjusted);
   const loadedDatasets=useMemo(()=>datasets.filter((fund): fund is FundData => Boolean(fund)),[datasets]);
   const ready=datasets.length>=2&&datasets.every(Boolean);const valid=ready&&datasets.every(f=>isGrowthScheme(f.meta.schemeName)&&!qualityBlocked(f));
