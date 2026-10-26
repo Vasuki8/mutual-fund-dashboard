@@ -255,3 +255,48 @@ test('holding periods remain explicitly full-history after a custom analysis ran
   assert.deepEqual(csv.rows.filter(row => /^\d{4}-/.test(String(row[0]))), observations.map(point => [point.date, point.nav]));
   page.unmount();
 });
+
+
+test('verified Overnight Fund unit change unblocks clean 5Y returns without modifying raw NAV exports',()=>{
+  const observations=[
+    {date:'2021-10-25',nav:95},{date:'2022-08-11',nav:100},
+    {date:'2022-08-16',nav:100.02},{date:'2022-08-17',nav:1000.55},
+    {date:'2023-10-25',nav:1100},{date:'2024-10-25',nav:1200},
+    {date:'2025-10-25',nav:1350},{date:'2026-10-25',nav:1494.1154},
+  ];
+  const fund:FundData={
+    ...makeFund(1,observations),
+    meta:{...makeFund(1).meta,schemeCode:145536,
+      schemeName:'ICICI Prudential Overnight Fund - Direct Plan - Growth',
+      fundHouse:'ICICI Prudential Mutual Fund',schemeCategory:'Debt Scheme - Overnight Fund'},
+    warnings:['Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked.'],
+  };
+  const p=view('FundDetail',{fund,code:145536});
+  assert.match(p.content(),/verified 10-to-1.*unit consolidation/i);
+  assert.notEqual(p.metric('Period return')?.value,'—');
+  p.range('5Y');
+  const fiveYear=p.metric('Period return')?.value;
+  assert.match(String(fiveYear),/^[+]?\d+[\d.]*%$/);
+  assert.ok(!String(fiveYear).startsWith('+900'), 'The unit consolidation cannot be mistaken for investment gains.');
+  const csv=p.export('Export selected NAV history as CSV');
+  assert.ok(csv.rows.some(row=>row[0]==='2021-10-25' && row[1]===95),
+    'CSV must retain pre-action RAW NAV, not derived 950.');
+  assert.ok(csv.rows.some(row=>row[0]==='2022-08-17' && row[1]===1000.55));
+  p.unmount();
+});
+
+test('unknown Overnight Fund price jumps retain the original investor safety warning',()=>{
+  const values=[
+    {date:'2022-08-11',nav:100},{date:'2022-08-16',nav:100.02},
+    {date:'2022-08-17',nav:700},{date:'2025-10-25',nav:1100},
+    {date:'2026-10-25',nav:1494},
+  ];
+  const fund:FundData={...makeFund(1,values),meta:{...makeFund(1).meta,
+    schemeCode:145536,schemeName:'ICICI Prudential Overnight Fund - Direct Plan - Growth'},
+    warnings:['Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked.']};
+  const p=view('FundDetail',{fund,code:145536});
+  assert.equal(p.metric('Period return')?.value,'—');
+  assert.match(p.content(),/Analytics are paused because the history contains a data-quality issue/);
+  p.unmount();
+});
+

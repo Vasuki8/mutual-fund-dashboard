@@ -25,3 +25,6 @@ export function downloadCsv(rows: (string | number | null)[][], filename: string
   };
   downloadText('\uFEFF' + rows.map(row => row.map(escape).join(',')).join('\r\n'), filename, 'text/csv;charset=utf-8');
 }
+
+// Verified source-specific NAV normalizations are used only in derived calculations.
+export { financialNavBasis, OVERNIGHT_AMC_NOTICE } from './corporate-actions.ts';
