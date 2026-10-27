@@ -8,6 +8,9 @@ const MAX_FUNDS = 500;
 const MAX_POINTS = 20_000;
 const MAX_TOTAL_POINTS = 500_000;
 const MAX_SEARCHES = 200;
+// Only this generated counter can be replaced by rechecking the stored NAVs.
+// Unrecognized discontinuity messages and invalid/conflicting evidence survive.
+const GENERATED_DISCONTINUITY_WARNING = /^Unresolved discontinuity: \d+ single-observation move\(s\) exceed 40%; derived analytics are blocked\.$/;
 export const MAX_FUND_NOTES = 120;
 export const MAX_FUND_NOTE_LENGTH = 3000;
 
@@ -159,9 +162,10 @@ export function validateCachedFund(value: unknown): FundData {
     || archive.coverageStart !== normalized.points[0].date || archive.coverageEnd !== normalized.points.at(-1)!.date)) {
     throw new Error('Archived history provenance does not match its observation count or coverage.');
   }
+  const warnings = warningStrings(item.warnings).filter(warning => !GENERATED_DISCONTINUITY_WARNING.test(warning));
   return { meta: validateMeta(item.meta), points: normalized.points, fetchedAt: timestamp(item.fetchedAt, 'fetchedAt'),
     source: 'mfapi.in', fromCache: item.fromCache, stale: item.stale,
-    warnings: [...new Set([...warningStrings(item.warnings), ...normalized.warnings])], ...(archive ? { archive } : {}) };
+    warnings: [...new Set([...warnings, ...normalized.warnings])], ...(archive ? { archive } : {}) };
 }
 
 /** Merge source observations without allowing a shortened refresh to erase history. */
@@ -181,7 +185,8 @@ export function mergeCachedFund(incoming: FundData, previous: FundData | null): 
   const previousPoints = new Map(previous.points.map(point => [point.date, point.nav]));
   const corrections = preferPrevious ? 0 : incoming.points.filter(point => previousPoints.has(point.date)
     && previousPoints.get(point.date) !== point.nav).length;
-  const warnings = [...(late ? previous.warnings : incoming.warnings)].filter(warning => !/^Unresolved discontinuity:/.test(warning));
+  const warnings = [...(late ? previous.warnings : incoming.warnings)]
+    .filter(warning => !GENERATED_DISCONTINUITY_WARNING.test(warning));
   if (late && incoming.points.some(point => !previousPoints.has(point.date))) {
     // A newer short response can take precedence on overlapping dates while
     // older archive-only dates still enter the union. Their unresolved source
