@@ -42,6 +42,36 @@ test('normalizes provider dates to ascending ISO observations while retaining fu
   assert.ok(Number.isFinite(Date.parse(fund.fetchedAt)));
 });
 
+test('direct source refresh accepts optional blank ISINs without losing valid history', async t => {
+  const raw = payload();
+  t.mock.method(globalThis, 'fetch', async () => Response.json({ ...raw,
+    meta: { ...raw.meta, isin_growth: '', isin_div_reinvestment: ' \t ' } }));
+  const result = await getFund(CODE, { force: true });
+  assert.equal(result.meta.schemeCode, CODE);
+  assert.equal(result.meta.isinGrowth, null);
+  assert.equal(result.meta.isinDivReinvestment, null);
+  assert.deepEqual(result.points, cached().points);
+  assert.equal(result.stale, false);
+  const saved = JSON.parse(await exportBackup()).funds[0];
+  assert.equal(saved.meta.isinGrowth, null);
+  assert.equal(saved.meta.isinDivReinvestment, null);
+  assert.deepEqual(saved.points, result.points);
+});
+
+test('direct search accepts optional blank ISINs while malformed identifiers still fail', async t => {
+  t.mock.method(globalThis, 'fetch', async () => Response.json([
+    { schemeCode: CODE, schemeName: NAME, isinGrowth: ' ', isinDivReinvestment: '' },
+  ]));
+  assert.deepEqual(await searchSchemes('Parag Parikh'), [
+    { schemeCode: CODE, schemeName: NAME, isinGrowth: null, isinDivReinvestment: null },
+  ]);
+  for (const value of [123, false, {}, [], 'A'.repeat(65), ' '.repeat(65)]) {
+    const raw = payload();
+    assert.throws(() => validateFundResponse({ ...raw,
+      meta: { ...raw.meta, isin_growth: value } }, CODE), /ISIN/i);
+  }
+});
+
 test('retains the archive retrieval time and stale warning instead of reporting a fresh provider fetch', async t => {
   const fetchedAt = new Date(Date.now() - 7 * 3600_000).toISOString();
   const provenance = { fetchedAt, archivedAt: fetchedAt, fromArchive: true, stale: true,

@@ -39,6 +39,40 @@ The existing daily/on-demand `FundScope archive data health` GitHub Action:
 
 The [ICICI Prudential Overnight Fund correction (#45)](https://github.com/Vasuki8/mutual-fund-dashboard/pull/45) is the first verified corporate-action remediation: the observed raw unit-basis jump is from **16 to 17 August 2022, 10.00138×**, consistent with the AMC notice. Derived analytics are adjusted narrowly for scheme `145536`; raw NAV and stored quality status remain unchanged.
 
+## Confirmed code repairs, 26 October 2026
+
+- **Recent empty/zero histories:** checkpoint 180 deferred scheme `154804` from its first failed attempt on 26 October until 2 November. Recent catalogue entries (the collector's existing 90-day priority window) now use the ordinary 15-minute exponential retry, capped at 24 hours, instead of the weekly historical-gap policy. For these two exact safe error codes, work selection also limits an already saved weekly delay to the normal delay since the last attempt. Obsolete gaps, other errors, source-wide cooldowns, per-run limits and immutable stored checkpoints retain their existing behavior. The next successful or failed attempt records a new retry outcome; old displayed retry timestamps can remain until then.
+- **Older response warnings:** when an earlier source request contributes dates absent from a newer saved history, its invalid/conflicting NAV warnings now remain attached to the union. The most recent values and fetch time still take precedence. An earlier response whose dates are fully superseded cannot restore a resolved warning.
+- **Merge-created discontinuities:** the server now marks a merged record unresolved if the union itself introduces a large move. The flag and warning agree even when each input passed its own checks. The GitHub collector already applied this additional check; the shared merge now protects every server caller.
+- **Optional blank ISINs:** browser source refresh and search now interpret blank optional ISIN strings as unavailable (`null`), matching the server. Valid prices and exact plan codes survive; malformed types and oversized identifiers still fail validation.
+- **Verified Regular Growth unit adjustment:** the exact ICICI Overnight Regular Growth code `145535` now shares the documented calculation-only adjustment with Direct Growth `145536`. Its checkpoint-180 history independently has one 16–17 August 2022 jump of 10.00135726 times and no other quality warnings. The same date, ratio and full-series checks apply. Comparison CSVs identify the actual adjusted plan code(s). See [the verified source evidence](UNIT_CONSOLIDATION.md); raw prices and archive quality flags remain intact.
+
+A small read-only follow-up to MFAPI for `154804` returned HTTP 200, `SUCCESS`, and one positive observation. This is evidence that a bounded retry can now recover the available source history, **not proof that a new archive checkpoint has saved it or that longer history exists**. Keep collection, code checks, and live publication results separate.
+
+## PPFAS reference cross-check remains unresolved
+
+The owner's manually supplied `PPFAS-flexi-cap-NAV-2013-05-28-to-2026-10-25.csv` was compared offline with the exact checkpoint-180 shard. Plan codes and Growth ISINs were matched separately. Decimal strings were compared numerically without floating-point rounding or inferred corrections.
+
+| Measure | Direct Growth (`122639`) | Regular Growth (`122640`) |
+| --- | ---: | ---: |
+| Manual reference observations | 3,299 | 3,299 |
+| Archived observations | 3,298 | 3,298 |
+| Shared dates | 3,297 | 3,297 |
+| Exactly matching numeric NAVs | 3,295 | 3,295 |
+| Different NAVs on shared dates | 2 | 2 |
+| Duplicate or invalid observations in either input | 0 | 0 |
+
+Both plans have different NAVs on **26 December 2024** and **31 March 2025**. The reference contains **20 December 2023** and **29 September 2025**, which are absent from the archive. The archive contains **22 October 2019**, which is absent from the reference. The common range is 28 May 2013–23 October 2026. Extra trailing zeros account for the lexical differences among the 3,295 numeric matches; none of the two numeric mismatches disappears at four decimal places.
+
+The archive's `clean` flag means its structural/source checks passed; it does **not** establish agreement with an independent reference. These differences remain open for source confirmation. No manual rows were imported, no source prices were overwritten, and no new provenance claim was attached to the MFAPI archive.
+
+Evidence identities for reproduction:
+
+- Manual CSV SHA-256: `846702d0a7858328050f5bde4715138ef32b730db2c2682d4d517367b7ef5c98`.
+- Checkpoint-180 compressed asset SHA-256: `cbcb1195d091f548d042073976826d17aad75a1ad8dcbb34b5cd88447a327a16`.
+- Referenced `history-3832` compressed asset SHA-256: `e53be0a9003ebaf14f5c26c4e2bf73d015b4ffa825a8c2954f88183708a7b14e`.
+- The checkpoint, catalogue and history assets passed their exact SHA-256 and compressed/expanded byte-length checks before comparison.
+
 ## Access and permissions
 
 AMFI disallows automated website downloads. This audit uses an already manually supplied derived numeric roster and GitHub's own saved archive. Public commercial redistribution permissions remain a separate unresolved question. The audit neither implies a license nor automatically imports from AMFI.

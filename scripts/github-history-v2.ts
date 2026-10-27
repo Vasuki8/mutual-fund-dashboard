@@ -24,8 +24,24 @@ export function catalogueSlot(now: number): string {
   return date.toISOString();
 }
 function due(entry: Catalogue['entries'][number], state: ArchiveSchemeState, now: number): boolean {
-  if (state.nextAttemptAt && Date.parse(state.nextAttemptAt) > now) return false;
+  if (state.nextAttemptAt) {
+    let retryAt = Date.parse(state.nextAttemptAt);
+    if (state.status === 'source-error' && state.lastAttemptAt && hasRecentNav(entry, now)
+      && ['source_history_empty', 'source_history_zero_nav_only'].includes(state.lastError ?? '')) {
+      // Older checkpoints applied a weekly gap policy to recent funds too.
+      // Re-evaluate only those safe error codes without rewriting saved state.
+      retryAt = Math.min(retryAt, Date.parse(state.lastAttemptAt) + failureBackoff(state.failures));
+    }
+    if (retryAt > now) return false;
+  }
   return state.attempts === 0 || state.status === 'source-error' || state.quality || needsRefresh(entry, state, now);
+}
+function failureBackoff(failures: number): number {
+  return Math.min(BACKOFF_MAX_MS, BACKOFF_MIN_MS * 2 ** Math.min(failures - 1, 10));
+}
+function hasRecentNav(entry: Catalogue['entries'][number], now: number): boolean {
+  return entry.latestDate !== null
+    && Date.parse(entry.latestDate + 'T00:00:00Z') >= now - RECENT_NAV_WINDOW_MS;
 }
 export function selectWork(catalogue: Catalogue, states: Record<string, ArchiveSchemeState>, now: number,
   maxSchemes = 512, maxShards = 16): Catalogue['entries'] {
@@ -37,8 +53,7 @@ export function selectWork(catalogue: Catalogue, states: Record<string, ArchiveS
     // Many retained MFAPI identities last reported NAV years ago. Their old
     // one-day catalogue/history disagreements should not crowd out recent
     // fund reconciliation, but their histories/errors are NEVER discarded.
-    const recent = entry.latestDate !== null
-      && Date.parse(entry.latestDate + 'T00:00:00Z') >= now - RECENT_NAV_WINDOW_MS;
+    const recent = hasRecentNav(entry, now);
     const behind = !!entry.latestDate && (!state.coverageEnd || entry.latestDate > state.coverageEnd
       || entry.latestDate === state.coverageEnd && !!entry.nav && !!state.latestNav && !sameNav(entry.nav, state.latestNav));
     const noHistory = state.observationCount === 0;
@@ -270,7 +285,9 @@ export async function runTranche(options: TrancheOptions): Promise<TrancheResult
         try { parsed = validateHistory(raw, entry.schemeCode); }
         catch {
           const reason = classifyInvalidHistory(raw);
-          throw new SourceError(reason.code, reason.recheckMs);
+          // Recently reporting schemes may have a transient empty/zero series.
+          // Keep their normal bounded backoff; reserve weekly rechecks for old gaps.
+          throw new SourceError(reason.code, hasRecentNav(entry, now()) ? 0 : reason.recheckMs);
         }
         const previousDoc = shard.records.find(doc => doc.schemeCode === entry.schemeCode) ?? null;
         const document: HistoryDocument = mergeHistory(parsed, previousDoc, at, new Date(now()).toISOString(), entry.latestDate);
@@ -278,7 +295,7 @@ export async function runTranche(options: TrancheOptions): Promise<TrancheResult
         shard.records = [...shard.records.filter(doc => doc.schemeCode !== entry.schemeCode), document].sort((a, b) => a.schemeCode - b.schemeCode);
         changedBuckets.add(bucket);
         const failures = document.unresolved ? state.failures + 1 : 0;
-        const backoff = Math.min(BACKOFF_MAX_MS, BACKOFF_MIN_MS * 2 ** Math.min(failures - 1, 10));
+        const backoff = failureBackoff(failures);
         states[entry.schemeCode] = { ...state, status: document.unresolved ? 'quality' : 'clean', failures,
           nextAttemptAt: document.unresolved ? new Date(now() + backoff).toISOString() : null,
           historyFetchedAt: document.fetchedAt, coverageStart: document.coverageStart, coverageEnd: document.coverageEnd,
@@ -294,7 +311,7 @@ export async function runTranche(options: TrancheOptions): Promise<TrancheResult
         }
         applySourceCooldown(error);
         const failures = state.failures + 1;
-        const backoff = Math.max(Math.min(BACKOFF_MAX_MS, BACKOFF_MIN_MS * 2 ** Math.min(failures - 1, 10)),
+        const backoff = Math.max(failureBackoff(failures),
           error instanceof SourceError ? error.retryAfterMs : 0);
         states[entry.schemeCode] = { ...state, status: 'source-error', failures,
           nextAttemptAt: new Date(now() + backoff).toISOString(), lastError: safeFailure(error) };

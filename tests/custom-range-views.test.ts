@@ -300,3 +300,30 @@ test('unknown Overnight Fund price jumps retain the original investor safety war
   p.unmount();
 });
 
+test('comparison CSV identifies each actual adjusted Overnight Growth scheme',()=>{
+  const values=[
+    {date:'2021-10-25',nav:110},{date:'2022-08-16',nav:116.0426},
+    {date:'2022-08-17',nav:1160.5835},{date:'2023-10-25',nav:1200},
+    {date:'2026-10-25',nav:1484.4299},
+  ];
+  const regular:FundData={...makeFund(1,values),meta:{...makeFund(1).meta,
+    schemeCode:145535,schemeName:'ICICI Prudential Overnight Fund - Regular Plan - Growth'},
+    warnings:['Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked.']};
+  const direct:FundData={...regular,meta:{...regular.meta,schemeCode:145536,
+    schemeName:'ICICI Prudential Overnight Fund - Direct Plan - Growth'}};
+  const clean=makeFund(1,values.map(p=>({...p,nav:p.date<'2022-08-17'?p.nav*10:p.nav})));
+  for(const [selected,expected] of [
+    [[regular,clean],'Verified 10-to-1 unit consolidation: adjusted historical NAV for scheme 145535'],
+    [[regular,direct],'Verified 10-to-1 unit consolidation: adjusted historical NAV for schemes 145535, 145536'],
+  ] as const){
+    const original=structuredClone(selected);
+    const page=view('Comparison',{schemes:selected.map(f=>f.meta),
+      funds:Object.fromEntries(selected.map(f=>[f.meta.schemeCode,f]))});
+    page.range('MAX');
+    const csv=page.export('Export comparison as CSV');
+    assert.equal(csv.rows.find(row=>row[0]==='Corporate action')?.[1],expected);
+    assert.deepEqual(selected,original,'Comparison must preserve its raw input histories.');
+    page.unmount();
+  }
+});
+

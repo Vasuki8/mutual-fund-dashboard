@@ -144,6 +144,10 @@ export function mergeHistory(incoming: ReturnType<typeof validateHistory>, previ
   const retained = [...existingDates].filter(date => !incomingDates.has(date)).length;
   const retainedQualityWarnings = retained > 0
     ? (previous?.warnings ?? []).filter(warning => /^(Invalid NAV|Conflicting NAV)/.test(warning)) : [];
+  // Earlier source-only dates still enter the union. Their unresolved quality
+  // warnings must travel with those observations, as in the browser cache.
+  const earlierQualityWarnings = lateResponse && incoming.payload.data.some(point => !existingDates.has(point.date))
+    ? incoming.warnings.filter(warning => /^(Invalid NAV|Conflicting NAV)/.test(warning)) : [];
   let corrections = 0;
   if (previous && !preferPrevious) {
     const old = new Map(previous.payload.data.map(point => [point.date, point.nav]));
@@ -151,7 +155,7 @@ export function mergeHistory(incoming: ReturnType<typeof validateHistory>, previ
       && decimalIdentity(old.get(point.date)!) !== decimalIdentity(point.nav)) corrections += 1;
   }
   const warnings = lateResponse && previous ? [...previous.warnings] : [...incoming.warnings];
-  warnings.push(...retainedQualityWarnings);
+  warnings.push(...retainedQualityWarnings, ...earlierQualityWarnings);
   if (retained) warnings.push(`MFAPI returned a shorter or changed history; ${retained} archived observation(s) absent from the response were retained.`);
   if (corrections) warnings.push(`Applied source corrections to ${corrections} existing observation(s).`);
   if (olderHistory && !lateResponse) warnings.push('MFAPI returned an older latest observation; the newer saved history and its successful fetch time were retained.');
@@ -160,13 +164,15 @@ export function mergeHistory(incoming: ReturnType<typeof validateHistory>, previ
   const effectiveLatest = lateResponse && previous ? previous.coverageEnd : latest;
   const behindCatalogue = expectedLatest !== null && effectiveLatest < expectedLatest;
   if (behindCatalogue) warnings.push(`The history response has not yet reached the catalogue NAV date ${expectedLatest}.`);
-  warnings.push(...discontinuityWarnings(data));
+  const mergedDiscontinuities = discontinuityWarnings(data);
+  warnings.push(...mergedDiscontinuities);
   return { version: 1, schemeCode: code,
     payload: { ...(preferPrevious && previous ? previous.payload : incoming.payload), data },
     fetchedAt: preferPrevious && previous ? previous.fetchedAt : fetchedAt, archivedAt,
     coverageStart: dateISO(data.at(-1)!.date)!, coverageEnd: dateISO(data[0].date)!,
-    unresolved: lateResponse ? !!previous?.unresolved || behindCatalogue
-      : olderHistory || behindCatalogue || questionable || retainedQualityWarnings.length > 0,
+    unresolved: mergedDiscontinuities.length > 0 || (lateResponse
+      ? !!previous?.unresolved || behindCatalogue || earlierQualityWarnings.length > 0
+      : olderHistory || behindCatalogue || questionable || retainedQualityWarnings.length > 0),
     warnings: [...new Set(warnings)] };
 }
 

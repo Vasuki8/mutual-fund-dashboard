@@ -64,6 +64,8 @@ function text(value: unknown, label: string, maximum = 500): string {
 }
 function isin(value: unknown): string | null | undefined {
   if (value === undefined || value === null) return value;
+  // MFAPI uses blank strings for unavailable optional ISINs, as on the server.
+  if (typeof value === 'string' && value.length <= 64 && !value.trim()) return null;
   return text(value, 'ISIN', 64);
 }
 export function validSchemeCode(value: unknown): value is number {
