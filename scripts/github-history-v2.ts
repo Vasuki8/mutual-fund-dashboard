@@ -57,8 +57,12 @@ export function selectWork(catalogue: Catalogue, states: Record<string, ArchiveS
     const behind = !!entry.latestDate && (!state.coverageEnd || entry.latestDate > state.coverageEnd
       || entry.latestDate === state.coverageEnd && !!entry.nav && !!state.latestNav && !sameNav(entry.nav, state.latestNav));
     const noHistory = state.observationCount === 0;
-    if (recent && behind) return 1;
-    if (recent && state.status === 'source-error' && noHistory) return 2;
+    // A due, recently reporting scheme with NO saved NAV history needs a
+    // first usable source response. Do not let routine latest-date lag for
+    // thousands of otherwise saved histories crowd this gap out. The due()
+    // check above still enforces individual backoff and source cooldown.
+    if (recent && state.status === 'source-error' && noHistory) return 1;
+    if (recent && behind) return 2;
     if (recent && (state.status === 'source-error' || state.quality)) return 3;
     if (recent) return 4;
     if (state.status === 'source-error' && noHistory) return 5;
