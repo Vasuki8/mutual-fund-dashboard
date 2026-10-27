@@ -52,9 +52,35 @@ test('the documented ten-to-one consolidation adjusts PRE-event NAV for derived 
   assert.ok(local.fiveYear!==null && local.threeYearMaxDrawdown!==null);
 });
 
+test('the independently verified Regular Growth scheme uses the same documented consolidation',()=>{
+  const raw=example({meta:{...example().meta,schemeCode:145535,
+    schemeName:'ICICI Prudential Overnight Fund - Regular Plan - Growth'},
+    points:[
+      {date:'2021-10-25',nav:110},
+      {date:'2022-08-16',nav:116.0426},
+      {date:'2022-08-17',nav:1160.5835},
+      {date:'2026-10-25',nav:1484.4299},
+    ]});
+  const original=structuredClone(raw);
+  const result=financialNavBasis(raw);
+  assert.equal(result.adjusted,true);
+  assert.deepEqual(raw,original,'Keep original Regular NAVs and unresolved warnings intact.');
+  assert.equal(result.fund.points[1].nav,raw.points[1].nav*10);
+  assert.deepEqual(result.fund.points.slice(2),raw.points.slice(2));
+  assert.equal(qualityBlocked(raw),true);
+  assert.equal(qualityBlocked(result.fund),false);
+  const annual=cagr(result.fund.points);
+  assert.ok(annual!==null && annual>0 && annual<0.1,'Unit denomination must not become investment gain.');
+});
+
 test('fail closed for other schemes, options, event dates, extra NAV jumps and bad source warnings',()=>{
   const variants=[
     example({meta:{...example().meta,schemeCode:145537}}),
+    example({meta:{...example().meta,schemeCode:145535}}),
+    example({meta:{...example().meta,schemeName:'ICICI Prudential Overnight Fund - Regular Plan - Growth'}}),
+    example({meta:{...example().meta,schemeCode:145535,schemeName:'ICICI Prudential Overnight Fund - Regular Plan - IDCW'}}),
+    example({meta:{...example().meta,schemeCode:145535,schemeName:'ICICI Prudential Overnight Fund - Regular Plan - Unclaimed Growth'}}),
+    example({meta:{...example().meta,schemeCode:145535,schemeName:'Another Overnight Fund - Regular Plan - Growth'}}),
     example({meta:{...example().meta,schemeName:'ICICI Prudential Overnight Fund - Direct Plan - IDCW'}}),
     example({meta:{...example().meta,schemeName:'Another Overnight Fund - Direct Growth'}}),
     example({warnings:[]}),

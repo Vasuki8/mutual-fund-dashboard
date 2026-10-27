@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { DatabaseSync } from 'node:sqlite';
+import { mergeHistory, validateHistory } from '../server/validation.ts';
 
 const module = await import('../server/archive.ts').catch(() => null);
 test('persistent server archive implementation is available', () => {
@@ -65,9 +66,11 @@ class MemoryR2 {
 
 const CODE = 122639;
 const NAME = 'Parag Parikh Flexi Cap Fund - Direct Plan - Growth';
+// Synthetic clean fixture: exercise long coverage and decimal precision without
+// triggering the >40% quality gate. Dedicated tests supply invalid/jumping NAVs.
 function history(code = CODE, data = [
   { date: '19-10-2026', nav: '90.3546000' },
-  { date: '01-01-2005', nav: '10.0000001' },
+  { date: '01-01-2005', nav: '70.0000001' },
 ]) {
   return { status: 'SUCCESS', meta: { scheme_code: code, scheme_name: code === CODE ? NAME : `Scheme ${code}`,
     fund_house: 'PPFAS Mutual Fund', scheme_type: 'Open Ended Schemes',
@@ -77,6 +80,55 @@ function latest(codes = [CODE], date = '19-10-2026') {
   return codes.map(schemeCode => ({ schemeCode, schemeName: schemeCode === CODE ? NAME : `Scheme ${schemeCode}`,
     nav: '90.3546000', date, isinGrowth: null, isinDivReinvestment: null }));
 }
+
+for (const issue of ['invalid', 'conflicting'] as const) {
+  test(`older source-only observations retain their ${issue} quality warning when merged into a newer history`, () => {
+    const current = mergeHistory(validateHistory(history(CODE, [
+      { date: '21-10-2026', nav: '10.2000' }, { date: '20-10-2026', nav: '10.1000' },
+    ]), CODE), null, '2026-10-21T10:00:00.000Z', '2026-10-21T10:00:00.000Z');
+    const earlier = validateHistory(history(CODE, [
+      { date: '20-10-2026', nav: '10.0500' }, { date: '19-10-2026', nav: '10.0000' },
+      ...(issue === 'invalid' ? [{ date: '18-10-2026', nav: '0.0000' }]
+        : [{ date: '19-10-2026', nav: '10.0100' }]),
+    ]), CODE);
+    const original = structuredClone({ current, earlier });
+    const merged = mergeHistory(earlier, current, '2026-10-20T10:00:00.000Z', '2026-10-21T11:00:00.000Z');
+    assert.deepEqual(merged.payload.data, [
+      { date: '21-10-2026', nav: '10.2000' }, { date: '20-10-2026', nav: '10.1000' },
+      { date: '19-10-2026', nav: '10.0000' },
+    ]);
+    assert.equal(merged.fetchedAt, current.fetchedAt);
+    assert.equal(merged.unresolved, true, 'Additional old observations must not silently enable analytics.');
+    for (const warning of earlier.warnings) assert.ok(merged.warnings.includes(warning), warning);
+    assert.deepEqual({ current, earlier }, original, 'Merging must preserve its source inputs.');
+  });
+}
+
+test('a fully superseded earlier response cannot reintroduce its resolved quality warning', () => {
+  const current = mergeHistory(validateHistory(history(CODE, [
+    { date: '21-10-2026', nav: '10.2000' }, { date: '20-10-2026', nav: '10.1000' },
+  ]), CODE), null, '2026-10-21T10:00:00.000Z', '2026-10-21T10:00:00.000Z');
+  const earlier = validateHistory(history(CODE, [
+    { date: '20-10-2026', nav: '10.0500' }, { date: '20-10-2026', nav: '10.0600' },
+  ]), CODE);
+  const merged = mergeHistory(earlier, current, '2026-10-20T10:00:00.000Z', '2026-10-21T11:00:00.000Z');
+  assert.deepEqual(merged.payload.data, current.payload.data);
+  assert.equal(merged.unresolved, false);
+  assert.equal(merged.warnings.some(warning => /^Conflicting NAV/.test(warning)), false);
+});
+
+test('a discontinuity introduced by the history union marks the merged server record unresolved', () => {
+  const current = mergeHistory(validateHistory(history(CODE, [
+    { date: '21-10-2026', nav: '10.2000' }, { date: '20-10-2026', nav: '10.1000' },
+  ]), CODE), null, '2026-10-21T10:00:00.000Z', '2026-10-21T10:00:00.000Z');
+  const earlier = validateHistory(history(CODE, [{ date: '19-10-2026', nav: '100.0000' }]), CODE);
+  assert.deepEqual(earlier.warnings, []);
+  const merged = mergeHistory(earlier, current, '2026-10-20T10:00:00.000Z', '2026-10-21T11:00:00.000Z');
+  assert.equal(merged.payload.data.length, 3);
+  assert.equal(merged.fetchedAt, current.fetchedAt);
+  assert.ok(merged.warnings.some(warning => /^Unresolved discontinuity/.test(warning)));
+  assert.equal(merged.unresolved, true, 'Status and completion counts must respect a newly detected large move.');
+});
 
 function harness() {
   const DB = new SqliteD1();
@@ -133,7 +185,7 @@ if (module) {
     const h = harness();
     const initial = await (await h.request(`/api/mf/${CODE}`)).json();
     assert.equal(initial.data.length, 2);
-    assert.equal(initial.data[1].nav, '10.0000001');
+    assert.equal(initial.data[1].nav, '70.0000001');
     assert.equal(initial._fundscope.coverageStart, '2005-01-01');
     assert.equal(initial._fundscope.fromArchive, false);
     h.setFetch(async () => { throw new TypeError('offline'); });
@@ -164,7 +216,7 @@ if (module) {
     assert.deepEqual(result.data, [
       { date: '20-10-2026', nav: '91.1234567890123' },
       { date: '19-10-2026', nav: '90.400000000001' },
-      { date: '01-01-2005', nav: '10.0000001' },
+      { date: '01-01-2005', nav: '70.0000001' },
     ]);
     assert.equal(result._fundscope.observationCount, 3);
     assert.match(result._fundscope.warnings.join(' '), /retained|shorter|absent/i);
@@ -367,7 +419,7 @@ if (module) {
         started();
         await gate;
         return Response.json(history(CODE, [
-          { date: '19-10-2026', nav: '90.00000' }, { date: '01-01-2005', nav: '10.00000' },
+          { date: '19-10-2026', nav: '90.00000' }, { date: '01-01-2005', nav: '70.00000' },
         ]));
       }
       return Response.json(history(CODE, [
@@ -386,7 +438,7 @@ if (module) {
     assert.equal(saved._fundscope.stale, false);
     assert.deepEqual(saved.data, [
       { date: '20-10-2026', nav: '91.00000' }, { date: '19-10-2026', nav: '90.5000001' },
-      { date: '01-01-2005', nav: '10.00000' },
+      { date: '01-01-2005', nav: '70.00000' },
     ]);
   });
 
@@ -573,7 +625,7 @@ if (module) {
     assert.equal(redirectMode, 'manual');
     const result = await response.json();
     assert.equal(result._fundscope.observationCount, 2);
-    assert.equal(result.data[1].nav, '10.0000001');
+    assert.equal(result.data[1].nav, '70.0000001');
     assert.equal((await (await h.request('/api/data/status')).json()).archivedCount, 1);
   });
 
@@ -641,7 +693,7 @@ if (module) {
     assert.equal(result.meta.scheme_name, NAME);
     assert.equal(result.meta.isin_growth, null);
     assert.equal(result.meta.isin_div_reinvestment, null);
-    assert.equal(result.data[1].nav, '10.0000001');
+    assert.equal(result.data[1].nav, '70.0000001');
     assert.equal((await (await h.request(`/api/mf/${CODE}`)).json())._fundscope.fromArchive, true);
   });
 

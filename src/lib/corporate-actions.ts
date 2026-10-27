@@ -3,12 +3,14 @@ import type { FundData, NavPoint } from './types.ts';
 /**
  * A documented 10:1 ICICI Prudential Overnight Fund unit consolidation.
  * AMC notice 011/07/2022 dated 28 July 2022, effective 16 August 2022:
- * https://fundsindia.com/blog/wp-content/uploads/2022/08/Attachment74998attachmentsChange-in-FV-Overnight-Fund.pdf
+ * Financial Express, 29 July 2022, newspaper page 10 / PDF page 2:
+ * https://nsearchives.nseindia.com/corporate/CHALET_29072022144748_NewspaperAdvertisement29072022.pdf
  *
  * Only the fund's financial-analysis copy is adjusted. Archived/source NAVs
  * and the raw observed NAV chart and CSV must stay unchanged.
  */
 export const OVERNIGHT_SCHEME_CODE = 145536;
+export const OVERNIGHT_REGULAR_SCHEME_CODE = 145535;
 export const OVERNIGHT_CONSOLIDATION_DATE = '2022-08-16'; // AMC effective date
 // The source NAV still uses the old unit denomination on 16 August.
 // The first verified new-denomination NAV is dated 17 August 2022.
@@ -16,7 +18,7 @@ export const OVERNIGHT_LAST_OLD_BASIS_NAV_DATE = '2022-08-16';
 export const OVERNIGHT_FIRST_NEW_BASIS_NAV_DATE = '2022-08-17';
 export const OVERNIGHT_CONSOLIDATION_FACTOR = 10;
 export const OVERNIGHT_AMC_NOTICE =
-  'https://fundsindia.com/blog/wp-content/uploads/2022/08/Attachment74998attachmentsChange-in-FV-Overnight-Fund.pdf';
+  'https://nsearchives.nseindia.com/corporate/CHALET_29072022144748_NewspaperAdvertisement29072022.pdf#page=2';
 
 export const KNOWN_OVERNIGHT_WARNING =
   'Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked.';
@@ -29,11 +31,10 @@ export interface FinancialNavBasis {
 }
 
 function isExactScheme(fund: FundData): boolean {
-  const name = fund.meta.schemeName;
-  return fund.meta.schemeCode === OVERNIGHT_SCHEME_CODE
-    && /^ICICI Prudential Overnight Fund\b/i.test(name)
-    && /\bdirect\b/i.test(name) && /\bgrowth\b/i.test(name)
-    && !/\b(?:idcw|dividend|unclaimed)\b/i.test(name);
+  const plan = fund.meta.schemeCode === OVERNIGHT_SCHEME_CODE ? 'Direct'
+    : fund.meta.schemeCode === OVERNIGHT_REGULAR_SCHEME_CODE ? 'Regular' : null;
+  return plan !== null && fund.meta.schemeName.toLowerCase()
+    === `ICICI Prudential Overnight Fund - ${plan} Plan - Growth`.toLowerCase();
 }
 
 function validSeries(points: NavPoint[]): boolean {

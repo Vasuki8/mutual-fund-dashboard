@@ -100,13 +100,13 @@ test('source failure is durable, backs off, and cannot claim complete coverage',
   assert.equal(selectWork(store.snapshot!.catalogue, store.snapshot!.checkpoint.states, START + 1000).length, 0);
 });
 
-test('MFAPI zero-only histories are explicitly unavailable, preserve the checkpoint and recheck weekly', async () => {
+test('obsolete MFAPI zero-only histories remain explicitly unavailable and recheck weekly', async () => {
   const store = new MemoryStore();
   const invalid = history(CODE, Array.from({length:4}, (_, i) => ({
     date: `${String(21-i).padStart(2,'0')}-10-2026`, nav:'0.00000',
   })));
   const result = await runTranche({ store, now:()=>START, minCatalogueSize:1,
-    source: async path=>path==='/mf/latest'?rawCatalogue():invalid });
+    source: async path=>path==='/mf/latest'?rawCatalogue([CODE], '21-10-2006'):invalid });
   assert.equal(result.historiesAdded,0);
   assert.equal(result.counts!.saved,0);
   assert.equal(result.counts!.sourceGaps,1);
@@ -120,6 +120,86 @@ test('MFAPI zero-only histories are explicitly unavailable, preserve the checkpo
     'Do not repeatedly request confirmed all-zero historical NAVs every 15 minutes.');
   assert.equal(selectWork(store.snapshot!.catalogue,store.snapshot!.checkpoint.states,START+7*86400_000).length,1,
     'Retest on a bounded cadence in case the provider fixes its history later.');
+});
+
+for (const condition of ['empty', 'zero-only'] as const) {
+  test(`recent ${condition} histories use bounded exponential backoff and can recover`, async () => {
+    const store = new MemoryStore(); let time = START;
+    const unavailable = history(CODE, condition === 'empty' ? [] : [{ date: '21-10-2026', nav: '0.00000' }]);
+    const source = async (path: string) => path === '/mf/latest' ? rawCatalogue() : unavailable;
+    await runTranche({ store, now: () => time, minCatalogueSize: 1, source });
+    let state = store.snapshot!.checkpoint.states[CODE];
+    assert.equal(state.nextAttemptAt, new Date(time + 15 * 60_000).toISOString());
+    assert.equal(state.observationCount, 0);
+    assert.equal(store.snapshot!.checkpoint.counts.coverageComplete, false);
+    assert.equal(selectWork(store.snapshot!.catalogue, store.snapshot!.checkpoint.states, time + 14 * 60_000).length, 0);
+
+    time += 15 * 60_000;
+    await runTranche({ store, now: () => time, source });
+    state = store.snapshot!.checkpoint.states[CODE];
+    assert.equal(state.failures, 2);
+    assert.equal(state.nextAttemptAt, new Date(time + 30 * 60_000).toISOString());
+
+    time += 30 * 60_000;
+    const recovered = await runTranche({ store, now: () => time, source: async () => history() });
+    assert.equal(recovered.historiesAdded, 1);
+    assert.equal(recovered.counts!.sourceGaps, 0);
+    assert.equal(store.snapshot!.checkpoint.states[CODE].nextAttemptAt, null);
+    assert.equal(store.snapshot!.checkpoint.states[CODE].observationCount, 2);
+  });
+}
+
+test('saved weekly empty-history retries recover when the catalogue becomes recent and normal backoff is due', async () => {
+  const store = new MemoryStore();
+  await runTranche({ store, now: () => START, minCatalogueSize: 1,
+    source: async path => path === '/mf/latest' ? rawCatalogue([CODE], '21-10-2006') : history(CODE, []) });
+  const retryAt = new Date(START + 7 * 86400_000).toISOString();
+  assert.equal(store.snapshot!.checkpoint.states[CODE].nextAttemptAt, retryAt);
+  const requests: string[] = [];
+  const recovered = await runTranche({ store, now: () => START + 12 * 3600_000, minCatalogueSize: 1,
+    source: async path => { requests.push(path); return path === '/mf/latest' ? rawCatalogue() : history(); } });
+  assert.deepEqual(requests, ['/mf/latest', `/mf/${CODE}`]);
+  assert.equal(recovered.historiesAdded, 1);
+  assert.equal(store.snapshot!.checkpoint.states[CODE].nextAttemptAt, null);
+  assert.equal(store.snapshot!.checkpoint.states[CODE].attempts, 2);
+});
+
+test('recognized weekly source gaps honor normal backoff while other errors and obsolete gaps retain their retry', () => {
+  const entry = { ...rawCatalogue()[0], latestDate: '2026-10-21', current: true };
+  const catalogue = { version: 1 as const, fetchedAt: new Date(START).toISOString(), warnings: [], entries: [entry] };
+  const state: ArchiveSchemeState = {
+    code: CODE, status: 'source-error', attempts: 1, failures: 1, lastAttemptAt: new Date(START).toISOString(),
+    nextAttemptAt: new Date(START + 7 * 86400_000).toISOString(), historyFetchedAt: null,
+    coverageStart: null, coverageEnd: null, latestNav: null, observationCount: 0,
+    quality: false, warnings: [], lastError: 'source_history_empty',
+  };
+  for (const lastError of ['source_history_empty', 'source_history_zero_nav_only']) {
+    const states = { [CODE]: { ...state, lastError } };
+    assert.equal(selectWork(catalogue, states, START + 14 * 60_000).length, 0);
+    assert.equal(selectWork(catalogue, states, START + 15 * 60_000).length, 1);
+    states[CODE].attempts = 20; states[CODE].failures = 20;
+    assert.equal(selectWork(catalogue, states, START + 23 * 3600_000).length, 0);
+    assert.equal(selectWork(catalogue, states, START + 24 * 3600_000).length, 1);
+    states[CODE].attempts = 1; states[CODE].failures = 1;
+    assert.equal(selectWork({ ...catalogue, entries: [{ ...entry, latestDate: '2006-10-21' }] }, states,
+      START + 24 * 3600_000).length, 0);
+  }
+  for (const lastError of ['source_transport', 'source_history_invalid', 'source_http_429', 'source_http_503']) {
+    assert.equal(selectWork(catalogue, { [CODE]: { ...state, lastError } }, START + 24 * 3600_000).length, 0);
+  }
+});
+
+test('source-wide cooldown still blocks recognized weekly source gaps whose normal backoff has expired', async () => {
+  const store = new MemoryStore();
+  await runTranche({ store, now: () => START, minCatalogueSize: 1,
+    source: async path => path === '/mf/latest' ? rawCatalogue() : history(CODE, []) });
+  store.snapshot!.checkpoint.states[CODE].nextAttemptAt = new Date(START + 7 * 86400_000).toISOString();
+  store.snapshot!.checkpoint.sourceRetryAt = new Date(START + 3600_000).toISOString();
+  const snapshot = structuredClone(store.snapshot);
+  const result = await runTranche({ store, now: () => START + 30 * 60_000,
+    source: async () => { throw new Error('No requests are allowed during the saved source-wide cooldown.'); } });
+  assert.equal(result.attempted, 0);
+  assert.deepEqual(store.snapshot, snapshot);
 });
 
 test('payload diagnostics are narrow safe codes, not untrusted source strings or zero-valued assets',()=>{
