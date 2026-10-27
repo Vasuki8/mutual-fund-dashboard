@@ -17,6 +17,7 @@ function fixture(name = liveName, code = 100047): FundData {
       { date: '2011-10-06', nav: 16.5 },
       { date: '2011-10-07', nav: 165.04 },
       { date: '2015-10-07', nav: 220 },
+      { date: '2018-10-26', nav: 280 },
       { date: '2020-10-26', nav: 330 },
       { date: '2026-10-26', nav: 455 },
     ],
