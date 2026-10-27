@@ -1,0 +1,59 @@
+name: Temporary catalogue completeness check
+on:
+  push:
+    branches: [audit/catalogue-completeness-20261027]
+    paths: [.github/workflows/temporary-catalogue-completeness.yml]
+permissions:
+  contents: read
+jobs:
+  inspect:
+    if: github.repository == 'Vasuki8/mutual-fund-dashboard'
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Compare three bounded metadata responses; no history imports or writes
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          node --experimental-strip-types --input-type=module <<'NODE'
+          import { createGitHubStore, readLimited } from './scripts/archive-store.ts';
+          import { scheme } from './server/validation.ts';
+          import { isActiveRepairCandidate } from './scripts/active-repair-scope.ts';
+          const repository=process.env.GITHUB_REPOSITORY;
+          if(repository!=='Vasuki8/mutual-fund-dashboard')throw Error('audit_context_invalid');
+          const snapshot=await createGitHubStore({repository,token:process.env.GITHUB_TOKEN,
+            deadline:Date.now()+90_000}).loadSnapshot();
+          if(!snapshot)throw Error('audit_snapshot_absent');
+          if(snapshot.checkpoint.sourceRetryAt&&Date.parse(snapshot.checkpoint.sourceRetryAt)>Date.now())
+            throw Error('source_cooldown_active');
+          const summaries=[],data=new Map();
+          for(const path of ['/mf/latest','/mf','/mf?limit=1000&offset=37000']){
+            const r=await fetch('https://api.mfapi.in'+path,{redirect:'error',credentials:'omit',
+              headers:{Accept:'application/json'},signal:AbortSignal.timeout(12000)});
+            if(!r.ok){await r.body?.cancel();throw Error('source_http_'+r.status);}
+            const raw=JSON.parse(Buffer.from(await readLimited(r,32*1024*1024)).toString('utf8'));
+            if(!Array.isArray(raw)||raw.length>100_000)throw Error('source_shape_invalid');
+            const ids=raw.map(x=>scheme(x).schemeCode),unique=new Set(ids);
+            if(ids.length!==unique.size)throw Error('source_duplicate_code');
+            data.set(path,raw);
+            summaries.push({path,count:ids.length,minimumCode:ids.length?Math.min(...ids):null,
+              maximumCode:ids.length?Math.max(...ids):null,includes138875:unique.has(138875),
+              includes145536:unique.has(145536),includes154804:unique.has(154804)});
+          }
+          const bulk=new Set(data.get('/mf/latest').map(e=>e.schemeCode));
+          const list=new Set(data.get('/mf').map(e=>e.schemeCode));
+          const missing=snapshot.catalogue.entries.filter(e=>list.has(e.schemeCode)&&!bulk.has(e.schemeCode));
+          const recent=missing.filter(e=>isActiveRepairCandidate({...e,current:true},Date.now()));
+          console.log('CATALOGUE_COMPLETENESS '+JSON.stringify({checkedAt:new Date().toISOString(),
+            sequence:snapshot.checkpoint.sequence,sourceRequests:summaries.length,responses:summaries,
+            bulkCodesMissingFromList:[...bulk].filter(code=>!list.has(code)).length,
+            knownListedButMissingBulk:missing.length,recentRetainedCandidates:recent.length,
+            recentSample:recent.slice(0,5).map(e=>({code:e.schemeCode,date:e.latestDate})),
+            currentRepairScope:snapshot.catalogue.entries.filter(e=>isActiveRepairCandidate(e,Date.now())).length,
+            tailMatchesUnpaginated:JSON.stringify(data.get('/mf?limit=1000&offset=37000').map(e=>e.schemeCode))===
+              JSON.stringify(data.get('/mf').slice(37000,38000).map(e=>e.schemeCode))}));
+          NODE
