@@ -1,0 +1,61 @@
+name: Temporary read-only sample of verified NAV discontinuities
+on:
+  push:
+    branches: [audit/nav-jump-samples-20261027]
+permissions:
+  contents: read
+jobs:
+  inspect:
+    if: github.repository == 'Vasuki8/mutual-fund-dashboard'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Read immutable history samples without fetching MFAPI or AMFI
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          node --experimental-strip-types --input-type=module <<'NODE'
+          import { createGitHubStore } from './scripts/archive-store.ts';
+          const repo=process.env.GITHUB_REPOSITORY,token=process.env.GITHUB_TOKEN;
+          if(repo!=='Vasuki8/mutual-fund-dashboard'||!token)throw Error('Invalid audit repo');
+          const store=createGitHubStore({repository:repo,token,deadline:Date.now()+5*60_000});
+          const snapshot=await store.loadSnapshot();
+          if(!snapshot)throw Error('Missing checkpoint');
+          const {checkpoint,catalogue}=snapshot;
+          const selected=[100046,100047,100051,100176,100177,100218,145535,145536];
+          const cached=new Map();
+          const iso=(d)=>d.slice(6,10)+'-'+d.slice(3,5)+'-'+d.slice(0,2);
+          const results=[];
+          for(const code of selected){
+            const entry=catalogue.entries.find(e=>e.schemeCode===code);
+            const state=checkpoint.states[code];
+            const bucket=String(Math.floor(code/32));
+            const ref=checkpoint.shards[bucket];
+            if(!ref){results.push({code,issue:'history_shard_unavailable'});continue;}
+            if(!cached.has(bucket))cached.set(bucket,await store.readShard(ref,bucket));
+            const doc=cached.get(bucket).records.find(x=>x.schemeCode===code);
+            if(!doc){results.push({code,issue:'no_saved_history'});continue;}
+            const sorted=[...doc.payload.data].reverse();
+            const moves=[];
+            for(let i=1;i<sorted.length;i++){
+              const ratio=Number(sorted[i].nav)/Number(sorted[i-1].nav);
+              if(ratio>1.4+1e-12||ratio<0.6-1e-12) {
+                moves.push({beforeDate:iso(sorted[i-1].date),afterDate:iso(sorted[i].date),
+                  factor:Number(ratio.toFixed(7))});
+              }
+            }
+            results.push({code,latestCatalogueDate:entry?.latestDate??null,
+              latestHistoryDate:state?.coverageEnd??null,observations:sorted.length,
+              flag:{invalid:state?.warnings.some(w=>/^Invalid NAV/.test(w)),
+                conflicting:state?.warnings.some(w=>/^Conflicting NAV/.test(w)),
+                largeMove:state?.warnings.some(w=>/^Unresolved discontinuity/.test(w))},
+              moveCount:moves.length,moveSample:moves.slice(0,8),historyDigest:ref.sha256.slice(0,12)});
+          }
+          console.log('NAV_JUMP_SAMPLES '+JSON.stringify({
+            sequence:checkpoint.sequence,checkpointAt:checkpoint.updatedAt,
+            samples:results}));
+          NODE
