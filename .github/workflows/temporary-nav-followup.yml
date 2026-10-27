@@ -1,0 +1,64 @@
+name: Temporary read-only NAV follow-up
+on:
+  push:
+    branches: [audit/nav-checkpoint-followup-20261027]
+    paths: [.github/workflows/temporary-nav-followup.yml]
+permissions:
+  contents: read
+jobs:
+  inspect:
+    if: github.repository == 'Vasuki8/mutual-fund-dashboard'
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Inspect three exact saved histories without provider requests or archive writes
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          node --experimental-strip-types --input-type=module <<'NODE'
+          import { createGitHubStore } from './scripts/archive-store.ts';
+          import { auditArchiveSnapshot } from './scripts/archive-data-audit.ts';
+          import { validateHistory } from './server/validation.ts';
+          const repository=process.env.GITHUB_REPOSITORY;
+          if(repository!=='Vasuki8/mutual-fund-dashboard'||!process.env.GITHUB_TOKEN)throw Error('audit_context_invalid');
+          const store=createGitHubStore({repository,token:process.env.GITHUB_TOKEN,deadline:Date.now()+4*60_000});
+          const snapshot=await store.loadSnapshot();
+          if(!snapshot)throw Error('audit_checkpoint_absent');
+          const {checkpoint,catalogue}=snapshot;
+          const audit=auditArchiveSnapshot(snapshot);
+          const cache=new Map(),records=[];
+          const iso=d=>d.slice(6,10)+'-'+d.slice(3,5)+'-'+d.slice(0,2);
+          for(const code of [154804,100176,100177]){
+            const state=checkpoint.states[code];
+            const bucket=String(Math.floor(code/32)),ref=checkpoint.shards[bucket];
+            if(!state)throw Error('audit_state_absent');
+            if(!ref){records.push({code,status:state.status,observations:0});continue;}
+            if(!cache.has(bucket))cache.set(bucket,await store.readShard(ref,bucket));
+            const doc=cache.get(bucket).records.find(x=>x.schemeCode===code);
+            if(!doc){records.push({code,status:state.status,observations:0});continue;}
+            const parsed=validateHistory(doc.payload,code);
+            const rows=[...parsed.payload.data].reverse(),moves=[];
+            for(let i=1;i<rows.length;i++){
+              const ratio=Number(rows[i].nav)/Number(rows[i-1].nav);
+              if(ratio>1.4+1e-12||ratio<0.6-1e-12) moves.push({
+                beforeDate:iso(rows[i-1].date),afterDate:iso(rows[i].date),factor:Number(ratio.toFixed(8))});
+            }
+            const sourceJump=doc.warnings.filter(w=>/^Unresolved discontinuity:/.test(w));
+            const parsedJump=parsed.warnings.filter(w=>/^Unresolved discontinuity:/.test(w));
+            records.push({code,schemeName:doc.payload.meta.scheme_name,status:state.status,
+              observationCount:rows.length,coverageStart:doc.coverageStart,coverageEnd:doc.coverageEnd,
+              stateObservations:state.observationCount,unresolved:doc.unresolved,
+              catalogueDate:catalogue.entries.find(x=>x.schemeCode===code)?.latestDate??null,
+              moveCount:moves.length,moves:moves.slice(0,6),
+              storedJumpCountsMatchReparse:JSON.stringify(sourceJump)===JSON.stringify(parsedJump),
+              invalidOrConflict:doc.warnings.some(w=>/^(Invalid NAV|Conflicting NAV)/.test(w)),
+              shardSha256:ref.sha256});
+          }
+          console.log('NAV_FOLLOWUP '+JSON.stringify({sequence:checkpoint.sequence,
+            checkpointAt:checkpoint.updatedAt,counts:checkpoint.counts,
+            currentlyReporting:audit.currentlyReporting,records}));
+          NODE
