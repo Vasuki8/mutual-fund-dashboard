@@ -16,6 +16,7 @@ On 27 October 2026, the owner limited discrepancy work to **active funds that po
 
 - Use `scripts/active-repair-scope.ts`: exact existing official open-ended roster membership, current MFAPI catalogue membership, a finite positive NAV, and a real NAV date no more than 30 UTC calendar days old and not in the future. The runner's actual date is the reference; exactly 30 days qualifies, 31 does not.
 - Apply this as a strict eligibility filter to automated history repair, not merely a priority over older schemes. The production collector CLI enables it unconditionally. Catalogue refreshes continue so an existing scheme can re-enter scope after a new NAV.
+- Membership is checked independently against the documented `/mf` scheme list by `scripts/verified-catalogue.ts`. Absence from the bulk `/mf/latest` cache alone is not proof of inactivity. Keep list-verification provenance separate from actual NAV observation dates; see `docs/CATALOGUE_MEMBERSHIP.md`.
 - Investigate the full historical series of each eligible fund. The 30-day condition selects funds; it does not truncate their NAV histories.
 - Preserve excluded schemes, saved observations, source errors and quality warnings. Exclusion is not evidence of repair. Full-archive accounting must remain separate from the active repair queue.
 - Do not widen the website's existing seven-day discovery filter as part of this repair-only instruction. Recent NAV reporting is not proof that purchases are permitted.
