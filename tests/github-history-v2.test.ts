@@ -236,9 +236,52 @@ test('recent source discrepancies take precedence over obsolete historical date 
   const catalogue={version:1 as const,fetchedAt:'2026-10-23T10:00:00.000Z',
     warnings:[],entries:entries.map(x=>x[0])};
   const states=Object.fromEntries(entries.map(([item,state])=>[item.schemeCode,state]));
-  assert.deepEqual(selectWork(catalogue,states,at,4,16).map(x=>x.schemeCode),[10002,10003,10004,10001],
-    'Old source-date mismatches are retained for eventual checks, not prioritized over recent reporting funds.');
-  assert.equal(selectWork(catalogue,states,at,1,16)[0].schemeCode,10002);
+  assert.deepEqual(selectWork(catalogue,states,at,4,16).map(x=>x.schemeCode),[10003,10002,10004,10001],
+    'A due missing recent history precedes saved latest-date lag; legacy records remain eligible.');
+  assert.equal(selectWork(catalogue,states,at,1,16)[0].schemeCode,10003);
+});
+
+test('due recent missing histories are selected before 40 routine lag refreshes even with strict shard limits',()=>{
+  const now=Date.parse('2026-10-26T17:00:00.000Z');
+  const lagging=Array.from({length:40},(_,i)=>{
+    const code=130000+32*i;
+    const entry={schemeCode:code,schemeName:'Current lag '+code,
+      latestDate:'2026-10-26',nav:'12.00',current:true};
+    const state:ArchiveSchemeState={
+      code,status:'clean',attempts:4,failures:0,
+      lastAttemptAt:'2026-10-20T12:00:00.000Z',nextAttemptAt:null,
+      historyFetchedAt:'2026-10-20T12:00:00.000Z',
+      coverageStart:'2024-01-01',coverageEnd:'2026-10-25',
+      latestNav:'11.95',observationCount:500,quality:false,warnings:[],lastError:null,
+    };
+    return [entry,state] as const;
+  });
+  const code=154804;
+  const missing:ArchiveSchemeState={
+    code,status:'source-error',attempts:2,failures:1,
+    lastAttemptAt:'2026-10-26T16:00:00.000Z',
+    nextAttemptAt:'2026-10-26T16:15:00.000Z',
+    historyFetchedAt:null,coverageStart:null,coverageEnd:null,latestNav:null,
+    observationCount:0,quality:false,warnings:[],lastError:'source_history_empty',
+  };
+  const catalogue={version:1 as const,fetchedAt:new Date(now).toISOString(),warnings:[],
+    entries:[...lagging.map(([entry])=>entry),
+      {schemeCode:code,schemeName:'Recent no history',latestDate:'2026-10-26',nav:'10.50',current:true}]};
+  const states:Record<string,ArchiveSchemeState>=Object.fromEntries([...lagging.map(([entry,state])=>[
+    entry.schemeCode,state] as const),[code,missing]]);
+  const selected=selectWork(catalogue,states,now,8,8);
+  assert.equal(selected[0].schemeCode,code,
+    'Recent missing history must not be starved by older last-attempt timestamps of routine lag tasks.');
+  assert.equal(selected.length,8);
+  assert.equal(new Set(selected.map(entry=>Math.floor(entry.schemeCode/32))).size,8,
+    'The original per-run shard limit still holds.');
+  // A not-yet-due source gap must never bypass retry backoff just because it is high priority.
+  const waiting:ArchiveSchemeState={...missing,lastAttemptAt:new Date(now).toISOString(),
+    nextAttemptAt:new Date(now+3600_000).toISOString()};
+  const eligible=selectWork(catalogue,{...states,[code]:waiting},now,8,8);
+  assert.ok(!eligible.some(entry=>entry.schemeCode===code),
+    'Backoff remains binding for source-history-empty cases.');
+  assert.equal(eligible[0].schemeCode,130000);
 });
 
 test('continuation progress distinguishes newly saved first attempts from refreshes and no-ops', async () => {
