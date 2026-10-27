@@ -6,6 +6,7 @@ import { buildCatalogue, mergeHistory, validateHistory } from '../server/validat
 import type { Catalogue, HistoryDocument } from '../server/types.ts';
 import { createGitHubStore, readLimited, type ArchiveStore } from './archive-store.ts';
 import { isActiveRepairCandidate, REPAIR_NAV_WINDOW_DAYS, REPAIR_ROSTER_DATE } from './active-repair-scope.ts';
+import { fetchVerifiedCatalogue, CatalogueIntegrityError } from './verified-catalogue.ts';
 import { calculateCounts, isQualityWarning, needsRefresh, pendingState, sameNav, validateCatalogue,
   validateCheckpoint, validateHistoryShard, validateShardStates,
   type ArchiveCheckpoint, type ArchiveSchemeState, type HistoryShard } from './archive-model.ts';
@@ -93,7 +94,7 @@ class SourceError extends Error {
   }
 }
 export function safeFailure(error: unknown): string {
-  return error instanceof SourceError ? error.message : 'source_unavailable';
+  return error instanceof SourceError || error instanceof CatalogueIntegrityError ? error.message : 'source_unavailable';
 }
 
 /**
@@ -126,7 +127,10 @@ function retryAfter(value: string | null, now: number): number | null {
 export function createSource(options: { fetch?: typeof fetch; now?: () => number; deadline: number }) {
   const request = options.fetch ?? globalThis.fetch; const now = options.now ?? Date.now;
   return async (path: string, onStart?: () => void): Promise<unknown> => {
-    if (!/^\/mf\/(?:latest|[1-9]\d*)$/.test(path)) throw new SourceError('source_path_invalid');
+    const terminal = /^\/mf\?limit=1&offset=([1-9]\d{0,5})$/.exec(path);
+    const allowed = path === '/mf' || /^\/mf\/(?:latest|[1-9]\d*)$/.test(path)
+      || terminal !== null && Number(terminal[1]) <= 100_000;
+    if (!allowed) throw new SourceError('source_path_invalid');
     for (let attempt = 0; attempt < 2; attempt++) {
       const remaining = options.deadline - now();
       if (remaining <= 0) throw new SourceError('source_deadline');
@@ -166,6 +170,8 @@ interface TrancheOptions {
   store: ArchiveStore;
   /** Production CLI always enables the 30-day official-roster repair policy. */
   activeRepairOnly?: boolean;
+  /** Production CLI verifies source-list membership independently of the bulk NAV cache. */
+  verifyCatalogueMembership?: boolean;
   /** Fence a prepared workflow run before any source request; undefined preserves standalone use. */
   expectedSequence?: number | null;
   /** Transports notify onStart once immediately before their first request; never on deferral. */
@@ -212,6 +218,7 @@ export async function runTranche(options: TrancheOptions): Promise<TrancheResult
   const reserve = options.reserveMs ?? COMMIT_RESERVE_MS;
   if (!Number.isFinite(deadline) || !Number.isFinite(reserve) || reserve < 0 || reserve >= WORK_MS) throw new Error('work_limits_invalid');
   if (options.activeRepairOnly !== undefined && typeof options.activeRepairOnly !== 'boolean') throw new Error('work_scope_invalid');
+  if (options.verifyCatalogueMembership !== undefined && typeof options.verifyCatalogueMembership !== 'boolean') throw new Error('work_scope_invalid');
   const workDeadline = deadline - reserve;
   const source = options.source ?? createSource({ now, deadline: workDeadline });
   const log = options.log ?? (() => {});
@@ -234,17 +241,23 @@ export async function runTranche(options: TrancheOptions): Promise<TrancheResult
     }
   };
   const targetSlot = catalogueSlot(now());
-  if ((!catalogue || slot < targetSlot) && now() < workDeadline && !coolingDown()) {
+  if ((!catalogue || slot < targetSlot || options.verifyCatalogueMembership && !catalogue.membership)
+    && now() < workDeadline && !coolingDown()) {
     let catalogueWriteStarted = false;
     try {
-      const raw = await source('/mf/latest');
-      if (!Array.isArray(raw) || raw.length < (options.minCatalogueSize ?? 10_000) || raw.length > 100_000) throw new SourceError('source_catalogue_invalid');
       let next: Catalogue;
-      try { next = validateCatalogue(buildCatalogue(raw, catalogue, [], new Date(now()).toISOString())); }
-      catch { throw new SourceError('source_catalogue_invalid'); }
+      if (options.verifyCatalogueMembership) {
+        next = await fetchVerifiedCatalogue(source, catalogue, now, options.minCatalogueSize);
+      } else {
+        const raw = await source('/mf/latest');
+        if (!Array.isArray(raw) || raw.length < (options.minCatalogueSize ?? 10_000) || raw.length > 100_000) throw new SourceError('source_catalogue_invalid');
+        try { next = validateCatalogue(buildCatalogue(raw, catalogue, [], new Date(now()).toISOString())); }
+        catch { throw new SourceError('source_catalogue_invalid'); }
+      }
       catalogue = next; slot = targetSlot; catalogueError = null; changed = true;
       catalogueWriteStarted = true;
       catalogueRef = await options.store.writeJSON('catalogue', catalogue);
+      if (catalogue.membership) log({ phase: 'catalogue_membership', ...catalogue.membership });
     } catch (error) {
       // Storage failures must not be misreported as source gaps or publish a
       // checkpoint referring to an unsaved catalogue.
@@ -384,7 +397,7 @@ async function main(): Promise<void> {
     onRetry: event => process.stdout.write(JSON.stringify(event) + '\n') });
   // User-requested production scope: no environment flag may widen this to
   // historical schemes. The unscoped engine remains available to fixture tests.
-  const result = await runTranche({ store, deadline, expectedSequence, activeRepairOnly: true,
+  const result = await runTranche({ store, deadline, expectedSequence, activeRepairOnly: true, verifyCatalogueMembership: true,
     log: event => process.stdout.write(JSON.stringify(event) + '\n') });
   process.stdout.write(JSON.stringify({ phase: 'verified', ...result }) + '\n');
   if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT,
@@ -393,20 +406,4 @@ async function main(): Promise<void> {
     const counts = result.counts;
     const summary = ['## FundScope verified archive tranche', '',
       `Repair scope: official-roster, currently listed schemes with a positive NAV no more than ${REPAIR_NAV_WINDOW_DAYS} UTC calendar days old. Older histories remain stored, with their warnings unchanged.`, '',
-      `Checkpoint: ${result.sequence ?? 'none'} · Source histories attempted in this tranche: ${result.attempted} · Deferred: ${result.deferred}.`, '',
-      `First attempts: ${result.firstAttempted} · Newly saved histories: ${result.historiesAdded}.`, '',
-      counts ? `Full retained archive (not the active repair queue): saved **${counts.saved} / ${counts.total}** histories; ${counts.pending} await a first attempt, ${counts.sourceGaps} have source failures, ${counts.qualityIssues} have saved quality issues, and ${counts.refreshPending} saved histories need refresh or follow-up.` : 'No catalogue or history checkpoint has been saved.', '',
-      result.sourceRetryAt ? `Source requests are paused until ${result.sourceRetryAt}.` : '',
-      counts?.coverageComplete ? 'All currently catalogued histories passed the saved checkpoint checks. This does not independently establish the completeness of MFAPI’s upstream history.' : 'Full data coverage is not verified. Source gaps remain visible.', ''].filter(Boolean).join('\n\n');
-    await appendFile(process.env.GITHUB_STEP_SUMMARY, summary + '\n');
-  }
-}
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  main().catch(async error => {
-    const code = error instanceof Error && /^[a-z][a-z0-9_]{0,100}$/.test(error.message) ? error.message : 'unexpected_error';
-    const sourceRetryAt = error instanceof SourceError && error.sourceWide ? new Date(Date.now() + error.retryAfterMs).toISOString() : null;
-    process.stderr.write(JSON.stringify({ phase: 'failed', error: code, sourceRetryAt }) + '\n'); process.exitCode = 1;
-    if (process.env.GITHUB_STEP_SUMMARY) await appendFile(process.env.GITHUB_STEP_SUMMARY,
-      `## FundScope archive run failed\n\nFailure: ${code}. Saved progress was not claimed by this run.\n\n${sourceRetryAt ? `MFAPI requested a pause until ${sourceRetryAt}. Before the first catalogue is saved, this cooldown can only be reported; no durable universe checkpoint exists yet.\n` : ''}`).catch(() => {});
-  });
-}
+      `Checkpoint: ${result.sequence ?? 'none'} · Source histories attempted in this tranche: ${result.attempted} · Deferred... (go/truncated-by-rlsnow)...
