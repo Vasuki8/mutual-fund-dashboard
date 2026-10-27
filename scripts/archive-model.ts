@@ -104,6 +104,7 @@ export function validateCatalogue(value: unknown): Catalogue {
     && item.entries.length > 0 && item.entries.length <= 100_000 && warningArray(item.warnings), 'catalogue_invalid');
   const seen = new Set<number>();
   let previous = 0;
+  let currentCount = 0;
   for (const raw of item.entries) {
     const entry = record(raw, 'catalogue_entry_invalid');
     const identity = scheme(entry);
@@ -113,6 +114,17 @@ export function validateCatalogue(value: unknown): Catalogue {
         && /^\d+(?:\.\d+)?$/.test(entry.nav) && Number.isFinite(Number(entry.nav)) && Number(entry.nav) > 0)
       && typeof entry.current === 'boolean', 'catalogue_entry_invalid');
     seen.add(identity.schemeCode); previous = identity.schemeCode;
+    if (entry.current) currentCount += 1;
+  }
+  if (item.membership !== undefined) {
+    const membership = record(item.membership, 'catalogue_membership_invalid');
+    requireValue(membership.source === 'mf-list' && timestamp(membership.verifiedAt)
+      && membership.verifiedAt === item.fetchedAt
+      && integer(membership.listedSchemes, 1) && membership.listedSchemes === currentCount
+      && integer(membership.bulkNavSchemes, 1) && membership.bulkNavSchemes <= membership.listedSchemes
+      && integer(membership.missingBulkNav)
+      && membership.missingBulkNav === membership.listedSchemes - membership.bulkNavSchemes,
+    'catalogue_membership_invalid');
   }
   return item as unknown as Catalogue;
 }

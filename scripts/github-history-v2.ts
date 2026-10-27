@@ -6,6 +6,7 @@ import { buildCatalogue, mergeHistory, validateHistory } from '../server/validat
 import type { Catalogue, HistoryDocument } from '../server/types.ts';
 import { createGitHubStore, readLimited, type ArchiveStore } from './archive-store.ts';
 import { isActiveRepairCandidate, REPAIR_NAV_WINDOW_DAYS, REPAIR_ROSTER_DATE } from './active-repair-scope.ts';
+import { fetchVerifiedCatalogue, CatalogueIntegrityError } from './verified-catalogue.ts';
 import { calculateCounts, isQualityWarning, needsRefresh, pendingState, sameNav, validateCatalogue,
   validateCheckpoint, validateHistoryShard, validateShardStates,
   type ArchiveCheckpoint, type ArchiveSchemeState, type HistoryShard } from './archive-model.ts';
@@ -29,8 +30,7 @@ function due(entry: Catalogue['entries'][number], state: ArchiveSchemeState, now
     let retryAt = Date.parse(state.nextAttemptAt);
     if (state.status === 'source-error' && state.lastAttemptAt && hasRecentNav(entry, now)
       && ['source_history_empty', 'source_history_zero_nav_only'].includes(state.lastError ?? '')) {
-      // Older checkpoints applied a weekly gap policy to recent funds too.
-      // Re-evaluate only those safe error codes without rewriting saved state.
+      // Re-evaluate legacy weekly gaps without changing saved retry state.
       retryAt = Math.min(retryAt, Date.parse(state.lastAttemptAt) + failureBackoff(state.failures));
     }
     if (retryAt > now) return false;
@@ -51,17 +51,11 @@ export function selectWork(catalogue: Catalogue, states: Record<string, ArchiveS
   const priority = (entry: Catalogue['entries'][number]) => {
     const state = states[entry.schemeCode];
     if (state.attempts === 0) return 0;
-    // Many retained MFAPI identities last reported NAV years ago. Their old
-    // one-day catalogue/history disagreements should not crowd out recent
-    // fund reconciliation, but their histories/errors are NEVER discarded.
     const recent = hasRecentNav(entry, now);
     const behind = !!entry.latestDate && (!state.coverageEnd || entry.latestDate > state.coverageEnd
       || entry.latestDate === state.coverageEnd && !!entry.nav && !!state.latestNav && !sameNav(entry.nav, state.latestNav));
     const noHistory = state.observationCount === 0;
-    // A due, recently reporting scheme with NO saved NAV history needs a
-    // first usable source response. Do not let routine latest-date lag for
-    // thousands of otherwise saved histories crowd this gap out. The due()
-    // check above still enforces individual backoff and source cooldown.
+    // Due recent missing histories precede routine date lag; backoff still binds.
     if (recent && state.status === 'source-error' && noHistory) return 1;
     if (recent && behind) return 2;
     if (recent && (state.status === 'source-error' || state.quality)) return 3;
@@ -93,14 +87,10 @@ class SourceError extends Error {
   }
 }
 export function safeFailure(error: unknown): string {
-  return error instanceof SourceError ? error.message : 'source_unavailable';
+  return error instanceof SourceError || error instanceof CatalogueIntegrityError ? error.message : 'source_unavailable';
 }
 
-/**
- * Classify invalid MFAPI payloads using a closed set of safe error codes.
- * Never copy arbitrary provider responses, NAV rows or exception messages
- * into saved checkpoint diagnostics.
- */
+/** Classify with safe codes; never persist arbitrary source errors or NAV rows. */
 export function classifyInvalidHistory(raw: unknown): { code: string; recheckMs: number } {
   const generic = { code: 'source_history_invalid', recheckMs: 0 };
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return generic;
@@ -126,14 +116,16 @@ function retryAfter(value: string | null, now: number): number | null {
 export function createSource(options: { fetch?: typeof fetch; now?: () => number; deadline: number }) {
   const request = options.fetch ?? globalThis.fetch; const now = options.now ?? Date.now;
   return async (path: string, onStart?: () => void): Promise<unknown> => {
-    if (!/^\/mf\/(?:latest|[1-9]\d*)$/.test(path)) throw new SourceError('source_path_invalid');
+    const terminal = /^\/mf\?limit=1&offset=([1-9]\d{0,5})$/.exec(path);
+    const allowed = path === '/mf' || /^\/mf\/(?:latest|[1-9]\d*)$/.test(path)
+      || terminal !== null && Number(terminal[1]) <= 100_000;
+    if (!allowed) throw new SourceError('source_path_invalid');
     for (let attempt = 0; attempt < 2; attempt++) {
       const remaining = options.deadline - now();
       if (remaining <= 0) throw new SourceError('source_deadline');
       const init: RequestInit = { redirect: 'error', credentials: 'omit',
         headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(Math.max(1, Math.min(12_000, remaining))) };
-      // Preparing or deferring a request is not an attempt. Notify exactly once
-      // at the first actual fetch boundary, after the authoritative deadline guard.
+      // Count only an actual first request, not a deadline deferral.
       if (attempt === 0) onStart?.();
       let response: Response;
       try { response = await request(`https://api.mfapi.in${path}`, init); }
@@ -166,9 +158,11 @@ interface TrancheOptions {
   store: ArchiveStore;
   /** Production CLI always enables the 30-day official-roster repair policy. */
   activeRepairOnly?: boolean;
-  /** Fence a prepared workflow run before any source request; undefined preserves standalone use. */
+  /** Independently verify list membership; production CLI always enables this. */
+  verifyCatalogueMembership?: boolean;
+  /** Fence the prepared run before any source request. */
   expectedSequence?: number | null;
-  /** Transports notify onStart once immediately before their first request; never on deferral. */
+  /** Notify once immediately before the first actual request, never on deferral. */
   source?: (path: string, onStart?: () => void) => Promise<unknown>;
   now?: () => number;
   deadline?: number;
@@ -184,18 +178,14 @@ export interface TrancheResult {
   attempted: number;
   firstAttempted: number;
   historiesAdded: number;
-  /** True only when an existing verified checkpoint has fewer unresolved issues or more clean histories. */
+  /** Requires verified lower issue counts or more clean histories. */
   reconciliationAdvanced: boolean;
   deferred: number;
   counts: ArchiveCheckpoint['counts'] | null;
   lastCatalogueError: string | null;
   sourceRetryAt: string | null;
 }
-/**
- * Measure improvement without adding overlapping backlogs as if they were
- * distinct fund identities. Require a comparable unchanged catalogue size.
- * Time- or source-driven increases alone do not claim a repair.
- */
+/** Compare unchanged catalogue sizes without adding overlapping backlogs. */
 export function hasVerifiedReconciliationProgress(
   previous: ArchiveCheckpoint['counts'] | null | undefined,
   next: ArchiveCheckpoint['counts']): boolean {
@@ -212,6 +202,7 @@ export async function runTranche(options: TrancheOptions): Promise<TrancheResult
   const reserve = options.reserveMs ?? COMMIT_RESERVE_MS;
   if (!Number.isFinite(deadline) || !Number.isFinite(reserve) || reserve < 0 || reserve >= WORK_MS) throw new Error('work_limits_invalid');
   if (options.activeRepairOnly !== undefined && typeof options.activeRepairOnly !== 'boolean') throw new Error('work_scope_invalid');
+  if (options.verifyCatalogueMembership !== undefined && typeof options.verifyCatalogueMembership !== 'boolean') throw new Error('work_scope_invalid');
   const workDeadline = deadline - reserve;
   const source = options.source ?? createSource({ now, deadline: workDeadline });
   const log = options.log ?? (() => {});
@@ -234,20 +225,25 @@ export async function runTranche(options: TrancheOptions): Promise<TrancheResult
     }
   };
   const targetSlot = catalogueSlot(now());
-  if ((!catalogue || slot < targetSlot) && now() < workDeadline && !coolingDown()) {
+  if ((!catalogue || slot < targetSlot || options.verifyCatalogueMembership && !catalogue.membership)
+    && now() < workDeadline && !coolingDown()) {
     let catalogueWriteStarted = false;
     try {
-      const raw = await source('/mf/latest');
-      if (!Array.isArray(raw) || raw.length < (options.minCatalogueSize ?? 10_000) || raw.length > 100_000) throw new SourceError('source_catalogue_invalid');
       let next: Catalogue;
-      try { next = validateCatalogue(buildCatalogue(raw, catalogue, [], new Date(now()).toISOString())); }
-      catch { throw new SourceError('source_catalogue_invalid'); }
+      if (options.verifyCatalogueMembership) {
+        next = await fetchVerifiedCatalogue(source, catalogue, now, options.minCatalogueSize);
+      } else {
+        const raw = await source('/mf/latest');
+        if (!Array.isArray(raw) || raw.length < (options.minCatalogueSize ?? 10_000) || raw.length > 100_000) throw new SourceError('source_catalogue_invalid');
+        try { next = validateCatalogue(buildCatalogue(raw, catalogue, [], new Date(now()).toISOString())); }
+        catch { throw new SourceError('source_catalogue_invalid'); }
+      }
       catalogue = next; slot = targetSlot; catalogueError = null; changed = true;
       catalogueWriteStarted = true;
       catalogueRef = await options.store.writeJSON('catalogue', catalogue);
+      if (catalogue.membership) log({ phase: 'catalogue_membership', ...catalogue.membership });
     } catch (error) {
-      // Storage failures must not be misreported as source gaps or publish a
-      // checkpoint referring to an unsaved catalogue.
+      // Storage errors cannot publish a pointer to an unsaved catalogue.
       if (catalogueWriteStarted) throw error;
       catalogueError = safeFailure(error);
       applySourceCooldown(error);
@@ -262,8 +258,7 @@ export async function runTranche(options: TrancheOptions): Promise<TrancheResult
   for (const entry of catalogue.entries) states[entry.schemeCode] ??= pendingState(entry.schemeCode);
   const shards = { ...previous?.checkpoint.shards };
   const selectionTime = now();
-  // Filter the work view, not the saved catalogue or checkpoint. Ineligible
-  // identities consume neither request budget nor a shard-selection slot.
+  // Filter requests, not the saved catalogue, histories or checkpoint state.
   const workCatalogue = options.activeRepairOnly
     ? { ...catalogue, entries: catalogue.entries.filter(entry => isActiveRepairCandidate(entry, selectionTime)) }
     : catalogue;
@@ -287,7 +282,7 @@ export async function runTranche(options: TrancheOptions): Promise<TrancheResult
     for (;;) {
       if (now() >= workDeadline || coolingDown()) return;
       const entry = selected[cursor++]; if (!entry) return;
-      // A run can cross UTC midnight after selection or while reading shards.
+      // Recheck the actual clock after selection and shard reads.
       if (options.activeRepairOnly && !isActiveRepairCandidate(entry, now())) continue;
       const bucket = String(Math.floor(entry.schemeCode / 32));
       const shard = loaded.get(bucket); if (!shard) continue;
@@ -305,8 +300,6 @@ export async function runTranche(options: TrancheOptions): Promise<TrancheResult
         try { parsed = validateHistory(raw, entry.schemeCode); }
         catch {
           const reason = classifyInvalidHistory(raw);
-          // Recently reporting schemes may have a transient empty/zero series.
-          // Keep their normal bounded backoff; reserve weekly rechecks for old gaps.
           throw new SourceError(reason.code, hasRecentNav(entry, now()) ? 0 : reason.recheckMs);
         }
         const previousDoc = shard.records.find(doc => doc.schemeCode === entry.schemeCode) ?? null;
@@ -324,8 +317,7 @@ export async function runTranche(options: TrancheOptions): Promise<TrancheResult
         log({ phase: 'scheme', code: entry.schemeCode, outcome: document.unresolved ? 'quality' : 'saved', observations: document.payload.data.length });
       } catch (error) {
         if (!started) {
-          // Only a deadline before the first request is deferral. A retry can
-          // hit the same deadline after an earlier request really did start.
+          // Only a deadline before the first actual request is deferral.
           if (error instanceof SourceError && error.message === 'source_deadline') return;
           throw error;
         }
@@ -382,9 +374,8 @@ async function main(): Promise<void> {
   const expectedSequence = expected === undefined ? undefined : expected === 'none' ? null : Number(expected);
   const store = createGitHubStore({ repository: process.env.GITHUB_REPOSITORY!, token: process.env.GITHUB_TOKEN ?? '', deadline,
     onRetry: event => process.stdout.write(JSON.stringify(event) + '\n') });
-  // User-requested production scope: no environment flag may widen this to
-  // historical schemes. The unscoped engine remains available to fixture tests.
-  const result = await runTranche({ store, deadline, expectedSequence, activeRepairOnly: true,
+  // Production cannot disable the owner's active-only repair scope.
+  const result = await runTranche({ store, deadline, expectedSequence, activeRepairOnly: true, verifyCatalogueMembership: true,
     log: event => process.stdout.write(JSON.stringify(event) + '\n') });
   process.stdout.write(JSON.stringify({ phase: 'verified', ...result }) + '\n');
   if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT,

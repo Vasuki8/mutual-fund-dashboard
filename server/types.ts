@@ -62,6 +62,14 @@ export interface Catalogue {
   fetchedAt: string;
   entries: CatalogueEntry[];
   warnings: string[];
+  /** Listing verification time is not a new NAV observation date. */
+  membership?: {
+    source: 'mf-list';
+    verifiedAt: string;
+    listedSchemes: number;
+    bulkNavSchemes: number;
+    missingBulkNav: number;
+  };
 }
 
 export interface CatalogueState {
