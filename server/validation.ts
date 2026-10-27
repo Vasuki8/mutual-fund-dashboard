@@ -154,7 +154,11 @@ export function mergeHistory(incoming: ReturnType<typeof validateHistory>, previ
     for (const point of incoming.payload.data) if (old.has(point.date)
       && decimalIdentity(old.get(point.date)!) !== decimalIdentity(point.nav)) corrections += 1;
   }
-  const warnings = lateResponse && previous ? [...previous.warnings] : [...incoming.warnings];
+  // Input jump counts describe their own observation sets, not the final union.
+  // Recompute only our generated counter below; retain unrecognized messages
+  // and all invalid/conflicting NAV evidence and independent unresolved flags.
+  const warnings = (lateResponse && previous ? previous.warnings : incoming.warnings)
+    .filter(warning => !/^Unresolved discontinuity: \d+ single-observation move\(s\) exceed 40%; derived analytics are blocked\.$/.test(warning));
   warnings.push(...retainedQualityWarnings, ...earlierQualityWarnings);
   if (retained) warnings.push(`MFAPI returned a shorter or changed history; ${retained} archived observation(s) absent from the response were retained.`);
   if (corrections) warnings.push(`Applied source corrections to ${corrections} existing observation(s).`);
