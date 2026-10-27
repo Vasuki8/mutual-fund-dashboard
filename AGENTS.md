@@ -10,6 +10,17 @@ On 21 October 2026, the owner stopped development of the ChatGPT-hosted website 
 - The former hosted import task is paused. Do not resume it or restore its old refresh schedule as part of GitHub development.
 - Keep existing stored data and historical source code. Stopping development does not authorize deleting the old deployment, its database, or its object storage.
 
+## Current discrepancy-repair scope
+
+On 27 October 2026, the owner limited discrepancy work to **active funds that posted NAV in the last 30 days**.
+
+- Use `scripts/active-repair-scope.ts`: exact existing official open-ended roster membership, current MFAPI catalogue membership, a finite positive NAV, and a real NAV date no more than 30 UTC calendar days old and not in the future. The runner's actual date is the reference; exactly 30 days qualifies, 31 does not.
+- Apply this as a strict eligibility filter to automated history repair, not merely a priority over older schemes. The production collector CLI enables it unconditionally. Catalogue refreshes continue so an existing scheme can re-enter scope after a new NAV.
+- Investigate the full historical series of each eligible fund. The 30-day condition selects funds; it does not truncate their NAV histories.
+- Preserve excluded schemes, saved observations, source errors and quality warnings. Exclusion is not evidence of repair. Full-archive accounting must remain separate from the active repair queue.
+- Do not widen the website's existing seven-day discovery filter as part of this repair-only instruction. Recent NAV reporting is not proof that purchases are permitted.
+- This scope supersedes older documentation that allowed routine repair of obsolete histories after a 90-day priority pass. Retry backoffs, source-wide cooldowns, resource limits and data-quality thresholds remain binding.
+
 ## Deployment and data status
 
 - Read `docs/DEPLOYMENT.md` for the current GitHub delivery status and the remaining standalone deployment work.

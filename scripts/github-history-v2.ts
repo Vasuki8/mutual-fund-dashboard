@@ -5,6 +5,7 @@ import { setTimeout as sleep } from 'node:timers/promises';
 import { buildCatalogue, mergeHistory, validateHistory } from '../server/validation.ts';
 import type { Catalogue, HistoryDocument } from '../server/types.ts';
 import { createGitHubStore, readLimited, type ArchiveStore } from './archive-store.ts';
+import { isActiveRepairCandidate, REPAIR_NAV_WINDOW_DAYS, REPAIR_ROSTER_DATE } from './active-repair-scope.ts';
 import { calculateCounts, isQualityWarning, needsRefresh, pendingState, sameNav, validateCatalogue,
   validateCheckpoint, validateHistoryShard, validateShardStates,
   type ArchiveCheckpoint, type ArchiveSchemeState, type HistoryShard } from './archive-model.ts';
@@ -163,6 +164,8 @@ export function createSource(options: { fetch?: typeof fetch; now?: () => number
 }
 interface TrancheOptions {
   store: ArchiveStore;
+  /** Production CLI always enables the 30-day official-roster repair policy. */
+  activeRepairOnly?: boolean;
   /** Fence a prepared workflow run before any source request; undefined preserves standalone use. */
   expectedSequence?: number | null;
   /** Transports notify onStart once immediately before their first request; never on deferral. */
@@ -208,6 +211,7 @@ export async function runTranche(options: TrancheOptions): Promise<TrancheResult
   const deadline = options.deadline ?? now() + WORK_MS;
   const reserve = options.reserveMs ?? COMMIT_RESERVE_MS;
   if (!Number.isFinite(deadline) || !Number.isFinite(reserve) || reserve < 0 || reserve >= WORK_MS) throw new Error('work_limits_invalid');
+  if (options.activeRepairOnly !== undefined && typeof options.activeRepairOnly !== 'boolean') throw new Error('work_scope_invalid');
   const workDeadline = deadline - reserve;
   const source = options.source ?? createSource({ now, deadline: workDeadline });
   const log = options.log ?? (() => {});
@@ -257,7 +261,17 @@ export async function runTranche(options: TrancheOptions): Promise<TrancheResult
   const states = structuredClone(previous?.checkpoint.states ?? {}) as Record<string, ArchiveSchemeState>;
   for (const entry of catalogue.entries) states[entry.schemeCode] ??= pendingState(entry.schemeCode);
   const shards = { ...previous?.checkpoint.shards };
-  const selected = selectWork(catalogue, states, now(), options.maxSchemes, options.maxShards);
+  const selectionTime = now();
+  // Filter the work view, not the saved catalogue or checkpoint. Ineligible
+  // identities consume neither request budget nor a shard-selection slot.
+  const workCatalogue = options.activeRepairOnly
+    ? { ...catalogue, entries: catalogue.entries.filter(entry => isActiveRepairCandidate(entry, selectionTime)) }
+    : catalogue;
+  const selected = selectWork(workCatalogue, states, selectionTime, options.maxSchemes, options.maxShards);
+  if (options.activeRepairOnly) log({ phase: 'repair_scope', navRecencyDays: REPAIR_NAV_WINDOW_DAYS,
+    asOfDate: new Date(selectionTime).toISOString().slice(0, 10), manualRosterDate: REPAIR_ROSTER_DATE,
+    eligibleSchemes: workCatalogue.entries.length, excludedSchemes: catalogue.entries.length - workCatalogue.entries.length,
+    selectedSchemes: selected.length });
   const loaded = new Map<string, HistoryShard>();
   const selectedBuckets = [...new Set(selected.map(entry => String(Math.floor(entry.schemeCode / 32))))];
   for (const bucket of selectedBuckets) {
@@ -273,6 +287,8 @@ export async function runTranche(options: TrancheOptions): Promise<TrancheResult
     for (;;) {
       if (now() >= workDeadline || coolingDown()) return;
       const entry = selected[cursor++]; if (!entry) return;
+      // A run can cross UTC midnight after selection or while reading shards.
+      if (options.activeRepairOnly && !isActiveRepairCandidate(entry, now())) continue;
       const bucket = String(Math.floor(entry.schemeCode / 32));
       const shard = loaded.get(bucket); if (!shard) continue;
       const state = states[entry.schemeCode]; let started = false; let at = '';
@@ -366,16 +382,20 @@ async function main(): Promise<void> {
   const expectedSequence = expected === undefined ? undefined : expected === 'none' ? null : Number(expected);
   const store = createGitHubStore({ repository: process.env.GITHUB_REPOSITORY!, token: process.env.GITHUB_TOKEN ?? '', deadline,
     onRetry: event => process.stdout.write(JSON.stringify(event) + '\n') });
-  const result = await runTranche({ store, deadline, expectedSequence, log: event => process.stdout.write(JSON.stringify(event) + '\n') });
+  // User-requested production scope: no environment flag may widen this to
+  // historical schemes. The unscoped engine remains available to fixture tests.
+  const result = await runTranche({ store, deadline, expectedSequence, activeRepairOnly: true,
+    log: event => process.stdout.write(JSON.stringify(event) + '\n') });
   process.stdout.write(JSON.stringify({ phase: 'verified', ...result }) + '\n');
   if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT,
     `changed=${result.changed}\nsequence=${result.sequence ?? ''}\nresult=${JSON.stringify(result)}\n`);
   if (process.env.GITHUB_STEP_SUMMARY) {
     const counts = result.counts;
     const summary = ['## FundScope verified archive tranche', '',
+      `Repair scope: official-roster, currently listed schemes with a positive NAV no more than ${REPAIR_NAV_WINDOW_DAYS} UTC calendar days old. Older histories remain stored, with their warnings unchanged.`, '',
       `Checkpoint: ${result.sequence ?? 'none'} · Source histories attempted in this tranche: ${result.attempted} · Deferred: ${result.deferred}.`, '',
       `First attempts: ${result.firstAttempted} · Newly saved histories: ${result.historiesAdded}.`, '',
-      counts ? `Saved **${counts.saved} / ${counts.total}** histories; ${counts.pending} await a first attempt, ${counts.sourceGaps} have source failures, ${counts.qualityIssues} have saved quality issues, and ${counts.refreshPending} saved histories need refresh or follow-up.` : 'No catalogue or history checkpoint has been saved.', '',
+      counts ? `Full retained archive (not the active repair queue): saved **${counts.saved} / ${counts.total}** histories; ${counts.pending} await a first attempt, ${counts.sourceGaps} have source failures, ${counts.qualityIssues} have saved quality issues, and ${counts.refreshPending} saved histories need refresh or follow-up.` : 'No catalogue or history checkpoint has been saved.', '',
       result.sourceRetryAt ? `Source requests are paused until ${result.sourceRetryAt}.` : '',
       counts?.coverageComplete ? 'All currently catalogued histories passed the saved checkpoint checks. This does not independently establish the completeness of MFAPI’s upstream history.' : 'Full data coverage is not verified. Source gaps remain visible.', ''].filter(Boolean).join('\n\n');
     await appendFile(process.env.GITHUB_STEP_SUMMARY, summary + '\n');
