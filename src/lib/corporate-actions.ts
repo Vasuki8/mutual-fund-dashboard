@@ -64,9 +64,11 @@ function actionForScheme(fund: FundData): ActionSpec | null {
     factor:OVERNIGHT_CONSOLIDATION_FACTOR, evidenceUrl:OVERNIGHT_AMC_NOTICE,
     maxFactorDeviation:0.5,
   };
+  // Exact alternate source label verified in checkpoint 198, not fuzzy matching.
   if (fund.meta.schemeCode===BIRLA_LIQUID_GROWTH_CODE &&
-    fund.meta.schemeName.trim().toLocaleLowerCase('en')===
-      'aditya birla sun life liquid fund - growth') return {
+    ['aditya birla sun life liquid fund - growth',
+      'aditya birla sun life liquid fund - regular plan - growth']
+      .includes(fund.meta.schemeName.trim().toLocaleLowerCase('en'))) return {
     schemeCode:BIRLA_LIQUID_GROWTH_CODE,
     label:'verified 10-to-1 Birla Sun Life Cash Plus unit consolidation effective 7 October 2011 (now Aditya Birla Sun Life Liquid Fund)',
     oldNavThrough:BIRLA_LAST_OLD_NAV_DATE,firstNewNavDate:BIRLA_FIRST_NEW_NAV_DATE,
