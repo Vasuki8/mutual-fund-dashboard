@@ -8,8 +8,8 @@ import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 import type { ArchiveSnapshot } from './archive-model.ts';
 import { createGitHubStore } from './archive-store.ts';
-import { isCurrentlyReportingOpenEnded, OFFICIAL_SCHEME_ROSTER_DATE,
-  RECENT_NAV_WINDOW_DAYS } from '../src/lib/current-official-schemes.ts';
+import { isActiveRepairCandidate, REPAIR_ROSTER_DATE,
+  REPAIR_NAV_WINDOW_DAYS } from './active-repair-scope.ts';
 
 export interface CurrentFundHealth {
   /** UTC date of this audit, not an assertion that funds are purchasable. */
@@ -39,7 +39,7 @@ export interface DataHealthReport {
   latestNav: { missingValue: number; missingDate: number; before2010: number; from2010Through2020: number; since2021: number };
   historyBehind: { oneDay: number; twoToSevenDays: number; eightToThirtyDays: number; overThirtyDays: number };
   retries: { due: number; future: number };
-  /** Overlapping subsets of verified archive totals, not separate work queues. */
+  /** Active repair scope; overlapping subsets of the full retained archive. */
   currentlyReporting: CurrentFundHealth;
 }
 
@@ -52,12 +52,12 @@ export function auditArchiveSnapshot(snapshot: ArchiveSnapshot, now = Date.now()
   const { checkpoint, catalogue } = snapshot;
   const sourceErrors: Record<string,number> = {};
   const quality = { invalidOnly:0, discontinuityOnly:0, both:0, other:0 };
-  const latestNav = { missingValue:0, missingDate:0, before2010:0, from2010Through2020:0, since2021:0 };
+  const latestNav = { missingValue:0, missingDate:0, before2010:0, from2010Through2020:0,since2021:0 };
   const historyBehind = { oneDay:0, twoToSevenDays:0, eightToThirtyDays:0, overThirtyDays:0 };
   const retries = {due:0,future:0};
   const current: CurrentFundHealth = {
     asOfDate:new Date(now).toISOString().slice(0,10),
-    manualRosterDate:OFFICIAL_SCHEME_ROSTER_DATE,navRecencyDays:RECENT_NAV_WINDOW_DAYS,
+    manualRosterDate:REPAIR_ROSTER_DATE,navRecencyDays:REPAIR_NAV_WINDOW_DAYS,
     reporting:0,noSavedHistory:0,failedRefreshWithHistory:0,firstAttemptPending:0,
     invalidOnly:0,discontinuityOnly:0,both:0,other:0,historyBehindCatalogue:0,
     examples:{noSavedHistory:[],invalidOnly:[],discontinuityOnly:[],both:[],other:[]},
@@ -68,7 +68,7 @@ export function auditArchiveSnapshot(snapshot: ArchiveSnapshot, now = Date.now()
   for(const entry of catalogue.entries) {
     const state = checkpoint.states[entry.schemeCode];
     if(!state) throw new Error('audit_scheme_state_missing');
-    if(isCurrentlyReportingOpenEnded(entry,now)){
+    if(isActiveRepairCandidate(entry,now)){
       current.reporting++;
       if(state.attempts===0) current.firstAttemptPending++;
       if(state.status==='source-error'){
@@ -136,15 +136,17 @@ function reportMarkdown(report:DataHealthReport):string {
   const errors=Object.entries(report.sourceErrors).sort((a,b)=>b[1]-a[1])
     .map(([code,count])=>`| \`${code}\` | ${count} |`).join('\n');
   return `## FundScope archive health audit\n\nCheckpoint **${report.sequence}**, checked ${report.checkedAt}. Read only; no MFAPI requests.\n\n`
+    + `### Full retained archive (not the active repair queue)\n\n`
     + `| Measure | Count |\n| --- | ---: |\n| Known scheme identities | ${c.total} |\n`
     + `| Saved histories | ${c.saved} (${pct(c.saved)}) |\n`
     + `| Saved histories without quality flags | ${c.clean} (${pct(c.clean)}) |\n`
-    + `| No saved history after source failure | ${c.sourceGaps} |\n`
+    + `| Source failures (may retain saved history) | ${c.sourceGaps} |\n`
     + `| Histories with quality flags | ${c.qualityIssues} |\n`
     + `| First attempts pending | ${c.pending} |\n`
     + `| Refresh/reconciliation pending (overlapping issues) | ${c.refreshPending} |\n\n`
-    + `### Currently reporting open-ended schemes (investor-first triage)\n\n`
-    + `Manual official scheme-code roster dated ${report.currentlyReporting.manualRosterDate}. As of ${report.currentlyReporting.asOfDate} UTC, a scheme must be in the latest MFAPI catalogue with a positive NAV dated within ${report.currentlyReporting.navRecencyDays} days. Recent NAV reporting does **not** establish purchase eligibility.\n\n`
+    + `### Active repair scope: NAV reported within ${report.currentlyReporting.navRecencyDays} days\n\n`
+    + `Manual official scheme-code roster dated ${report.currentlyReporting.manualRosterDate}. As of ${report.currentlyReporting.asOfDate} UTC, a scheme must be in the latest MFAPI catalogue with a finite positive NAV dated no more than ${report.currentlyReporting.navRecencyDays} days ago and not in the future. Recent NAV reporting does **not** establish purchase eligibility.\n\n`
+    + `Excluded from current repair: **${c.total-report.currentlyReporting.reporting}** retained scheme identities. Their histories and warnings are preserved, not marked repaired. For eligible schemes, the full historical series remains in scope.\n\n`
     + `| Measure | Scheme codes |\n| --- | ---: |\n`
     + `| Recently NAV-reporting open-ended schemes | ${report.currentlyReporting.reporting} |\n`
     + `| No saved history after source failure | ${report.currentlyReporting.noSavedHistory} |\n`
@@ -155,9 +157,10 @@ function reportMarkdown(report:DataHealthReport):string {
     + `| Saved quality: both kinds | ${report.currentlyReporting.both} |\n`
     + `| Saved quality: other flags | ${report.currentlyReporting.other} |\n`
     + `| History NAV date behind catalogue | ${report.currentlyReporting.historyBehindCatalogue} |\n\n`
-    + `These sets overlap; a short publication lag is not proof of a permanently missing observation. Follow-up examples (scheme codes only, at most five per class):\n\n`
+    + `These sets overlap; a short publication lag is not proof of a permanently missing observation. Follow-up examples within the active repair scope (scheme codes only, at most five per class):\n\n`
     + Object.entries(report.currentlyReporting.examples)
         .map(([name,codes])=>`- ${name}: ${codes.length?codes.join(', '):'none'}`).join('\n')+'\n\n'
+    + `### Retained all-history diagnostics (not repair eligibility)\n\n`
     + `### Source errors\n\n| Safe error code | Schemes |\n| --- | ---: |\n${errors}\n\n`
     + `### Quality flags (exclusive classification)\n\n| Invalid NAV only | ${report.quality.invalidOnly} |\n`
     + `| Large discontinuity only | ${report.quality.discontinuityOnly} |\n`
@@ -171,8 +174,8 @@ function reportMarkdown(report:DataHealthReport):string {
     + `| Latest NAV dated before 2010 | ${report.latestNav.before2010} |\n`
     + `| Latest NAV dated 2010–2020 | ${report.latestNav.from2010Through2020} |\n`
     + `| Latest NAV dated 2021 or later | ${report.latestNav.since2021} |\n`
-    + `| Retry backoffs due / future | ${report.retries.due} / ${report.retries.future} |\n\n`
-    + 'The source catalogue includes historical/discontinued-looking identities. Being listed is not proof of an active fund. No questionable NAV is treated as a valid price.\n';
+    + `| Recorded retry backoffs due / future | ${report.retries.due} / ${report.retries.future} |\n\n`
+    + 'Recorded retries outside the active repair scope are not executed. The source catalogue includes historical/discontinued-looking identities. Being listed is not proof of an active fund. No questionable NAV is treated as a valid price.\n';
 }
 
 async function main():Promise<void>{

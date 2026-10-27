@@ -58,7 +58,7 @@ test('read-only investor triage separates recently reporting open-ended fund gap
     .map(([old,state])=>[remap[Number(old)],{...state,code:remap[Number(old)]}]));
   const report=auditArchiveSnapshot(snapshot,Date.parse('2026-10-26T16:00:00.000Z'));
   assert.deepEqual(report.currentlyReporting,{
-    asOfDate:'2026-10-26',manualRosterDate:'2026-10-26',navRecencyDays:7,
+    asOfDate:'2026-10-26',manualRosterDate:'2026-10-26',navRecencyDays:30,
     reporting:3,noSavedHistory:1,failedRefreshWithHistory:0,firstAttemptPending:0,
     invalidOnly:0,discontinuityOnly:1,both:0,other:0,historyBehindCatalogue:1,
     examples:{noSavedHistory:[154804],invalidOnly:[],discontinuityOnly:[119436],both:[],other:[]},
