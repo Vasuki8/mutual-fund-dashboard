@@ -1,15 +1,16 @@
 import { useMemo, useState } from 'react';
 import { Download, Info } from 'lucide-react';
 import type { AnalysisRange, FundData } from '../lib/types.ts';
+import type { VerifiedUnitAdjustment } from '../lib/corporate-actions.ts';
 import { SIP_MAX_AMOUNT, SIP_MIN_AMOUNT, simulateSip } from '../lib/sip.ts';
 import { currency, dateLabel, downloadCsv, number, percent, qualityBlocked, shortName } from '../lib/format.ts';
 import { isGrowthScheme } from '../lib/analytics.ts';
 import { Chart } from './Chart.tsx';
 import { RangeNotice, RangePicker } from './AnalysisRangePicker.tsx';
 
-interface Props { fund: FundData; unitAdjusted?: boolean }
+interface Props { fund: FundData; unitAdjustment?: VerifiedUnitAdjustment }
 
-export function SipSimulator({ fund, unitAdjusted = false }: Props) {
+export function SipSimulator({ fund, unitAdjustment }: Props) {
   const [range, setRange] = useState<AnalysisRange>('3Y');
   const [amountDraft, setAmountDraft] = useState('1000');
   const amount = amountDraft.trim() ? Number(amountDraft) : Number.NaN;
@@ -28,7 +29,7 @@ export function SipSimulator({ fund, unitAdjusted = false }: Props) {
     const rows = [
       ...result.contributions.map(item => ({
         scheduled: item.scheduledDate, execution: item.navDate, nav: item.nav,
-        contribution: item.amount, units: item.units, status: unitAdjusted ? 'Valued using unit-adjusted NAV' : 'Valued using reported NAV',
+        contribution: item.amount, units: item.units, status: unitAdjustment ? 'Valued using unit-adjusted NAV' : 'Valued using reported NAV',
       })),
       ...result.skippedDates.map(date => ({
         scheduled: date, execution: null, nav: null, contribution: null, units: null,
@@ -39,7 +40,7 @@ export function SipSimulator({ fund, unitAdjusted = false }: Props) {
       ['Fund', fund.meta.schemeName],
       ['Scheme code', fund.meta.schemeCode],
       ['NAV source', 'https://api.mfapi.in/mf/' + fund.meta.schemeCode],
-      ['NAV calculation basis', unitAdjusted ? 'Source NAV through 16-Aug-2022 multiplied by 10 for verified unit consolidation; first new-basis NAV dated 17-Aug-2022; original observations unchanged' : 'Source reported NAV'],
+      ['NAV calculation basis', unitAdjustment ? `Source NAV through ${unitAdjustment.oldNavThrough} multiplied by ${unitAdjustment.factor}; new unit basis begins ${unitAdjustment.firstNewNavDate}; scheme ${unitAdjustment.schemeCode}; raw observations unchanged` : 'Source reported NAV'],
       ['Original NAV retrieval', fund.fetchedAt],
       ['Calculation', 'Hypothetical fixed monthly contribution; no real transactions'],
       ['Monthly anchor', 'Requested start day (clamped to month-end when needed)'],
@@ -68,7 +69,7 @@ export function SipSimulator({ fund, unitAdjusted = false }: Props) {
   return <section className="panel sip-simulator" aria-labelledby="sip-simulator-heading">
     <div className="panel-heading"><div>
       <h2 id="sip-simulator-heading">Historical SIP simulation</h2>
-      <p>How an assumed monthly investment would have behaved using Growth-option NAVs{unitAdjusted ? ', adjusted for the documented August 2022 unit consolidation' : ''}.</p>
+      <p>How an assumed monthly investment would have behaved using Growth-option NAVs{unitAdjustment ? `, adjusted for the ${unitAdjustment.label}` : ''}.</p>
     </div><button className="button secondary small" onClick={exportCsv}
       aria-label="Export hypothetical SIP cash flows as CSV" disabled={!successful}>
       <Download size={14}/> CSV

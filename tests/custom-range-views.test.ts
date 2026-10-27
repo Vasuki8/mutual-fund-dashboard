@@ -312,18 +312,65 @@ test('comparison CSV identifies each actual adjusted Overnight Growth scheme',()
   const direct:FundData={...regular,meta:{...regular.meta,schemeCode:145536,
     schemeName:'ICICI Prudential Overnight Fund - Direct Plan - Growth'}};
   const clean=makeFund(1,values.map(p=>({...p,nav:p.date<'2022-08-17'?p.nav*10:p.nav})));
-  for(const [selected,expected] of [
-    [[regular,clean],'Verified 10-to-1 unit consolidation: adjusted historical NAV for scheme 145535'],
-    [[regular,direct],'Verified 10-to-1 unit consolidation: adjusted historical NAV for schemes 145535, 145536'],
+  for(const [selected,expectedCodes] of [
+    [[regular,clean],[145535]],
+    [[regular,direct],[145535,145536]],
   ] as const){
     const original=structuredClone(selected);
     const page=view('Comparison',{schemes:selected.map(f=>f.meta),
       funds:Object.fromEntries(selected.map(f=>[f.meta.schemeCode,f]))});
     page.range('MAX');
     const csv=page.export('Export comparison as CSV');
-    assert.equal(csv.rows.find(row=>row[0]==='Corporate action')?.[1],expected);
+    const basis=String(csv.rows.find(row=>row[0]==='Corporate action')?.[1]??'');
+    for(const code of expectedCodes) {
+      assert.match(basis,new RegExp('Scheme '+code+': verified 10-to-1 ICICI Prudential Overnight Fund'));
+    }
+    assert.equal((basis.match(/Scheme 14553[56]/g)??[]).length,expectedCodes.length);
     assert.deepEqual(selected,original,'Comparison must preserve its raw input histories.');
     page.unmount();
   }
+});
+
+test('Birla Liquid Growth unit consolidation allows derived research but preserves raw NAV history',()=>{
+  const points=[
+    {date:'2006-04-02',nav:10},{date:'2009-10-07',nav:13},
+    {date:'2011-10-06',nav:16.5},{date:'2011-10-07',nav:165.0399},
+    {date:'2015-10-07',nav:220},{date:'2018-10-07',nav:280},
+    {date:'2020-10-26',nav:330},{date:'2021-10-26',nav:350},
+    {date:'2022-10-26',nav:370},{date:'2023-10-26',nav:400},
+    {date:'2024-10-26',nav:420},{date:'2025-10-26',nav:440},
+    {date:'2026-10-26',nav:455.51},
+  ];
+  const original=makeFund(1,points);
+  const fund:FundData={...original,meta:{...original.meta,schemeCode:100047,
+    schemeName:'Aditya Birla Sun Life Liquid Fund - Growth',
+    fundHouse:'Aditya Birla Sun Life Mutual Fund',schemeCategory:'Debt Scheme - Liquid Fund'},
+    warnings:['Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked.']};
+  const raw=structuredClone(fund);
+  const page=view('FundDetail',{code:100047,fund});
+  assert.match(page.content(),/verified 10-to-1 Birla Sun Life Cash Plus unit consolidation/i);
+  assert.notEqual(page.metric('Period return')?.value,'—');
+  page.range('MAX');
+  const all=String(page.metric('Period return')?.value);
+  assert.match(all,/^[+]?[\d.]+%$/);
+  assert.ok(!all.startsWith('+4000'),'The tenfold unit change must not become a return.');
+  const exportData=page.export('Export selected NAV history as CSV');
+  assert.ok(exportData.rows.some(row=>row[0]==='2011-10-06' && row[1]===16.5),
+    'Source export keeps the actual old-basis NAV; no backfill is rewritten.');
+  assert.ok(exportData.rows.some(row=>row[0]==='2011-10-07' && row[1]===165.0399));
+  assert.deepEqual(fund,raw);
+  page.unmount();
+
+  const clean:FundData={...original,meta:{...original.meta,schemeCode:100048,
+    schemeName:'Example Liquid - Direct Plan - Growth'},points:points.map(point=>({
+      ...point,nav:point.date<'2011-10-07'?point.nav*10:point.nav
+    }))};
+  const compare=view('Comparison',{schemes:[fund.meta,clean.meta],
+    funds:{[fund.meta.schemeCode]:fund,[clean.meta.schemeCode]:clean}});
+  compare.range('MAX');
+  const csv=compare.export('Export comparison as CSV');
+  assert.match(String(csv.rows.find(row=>row[0]==='Corporate action')?.[1]),
+    /Scheme 100047: verified 10-to-1 Birla Sun Life Cash Plus/);
+  compare.unmount();
 });
 
