@@ -176,6 +176,21 @@ function actionForScheme(fund: FundData): ActionSpec | null {
     factor:0.1,maxFactorDeviation:0.005,
     evidenceUrl:'https://nsearchives.nseindia.com/content/circulars/CML60421.pdf',
   };
+  // NSE/CML/47721 confirms the two distinct UTI splits and current ISINs.
+  // Saved NAVs retain old units on 26-Mar; new-unit observations start 30-Mar.
+  const utiMarchEtfIdentity = ([
+    [105463, 'uti - gold exchange traded fund - direct plan - growth', 'INF789F1AUX7', 0.01, 100, 'UTI Gold ETF'],
+    [141665, 'uti - nifty next 50 exchange traded fund - direct plan - growth', 'INF789F1AUW9', 0.1, 10, 'UTI Nifty Next 50 ETF'],
+  ] as const).find(([code]) => code===fund.meta.schemeCode);
+  if (utiMarchEtfIdentity && fund.meta.schemeName.toLowerCase()===utiMarchEtfIdentity[1]
+    && fund.meta.isinGrowth===utiMarchEtfIdentity[2] && fund.meta.fundHouse==='UTI Mutual Fund') return {
+    schemeCode:fund.meta.schemeCode,
+    label:`verified ${utiMarchEtfIdentity[4]}-for-1 ${utiMarchEtfIdentity[5]} unit split (effective date 26 March 2021)`,
+    oldNavThrough:'2021-03-26',firstNewNavDate:'2021-03-30',
+    // Apply the documented factor, not a fitted ratio; retain market movement.
+    factor:utiMarchEtfIdentity[3],maxFactorDeviation:utiMarchEtfIdentity[3]*0.05,
+    evidenceUrl:'https://nsearchives.nseindia.com/content/circulars/CML47721.pdf',
+  };
   return null;
 }
 
