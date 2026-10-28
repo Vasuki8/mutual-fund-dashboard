@@ -23,7 +23,7 @@ Recent logs alternate among **source_payload_invalid**, **source_catalogue_membe
 
 ## Bounded read-only probe
 
-[Probe run 40782618431](https://github.com/Vasuki8/mutual-fund-dashboard/actions/runs/40782618431), [job 123147824755](https://github.com/Vasuki8/mutual-fund-dashboard/actions/runs/40782618431/job/123147824755), loaded checkpoint 211 using read-only GitHub permissions. It respected a future saved source cooldown, permitted at most three metadata requests with no retry loop, retained the 32 MiB response and 12-second request bounds, and excluded full-history requests.
+[Probe run 40782618431](https://github.com/Vasuki8/mutual-fund-dashboard/actions/runs/40782618431), [job 123147824755](https://github.com/Vasuki8/mutual-fund-dashboard/actions/runs/40782618431/job/123147824755), loaded checkpoint 211 using read-only GitHub permissions. It enforced the saved-source cooldown guard, permitted at most three metadata requests with no retry loop, retained the 32 MiB response and 12-second request bounds, and excluded full-history requests.
 
 The first request to `/mf/latest` did not yield a usable response before the 12-second request boundary. The job logged **probe_transport_or_validation_error**, **one physical source request**, **zero archive writes** and **zero history requests**. No response status or payload summary was obtained, so the failing production field or endpoint guard remains undiagnosed. The probe does not prove that the earlier JSON/identity failures share the same cause.
 

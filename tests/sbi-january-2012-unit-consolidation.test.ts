@@ -9,7 +9,7 @@ const TWO_MOVES = 'Unresolved discontinuity: 2 single-observation move(s) exceed
 const REPORT = 'https://www.sbimf.com/docs/default-source/scheme-portfolios/default-library/unaudited-half-yearly-results-(as-on-march-31-2012).pdf?sfvrsn=24795812_0';
 
 // Exact independently verified identities and source observations. The two
-// historical names explain the notice; they are not alternate identity matches.
+// historical names explain the report; they are not alternate identity matches.
 const IDENTITIES = [
   { code: 100641, name: 'SBI ULTRA SHORT TERM FUND - Regular Plan - Growth',
     isin: 'INF200K01LJ4', category: 'Income/Debt Oriented Schemes - Ultra Short Term Fund',

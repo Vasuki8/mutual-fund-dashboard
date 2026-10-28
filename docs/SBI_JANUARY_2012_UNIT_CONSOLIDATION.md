@@ -66,6 +66,6 @@ Full saved-history verification completed at **2026-10-28T22:51:40.688Z**. It ex
 | 100641 | 483cbd39d9940b68d36f9ef6f95fc59394557663403528ef06c701afe66f5fba | 92e332b08af98ddb09304b509fa006f15896ecd9c0d1ffd7a7da8ba5259de39a |
 | 105274 | 85b1650b1e6dcf1f55d9d8422aa1305126a894ee0f92628b4e623f1f5b9b3073 | d857f0174db3f783e26ceb1aff19065a19743193d11bf6c7a5c53e7334e16e36 |
 
-The final GitHub head must pass the full project suite, type checking and both production builds before merge. Live deployment is a separate gate; local verification is not a publication claim.
+Implementation commit `05e679f9b00ab5065ab0bca3056c6d5d5c55db04` passed [GitHub run 40783243921](https://github.com/Vasuki8/mutual-fund-dashboard/actions/runs/40783243921), job **123149938881**: **697 tests passed, zero failed**, type checking, production Worker build and standalone Pages build. The final documentation/comment head still requires its own successful checks before merge. Live deployment is a separate gate; local verification is not a publication claim.
 
 The original advance notice was not located. Source coverage before the first saved observation is not certified. Liquid's saved history ends one day before the catalogue date; no observation is invented to close that gap. The separate catalogue-refresh incident is documented in [CATALOGUE_REFRESH_2026-10-28.md](CATALOGUE_REFRESH_2026-10-28.md).
