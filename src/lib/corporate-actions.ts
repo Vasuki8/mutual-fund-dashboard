@@ -74,13 +74,15 @@ function actionForScheme(fund: FundData): ActionSpec | null {
     oldNavThrough:BIRLA_LAST_OLD_NAV_DATE,firstNewNavDate:BIRLA_FIRST_NEW_NAV_DATE,
     factor:10,evidenceUrl:BIRLA_2011_NOTICE,maxFactorDeviation:0.05,
   };
-  // HDFC's 14-Aug-2015 notice specifies face value 10 -> 1000 on 30 August.
-  // Checkpoint 207 verifies this exact Growth identity and its 28-to-30 Aug
-  // source boundary. Other plans need their own verified history evidence.
-  if (fund.meta.schemeCode===100868 && fund.meta.schemeName.toLowerCase()
-    ==='hdfc liquid fund - regular plan - growth option'
+  // HDFC's 14-Aug-2015 notice covers both Regular and Direct plans.
+  // Checkpoints 207/208 independently verify these two Growth identities
+  // and their exact 28-to-30 August source boundaries. No other plan is implied.
+  const hdfcPlan = fund.meta.schemeCode===100868 ? 'regular'
+    : fund.meta.schemeCode===119091 ? 'direct' : null;
+  if (hdfcPlan!==null && fund.meta.schemeName.toLowerCase()
+    ===`hdfc liquid fund - ${hdfcPlan} plan - growth option`
     && fund.meta.fundHouse==='HDFC Mutual Fund') return {
-    schemeCode:100868,
+    schemeCode:fund.meta.schemeCode,
     label:'verified 100-to-1 HDFC Liquid Fund unit consolidation effective 30 August 2015',
     oldNavThrough:'2015-08-28',firstNewNavDate:'2015-08-30',
     factor:100,maxFactorDeviation:0.1,
