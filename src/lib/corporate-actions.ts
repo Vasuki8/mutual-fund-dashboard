@@ -51,6 +51,8 @@ export interface FinancialNavBasis {
   /** False unless the specific action and the actual NAV step both match. */
   adjusted: boolean;
   adjustment?: VerifiedUnitAdjustment;
+  /** Multiple events are exposed separately; never collapse their date boundaries. */
+  adjustments?: VerifiedUnitAdjustment[];
 }
 
 type ActionSpec = VerifiedUnitAdjustment & { maxFactorDeviation: number };
@@ -177,6 +179,24 @@ function actionForScheme(fund: FundData): ActionSpec | null {
   return null;
 }
 
+/** Only the exact independently verified Sensex identity can use two events. */
+function actionsForScheme(fund: FundData): ActionSpec[] {
+  if (fund.meta.schemeCode===135854
+    && fund.meta.schemeName.toLowerCase()==='hdfc bse sensex etf - growth option'
+    && fund.meta.isinGrowth==='INF179KC1HX2' && fund.meta.fundHouse==='HDFC Mutual Fund') return [
+    {schemeCode:135854,
+      label:'verified 10-for-1 HDFC BSE Sensex ETF unit split (record date 19 February 2021)',
+      oldNavThrough:'2021-02-19',firstNewNavDate:'2021-02-22',factor:0.1,maxFactorDeviation:0.005,
+      evidenceUrl:'https://www.msei.in/SX-Content/Circulars/2021/February/Circular-10126.pdf'},
+    {schemeCode:135854,
+      label:'verified 10-for-1 HDFC BSE Sensex ETF unit split (exchange effective date 2 February 2024)',
+      oldNavThrough:'2024-02-02',firstNewNavDate:'2024-02-05',factor:0.1,maxFactorDeviation:0.005,
+      evidenceUrl:'https://nsearchives.nseindia.com/content/circulars/CML60421.pdf'},
+  ];
+  const single=actionForScheme(fund);
+  return single?[single]:[];
+}
+
 function isExactScheme(fund: FundData): boolean {
   const plan = fund.meta.schemeCode === OVERNIGHT_SCHEME_CODE ? 'Direct'
     : fund.meta.schemeCode === OVERNIGHT_REGULAR_SCHEME_CODE ? 'Regular' : null;
@@ -201,47 +221,47 @@ function largeMove(previous: number, next: number): boolean {
   return ratio>1.4+1e-12 || ratio<0.6-1e-12;
 }
 
-/** Returns null if any other >40% move or unexplained date/ratio is present. */
-function adjustedForKnownAction(raw: NavPoint[], action: ActionSpec): NavPoint[] | null {
-  if (!validSeries(raw)) return null;
-  let split=-1;
+/** All declared events must match before ANY calculation value is changed. */
+function adjustedForKnownActions(raw: NavPoint[], actions: ActionSpec[]): NavPoint[] | null {
+  if (!actions.length || !validSeries(raw)) return null;
+  const splits: number[]=[];
   for (let i=1;i<raw.length;i++) {
-    if (!largeMove(raw[i-1].nav,raw[i].nav)) continue;
-    if (split!==-1) return null;
-    split=i;
+    if (largeMove(raw[i-1].nav,raw[i].nav)) splits.push(i);
   }
-  if (split<1) return null;
-  const before=raw[split-1];
-  const after=raw[split];
-  // Exact archived NAV boundary, independently verified for EACH listed
-  // scheme. A legal effective date is not enough to infer the source basis.
-  if (before.date!==action.oldNavThrough ||
-    after.date!==action.firstNewNavDate) return null;
-  const observedFactor=after.nav/before.nav;
-  if (Math.abs(observedFactor-action.factor)>action.maxFactorDeviation) return null;
-  const adjusted=raw.map(p=>p.date<action.firstNewNavDate
-    ? {...p,nav:p.nav*action.factor} : {...p});
+  // Missing, additional or already-partly-adjusted events fail as a whole.
+  if (splits.length!==actions.length) return null;
+  for (let i=0;i<actions.length;i++) {
+    const action=actions[i],before=raw[splits[i]-1],after=raw[splits[i]];
+    if (before.date!==action.oldNavThrough || after.date!==action.firstNewNavDate
+      || i>0 && actions[i-1].firstNewNavDate>=action.firstNewNavDate) return null;
+    const observedFactor=after.nav/before.nav;
+    if (Math.abs(observedFactor-action.factor)>action.maxFactorDeviation) return null;
+  }
+  // Each subsequent split applies to every earlier observation. For Sensex
+  // this yields 0.01 before the first event, 0.1 between events, then 1.
+  const adjusted=raw.map(p=>({...p,nav:actions.reduce((nav,action)=>
+    p.date<action.firstNewNavDate?nav*action.factor:nav,p.nav)}));
+  if (!validSeries(adjusted)) return null;
   for (let i=1;i<adjusted.length;i++) {
     if (largeMove(adjusted[i-1].nav,adjusted[i].nav)) return null;
   }
   return adjusted;
 }
 
-/**
- * Never clears generic data-quality warnings. Only the one exact known jump
- * may be explained, after independent validation of the actual raw values.
- */
+/** Never clears independent quality evidence or partially explains a history. */
 export function financialNavBasis(fund: FundData): FinancialNavBasis {
   const unchanged: FinancialNavBasis={fund,adjusted:false};
-  const action=actionForScheme(fund);
-  if (!action) return unchanged;
+  const actions=actionsForScheme(fund);
+  if (!actions.length) return unchanged;
+  const expectedWarning=`Unresolved discontinuity: ${actions.length} single-observation move(s) exceed 40%; derived analytics are blocked.`;
   const largeMoves=fund.warnings.filter(w=>/^Unresolved discontinuity\b/i.test(w));
-  if (largeMoves.length!==1||largeMoves[0]!==KNOWN_OVERNIGHT_WARNING
+  if (largeMoves.length!==1||largeMoves[0]!==expectedWarning
     || fund.warnings.some(w=>/^(?:Invalid NAV observations|Conflicting NAV values)\b/i.test(w)))
     return unchanged;
-  const points=adjustedForKnownAction(fund.points,action);
+  const points=adjustedForKnownActions(fund.points,actions);
   if (!points) return unchanged;
-  const {maxFactorDeviation: _validatedRatioTolerance,...adjustment}=action;
-  return {adjusted:true,adjustment,fund:{...fund,points,
-    warnings:fund.warnings.filter(w=>w!==KNOWN_OVERNIGHT_WARNING)}};
+  const adjustments=actions.map(({maxFactorDeviation: _validatedRatioTolerance,...action})=>action);
+  // Preserve the established shape and values for all single-event callers.
+  return {adjusted:true,...(adjustments.length===1?{adjustment:adjustments[0]}:{adjustments}),
+    fund:{...fund,points,warnings:fund.warnings.filter(w=>w!==expectedWarning)}};
 }
