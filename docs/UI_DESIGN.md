@@ -35,3 +35,9 @@ GitHub remains the delivery target. Do not deploy to the former ChatGPT Site, re
 ## Interaction motion
 
 The owner approved subtle interaction effects: 160ms save/compare icon feedback, a 180ms mobile-menu expansion/collapse, and 160ms notification entry/exit. Values and charts update immediately. New notifications replace outgoing messages immediately; dismissed controls become inert and are hidden from assistive technology before the visual exit completes. CSS display-transition support improves the notification exit; older browsers close it immediately. The existing Reduce Motion rule disables every effect. Keep the layout, data, calculations and collection behaviour unchanged.
+
+## Professional UI refinement — 28 October 2026
+
+The owner requested a professional UI and clarified that it belongs in this existing project. The refinement retains the sidebar/table architecture and Atlas base palette. It strengthens the header, navigation, page headings, filter grouping, table hierarchy, and visible interaction states. The appearance switch has a visible Light/Dark label. Enabled sortable columns expose a neutral sort indicator; unavailable ranking controls retain their existing gates. A narrow-screen table hint explains horizontal scrolling, and pagination wraps within the viewport.
+
+The explorer exposes the existing filter-reset action and labels directory loading separately from unavailable data. Full provenance text remains visible. This UI work does not change financial calculations, source dates, collection scope, saved history, or deployment targets.
