@@ -1,0 +1,66 @@
+name: Temporary HDFC cash scheme review
+on:
+  push:
+    branches: [audit/hdfc-cash-growth-2015]
+    paths: [.github/workflows/temporary-hdfc-cash-review.yml]
+permissions:
+  contents: read
+jobs:
+  inspect:
+    if: github.repository == 'Vasuki8/mutual-fund-dashboard'
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Inspect verified active histories with no provider requests or archive writes
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          node --experimental-strip-types --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { createHash } from 'node:crypto';
+          import { createGitHubStore } from './scripts/archive-store.ts';
+          import { validateShardStates } from './scripts/archive-model.ts';
+          import { isActiveRepairCandidate } from './scripts/active-repair-scope.ts';
+          import { auditArchiveSnapshot } from './scripts/archive-data-audit.ts';
+          import { financialNavBasis } from './src/lib/corporate-actions.ts';
+          const repository=process.env.GITHUB_REPOSITORY;
+          assert.equal(repository,'Vasuki8/mutual-fund-dashboard');
+          const store=createGitHubStore({repository,token:process.env.GITHUB_TOKEN,deadline:Date.now()+4*60000});
+          const snapshot=await store.loadSnapshot();assert.ok(snapshot);
+          const at=Date.now();
+          const entries=snapshot.catalogue.entries.filter(e=>isActiveRepairCandidate(e,at)
+            && /^HDFC (?:Overnight|Money Market) Fund\b/i.test(e.schemeName)
+            && /\bgrowth\b/i.test(e.schemeName) && !/\b(?:idcw|dividend)\b/i.test(e.schemeName));
+          assert.ok(entries.length>0&&entries.length<=8);
+          const cache=new Map(),results=[];
+          for(const entry of entries){
+            const bucket=String(Math.floor(entry.schemeCode/32)),ref=snapshot.checkpoint.shards[bucket];assert.ok(ref);
+            if(!cache.has(bucket)){
+              const shard=await store.readShard(ref,bucket);validateShardStates(shard,snapshot.checkpoint.states);cache.set(bucket,shard);
+            }
+            const doc=cache.get(bucket).records.find(d=>d.schemeCode===entry.schemeCode);assert.ok(doc);
+            const original=JSON.stringify(doc),meta=doc.payload.meta;
+            const points=[...doc.payload.data].reverse().map(p=>({date:p.date.slice(6,10)+'-'+p.date.slice(3,5)+'-'+p.date.slice(0,2),nav:Number(p.nav)}));
+            const moves=[];
+            for(let i=1;i<points.length;i++){
+              const factor=points[i].nav/points[i-1].nav;
+              if(factor>1.4+1e-12||factor<0.6-1e-12)moves.push({before:points[i-1].date,after:points[i].date,factor});
+            }
+            const fund={meta:{schemeCode:meta.scheme_code,schemeName:meta.scheme_name,fundHouse:meta.fund_house,
+              schemeType:meta.scheme_type,schemeCategory:meta.scheme_category},points,warnings:[...doc.warnings],
+              fetchedAt:doc.fetchedAt,source:'mfapi.in',stale:false,fromCache:true};
+            const basis=financialNavBasis(fund);assert.equal(JSON.stringify(doc),original);
+            results.push({code:entry.schemeCode,name:meta.scheme_name,fundHouse:meta.fund_house,
+              catalogueNavDate:entry.latestDate,historyEnd:doc.coverageEnd,observations:points.length,
+              warningCount:doc.warnings.length,invalidOrConflict:doc.warnings.some(w=>/^(Invalid NAV|Conflicting NAV)/.test(w)),
+              jumpWarnings:doc.warnings.filter(w=>/^Unresolved discontinuity/.test(w)),
+              moveCount:moves.length,moves:moves.slice(0,8),alreadyAdjusted:basis.adjusted,
+              rawDocumentSha256:createHash('sha256').update(original).digest('hex'),shardSha256:ref.sha256});
+          }
+          console.log('HDFC_CASH_GROWTH_REVIEW '+JSON.stringify({checkedAt:new Date(at).toISOString(),sequence:snapshot.checkpoint.sequence,
+            health:auditArchiveSnapshot(snapshot,at).currentlyReporting,entries:results,archiveWrites:0,providerRequests:0}));
+          NODE
