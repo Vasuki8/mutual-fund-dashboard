@@ -88,6 +88,23 @@ function actionForScheme(fund: FundData): ActionSpec | null {
     factor:100,maxFactorDeviation:0.1,
     evidenceUrl:'https://files.hdfcfund.com/s3fs-public/addenda-reports/636%20-%20Addendum%20-%20Change%20in%20Face%20Value%20of%20Liquid%20Schemes%20-%20August%2014,%202015.pdf',
   };
+  // The same official notice covers Savings and Call Plans. The issuer's
+  // 2018 categorization maps these to Money Market and Overnight respectively.
+  // Checkpoint 208 independently verifies EACH exact Growth code and boundary.
+  const hdfcCashIdentity = ([
+    [101993, 'hdfc money market fund - regular plan - growth option', 'Savings Plan'],
+    [101996, 'hdfc overnight fund - regular plan - growth option', 'Call Plan'],
+    [119092, 'hdfc money market fund - direct plan - growth option', 'Savings Plan'],
+    [119110, 'hdfc overnight fund - direct plan - growth option', 'Call Plan'],
+  ] as const).find(([code]) => code===fund.meta.schemeCode);
+  if (hdfcCashIdentity && fund.meta.schemeName.toLowerCase()===hdfcCashIdentity[1]
+    && fund.meta.fundHouse==='HDFC Mutual Fund') return {
+    schemeCode:fund.meta.schemeCode,
+    label:`verified 100-to-1 HDFC Cash Management Fund ${hdfcCashIdentity[2]} unit consolidation effective 30 August 2015`,
+    oldNavThrough:'2015-08-28',firstNewNavDate:'2015-08-30',
+    factor:100,maxFactorDeviation:0.1,
+    evidenceUrl:'https://files.hdfcfund.com/s3fs-public/addenda-reports/636%20-%20Addendum%20-%20Change%20in%20Face%20Value%20of%20Liquid%20Schemes%20-%20August%2014,%202015.pdf',
+  };
   return null;
 }
 
