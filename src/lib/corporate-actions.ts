@@ -191,6 +191,20 @@ function actionForScheme(fund: FundData): ActionSpec | null {
     factor:utiMarchEtfIdentity[3],maxFactorDeviation:utiMarchEtfIdentity[3]*0.05,
     evidenceUrl:'https://nsearchives.nseindia.com/content/circulars/CML47721.pdf',
   };
+  // UTI's 4-Feb-2021 notice covers these two 10-for-1 splits.
+  // Each complete saved history changes units after the 19-Feb record NAV.
+  const utiFebruaryEtfIdentity = ([
+    [148173, 'uti nifty bank etf - direct plan - growth', 'INF789F1AUV1', 'UTI Nifty Bank ETF'],
+    [146388, 'uti - bse sensex next 50 exchange traded fund - direct plan - growth', 'INF789F1AUU3', 'UTI BSE Sensex Next 50 ETF'],
+  ] as const).find(([code]) => code===fund.meta.schemeCode);
+  if (utiFebruaryEtfIdentity && fund.meta.schemeName.toLowerCase()===utiFebruaryEtfIdentity[1]
+    && fund.meta.isinGrowth===utiFebruaryEtfIdentity[2] && fund.meta.fundHouse==='UTI Mutual Fund') return {
+    schemeCode:fund.meta.schemeCode,
+    label:`verified 10-for-1 ${utiFebruaryEtfIdentity[3]} unit split (record date 19 February 2021)`,
+    oldNavThrough:'2021-02-19',firstNewNavDate:'2021-02-22',
+    factor:0.1,maxFactorDeviation:0.005,
+    evidenceUrl:'https://bsmedia.business-standard.com/_media/bs/data/announcements/bse/05022021/aca4ac2d-ea8f-4dda-b674-03275fb1dec6.pdf',
+  };
   return null;
 }
 
