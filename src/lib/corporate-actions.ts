@@ -156,6 +156,24 @@ function actionForScheme(fund: FundData): ActionSpec | null {
     factor:0.1,maxFactorDeviation:0.005,
     evidenceUrl:'https://nsearchives.nseindia.com/content/circulars/CML58972.pdf',
   };
+  // NSE/CML/60421 confirms these 10:1 splits effective on the exchange
+  // from 2-Feb-2024. Verified source NAVs change basis on 5-Feb instead.
+  // Sensex has two events and is deliberately not authorized here.
+  const hdfcFebruaryEtfIdentity = ([
+    [148461, 'hdfc nifty bank etf - growth option', 'INF179KC1HY0', 'HDFC NIFTY BANK ETF'],
+    [150801, 'hdfc nifty it etf - growth option', 'INF179KC1IA8', 'HDFC NIFTY IT ETF'],
+    [150802, 'hdfc nifty private bank etf - growth option', 'INF179KC1HZ7', 'HDFC NIFTY Private Bank ETF'],
+  ] as const).find(([code]) => code===fund.meta.schemeCode);
+  if (hdfcFebruaryEtfIdentity && fund.meta.schemeName.toLowerCase()===hdfcFebruaryEtfIdentity[1]
+    && fund.meta.isinGrowth===hdfcFebruaryEtfIdentity[2] && fund.meta.fundHouse==='HDFC Mutual Fund') return {
+    schemeCode:fund.meta.schemeCode,
+    label:`verified 10-for-1 ${hdfcFebruaryEtfIdentity[3]} unit split (exchange effective date 2 February 2024)`,
+    oldNavThrough:'2024-02-02',firstNewNavDate:'2024-02-05',
+    // A documented split factor removes only denomination loss; ordinary
+    // market movement and all independent quality evidence remain intact.
+    factor:0.1,maxFactorDeviation:0.005,
+    evidenceUrl:'https://nsearchives.nseindia.com/content/circulars/CML60421.pdf',
+  };
   return null;
 }
 
