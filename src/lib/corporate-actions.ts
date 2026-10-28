@@ -122,6 +122,20 @@ function actionForScheme(fund: FundData): ActionSpec | null {
     factor:hdfcEtfIdentity[3],maxFactorDeviation:hdfcEtfIdentity[3]*0.05,
     evidenceUrl:'https://www.msei.in/SX-Content/Circulars/2021/February/Circular-10126.pdf',
   };
+  // Issuer notice dated 20-Jun-2017 covers all Liquid Fund plans/options.
+  // Checkpoint 208 independently verifies these two exact Growth plans and
+  // their source NAV boundary, distinct from the 1-Jul legal effective date.
+  const edelweissPlan = fund.meta.schemeCode===140182 ? 'regular'
+    : fund.meta.schemeCode===140196 ? 'direct' : null;
+  if (edelweissPlan!==null && fund.meta.schemeName.toLowerCase()
+    ===`edelweiss liquid fund - ${edelweissPlan} plan - growth`
+    && fund.meta.fundHouse==='Edelweiss Mutual Fund') return {
+    schemeCode:fund.meta.schemeCode,
+    label:'verified 100-to-1 Edelweiss Liquid Fund unit consolidation effective 1 July 2017',
+    oldNavThrough:'2017-06-30',firstNewNavDate:'2017-07-02',
+    factor:100,maxFactorDeviation:0.1,
+    evidenceUrl:'https://www.edelweissmf.com/Files/downloads/Notice-Cum-Addendum/2017/Edelweiss-NoticecumAddendum-21-jun17.pdf',
+  };
   return null;
 }
 
