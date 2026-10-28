@@ -1,0 +1,82 @@
+name: Temporary HDFC ETF split verification
+on:
+  push:
+    branches: [audit/active-growth-discontinuity-groups]
+    paths: [.github/workflows/temporary-hdfc-etf-validation.yml]
+permissions:
+  contents: read
+jobs:
+  verify:
+    if: github.repository == 'Vasuki8/mutual-fund-dashboard'
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: d7353388ec43a0fda4affc56c0213d9db6578e78
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Validate every original price and date without provider requests or archive writes
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          node --experimental-strip-types --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { createHash } from 'node:crypto';
+          import { createGitHubStore } from './scripts/archive-store.ts';
+          import { validateShardStates } from './scripts/archive-model.ts';
+          import { isActiveRepairCandidate } from './scripts/active-repair-scope.ts';
+          import { financialNavBasis } from './src/lib/corporate-actions.ts';
+          import { cagr, trailingReturn } from './src/lib/analytics.ts';
+          import { qualityBlocked } from './src/lib/format.ts';
+          const repository=process.env.GITHUB_REPOSITORY;
+          assert.equal(repository,'Vasuki8/mutual-fund-dashboard');
+          const store=createGitHubStore({repository,token:process.env.GITHUB_TOKEN,deadline:Date.now()+4*60000});
+          const snapshot=await store.loadSnapshot();assert.ok(snapshot);
+          const originalSnapshot=JSON.stringify(snapshot),at=Date.now(),results=[];
+          for(const [code,factor,isin] of [[113049,0.01,'INF179KC1981'],[135853,0.1,'INF179KC1965']]){
+            const entry=snapshot.catalogue.entries.find(e=>e.schemeCode===code);
+            assert.ok(entry&&isActiveRepairCandidate(entry,at),'Repair must be inside the 30-day scope');
+            assert.equal(entry.isinGrowth,isin);
+            const bucket=String(Math.floor(code/32)),ref=snapshot.checkpoint.shards[bucket];assert.ok(ref);
+            const shard=await store.readShard(ref,bucket);validateShardStates(shard,snapshot.checkpoint.states);
+            const doc=shard.records.find(d=>d.schemeCode===code);assert.ok(doc);
+            const documentJson=JSON.stringify(doc),meta=doc.payload.meta;
+            assert.equal(meta.isin_growth,isin);
+            const raw={meta:{schemeCode:code,schemeName:meta.scheme_name,fundHouse:meta.fund_house,schemeType:meta.scheme_type,schemeCategory:meta.scheme_category,isinGrowth:meta.isin_growth},
+              points:[...doc.payload.data].reverse().map(p=>({date:p.date.slice(6,10)+'-'+p.date.slice(3,5)+'-'+p.date.slice(0,2),nav:Number(p.nav)})),
+              warnings:[...doc.warnings],fetchedAt:doc.fetchedAt,source:'mfapi.in',stale:false,fromCache:true};
+            const rawJson=JSON.stringify(raw),basis=financialNavBasis(raw);
+            assert.equal(basis.adjusted,true);assert.equal(basis.adjustment.factor,factor);
+            assert.equal(basis.adjustment.schemeCode,code);assert.equal(qualityBlocked(basis.fund),false);
+            assert.equal(qualityBlocked(raw),true);assert.equal(basis.fund.points.length,raw.points.length);
+            let preEvent=0;
+            for(let i=0;i<raw.points.length;i++){
+              const before=raw.points[i],after=basis.fund.points[i],pre=before.date<'2021-02-22';
+              if(pre)preEvent++;
+              assert.equal(after.date,before.date);
+              assert.equal(after.nav,pre?before.nav*factor:before.nav);
+            }
+            const event=raw.points.findIndex(p=>p.date==='2021-02-22');assert.ok(event>0);
+            assert.equal(raw.points[event-1].date,'2021-02-19');
+            const rawRatio=raw.points[event].nav/raw.points[event-1].nav;
+            const adjustedRatio=basis.fund.points[event].nav/basis.fund.points[event-1].nav;
+            assert.ok(Math.abs(adjustedRatio-rawRatio/factor)<1e-12);
+            assert.ok(Math.abs(adjustedRatio-1)<0.05);
+            assert.notEqual(adjustedRatio,1,'Actual market gain/loss must not be erased');
+            for(const years of [1,3,5])assert.equal(trailingReturn(basis.fund.points,years),trailingReturn(raw.points,years));
+            const first=basis.fund.points[0],last=basis.fund.points.at(-1);
+            const years=(Date.parse(last.date)-Date.parse(first.date))/(86400000*365);
+            const independent=(last.nav/first.nav)**(1/years)-1;
+            assert.ok(Number.isFinite(independent));assert.ok(Math.abs(cagr(basis.fund.points)-independent)<1e-10);
+            assert.equal(financialNavBasis(basis.fund).adjusted,false);
+            assert.equal(JSON.stringify(raw),rawJson);assert.equal(JSON.stringify(doc),documentJson);
+            results.push({code,name:meta.scheme_name,isin,factor,latestCatalogueDate:entry.latestDate,historyEnd:doc.coverageEnd,
+              observations:raw.points.length,preEventObservations:preEvent,rawRatio,adjustedRatio,
+              sourceUnchanged:true,postEventReturnsUnchanged:true,
+              documentSha256:createHash('sha256').update(documentJson).digest('hex'),shardSha256:ref.sha256});
+          }
+          assert.equal(JSON.stringify(snapshot),originalSnapshot);
+          console.log('HDFC_ETF_VERIFIED '+JSON.stringify({sequence:snapshot.checkpoint.sequence,checkedAt:new Date(at).toISOString(),commit:'d7353388ec43a0fda4affc56c0213d9db6578e78',totalObservations:results.reduce((n,r)=>n+r.observations,0),results,archiveWrites:0,providerRequests:0}));
+          NODE
