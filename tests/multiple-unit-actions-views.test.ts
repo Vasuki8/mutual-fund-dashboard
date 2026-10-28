@@ -88,7 +88,7 @@ test('fund research explains both events, applies cumulative factors and keeps r
   const chart=page.nodes().find(n=>n.type===chartType);
   assert.ok(chart);assert.equal(chart.props.series[0].data[0].value,10000);
   assert.ok(Math.abs(chart.props.series[0].data.at(-1).value-20750)<1e-8);
-  const holding=view('FundDetail',{fund:raw,tab:'holding'});
+  const holding=view('FundDetail',{fund:raw,tab:'returns'});
   const component=holding.nodes().find(n=>n.type===sipType);
   assert.equal(component?.props.unitAdjustments?.length,2,'SIP must receive both event disclosures.');
   assert.deepEqual(raw,original);

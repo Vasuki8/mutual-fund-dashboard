@@ -38,8 +38,8 @@ export function Comparison(props:Props) {
   const datasets=useMemo(()=>props.schemes.map(s=>{const fund=props.funds[s.schemeCode];return fund?financialNavBasis(fund).fund:fund;}),[props.schemes,props.funds]);
   const unitAdjustments=props.schemes.flatMap(s=>{
     const fund=props.funds[s.schemeCode];
-    const action=fund?financialNavBasis(fund).adjustment:undefined;
-    return action?[action]:[];
+    const basis=fund?financialNavBasis(fund):undefined;
+    return basis?.adjustments??(basis?.adjustment?[basis.adjustment]:[]);
   });
   const unitAdjusted=unitAdjustments.length>0;
   const loadedDatasets=useMemo(()=>datasets.filter((fund): fund is FundData => Boolean(fund)),[datasets]);
