@@ -74,6 +74,18 @@ function actionForScheme(fund: FundData): ActionSpec | null {
     oldNavThrough:BIRLA_LAST_OLD_NAV_DATE,firstNewNavDate:BIRLA_FIRST_NEW_NAV_DATE,
     factor:10,evidenceUrl:BIRLA_2011_NOTICE,maxFactorDeviation:0.05,
   };
+  // HDFC's 14-Aug-2015 notice specifies face value 10 -> 1000 on 30 August.
+  // Checkpoint 207 verifies this exact Growth identity and its 28-to-30 Aug
+  // source boundary. Other plans need their own verified history evidence.
+  if (fund.meta.schemeCode===100868 && fund.meta.schemeName.toLowerCase()
+    ==='hdfc liquid fund - regular plan - growth option'
+    && fund.meta.fundHouse==='HDFC Mutual Fund') return {
+    schemeCode:100868,
+    label:'verified 100-to-1 HDFC Liquid Fund unit consolidation effective 30 August 2015',
+    oldNavThrough:'2015-08-28',firstNewNavDate:'2015-08-30',
+    factor:100,maxFactorDeviation:0.1,
+    evidenceUrl:'https://files.hdfcfund.com/s3fs-public/addenda-reports/636%20-%20Addendum%20-%20Change%20in%20Face%20Value%20of%20Liquid%20Schemes%20-%20August%2014,%202015.pdf',
+  };
   return null;
 }
 
