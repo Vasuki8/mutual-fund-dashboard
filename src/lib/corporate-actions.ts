@@ -136,6 +136,26 @@ function actionForScheme(fund: FundData): ActionSpec | null {
     factor:100,maxFactorDeviation:0.1,
     evidenceUrl:'https://www.edelweissmf.com/Files/downloads/Notice-Cum-Addendum/2017/Edelweiss-NoticecumAddendum-21-jun17.pdf',
   };
+  // NSE/CML/58972 and HDFC's 12-Oct-2023 notice confirm these five 10:1 splits.
+  // Verified saved NAVs retain the old unit basis on the 20-Oct record date;
+  // each exact history first reports the new basis on 23-Oct. No other ETF is implied.
+  const hdfcOctoberEtfIdentity = ([
+    [150476, 'hdfc nifty 100 etf - growth option', 'INF179KC1HR4', 'HDFC NIFTY 100 ETF'],
+    [150477, 'hdfc nifty next 50 etf - growth option', 'INF179KC1HS2', 'HDFC NIFTY NEXT 50 ETF'],
+    [150657, 'hdfc nifty200 momentum 30 etf - growth option', 'INF179KC1HV6', 'HDFC NIFTY200 MOMENTUM 30 ETF'],
+    [150658, 'hdfc nifty100 low volatility 30 etf - growth option', 'INF179KC1HU8', 'HDFC NIFTY100 Low Volatility 30 ETF'],
+    [151374, 'hdfc nifty midcap 150 etf - growth option', 'INF179KC1HT0', 'HDFC NIFTY Midcap 150 ETF'],
+  ] as const).find(([code]) => code===fund.meta.schemeCode);
+  if (hdfcOctoberEtfIdentity && fund.meta.schemeName.toLowerCase()===hdfcOctoberEtfIdentity[1]
+    && fund.meta.isinGrowth===hdfcOctoberEtfIdentity[2] && fund.meta.fundHouse==='HDFC Mutual Fund') return {
+    schemeCode:fund.meta.schemeCode,
+    label:`verified 10-for-1 ${hdfcOctoberEtfIdentity[3]} unit split (record date 20 October 2023)`,
+    oldNavThrough:'2023-10-20',firstNewNavDate:'2023-10-23',
+    // Keep the actual market return. This conservative residual-move bound
+    // is specific to these independently verified events, not a general repair rule.
+    factor:0.1,maxFactorDeviation:0.005,
+    evidenceUrl:'https://nsearchives.nseindia.com/content/circulars/CML58972.pdf',
+  };
   return null;
 }
 
