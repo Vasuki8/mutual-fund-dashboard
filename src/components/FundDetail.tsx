@@ -18,6 +18,7 @@ export function FundDetail(props:Props) {
   const throughDate=typeof range==='string'?undefined:range.end;
   const basis=useMemo(()=>fund?financialNavBasis(fund):null,[fund]);
   const analysisFund=basis?.fund;
+  const unitAdjustments=basis?.adjustment?[...(basis.adjustment.earlierEvents??[]),basis.adjustment]:[];
   const sourcePoints=useMemo(()=>fund?selectRange(fund.points,range):[],[fund,range]);
   const points=useMemo(()=>analysisFund?selectRange(analysisFund.points,range):[],[analysisFund,range]);
   const risk=useMemo(()=>riskStats(points,props.riskFreeRate,throughDate,sortinoTarget),[points,props.riskFreeRate,throughDate,sortinoTarget]);
@@ -44,11 +45,14 @@ export function FundDetail(props:Props) {
     <section className="fund-heading"><div className={`fund-avatar large tone-${props.code%5}`}>{fundInitials(name)}</div><div className="fund-title"><div className="fund-badges"><span className="badge">{categoryLabel(fund)}</span><span>{planLabel(fund.meta.schemeName)}</span></div><h1>{name}</h1><p>{fund.meta.fundHouse}</p></div><div className="fund-heading-actions"><button className={`button secondary ${saved?'saved':''}`} aria-pressed={saved} onClick={()=>props.toggleWatch(scheme)}><Bookmark size={15} fill={saved?'currentColor':'none'}/>{saved?'Saved':'Save fund'}</button><button className={`button primary ${compared?'added':''}`} aria-pressed={compared} disabled={!compared&&props.compared.length>=4} title={!compared&&props.compared.length>=4?'Compare up to four funds':undefined} onClick={()=>props.toggleCompare(scheme)}>{compared?<Check size={16}/>:<Plus size={16}/>}Compare</button></div></section>
     <div className="fund-observation"><div><span className="label">Latest NAV (INR)</span><strong>{currency(latest.nav,4)}</strong><span className={daily==null?'muted':daily<0?'negative':'positive'}>{percent(daily)} <small>vs previous NAV</small></span></div><div className="observation-date"><span className="status-dot"/><span>NAV as of {dateLabel(latest.date,true)}</span><button className={`icon-button ${props.refreshing?'spin':''}`} disabled={props.refreshing} onClick={props.refresh} aria-label="Refresh fund data"><RefreshCw size={14}/></button></div></div>
     {(fund.stale||visibleWarnings.length>0)&&<div className={`notice ${blocked?'warning':''}`}><AlertCircle size={16}/><span>{fund.stale?'Showing cached data. The latest refresh could not be completed. ':''}{visibleWarnings.join(' ')}</span></div>}
-    {basis?.adjustment&&<div className="notice" role="status"><ShieldCheck size={18}/><span>
-      Performance and risk use NAV adjusted for the {basis.adjustment.label}.
-      Source NAVs through {dateLabel(basis.adjustment.oldNavThrough,true)} are multiplied by {basis.adjustment.factor} for calculations only; the new unit basis starts on {dateLabel(basis.adjustment.firstNewNavDate,true)}.
+    {unitAdjustments.length>0&&<div className="notice" role="status"><ShieldCheck size={18}/><span>
+      {unitAdjustments.map(action=><span key={action.firstNewNavDate}>
+        Performance and risk use NAV adjusted for the {action.label}.
+        Source NAVs through {dateLabel(action.oldNavThrough,true)} are multiplied by {action.factor} for calculations only; the new unit basis starts on {dateLabel(action.firstNewNavDate,true)}.
+        <a href={action.evidenceUrl} target="_blank" rel="noreferrer"> Read the published action notice.</a>{' '}
+      </span>)}
+      {unitAdjustments.length>1?'Factors compound where event ranges overlap. ':''}
       The latest NAV, raw NAV chart and exported source observations remain unchanged.
-      <a href={basis.adjustment.evidenceUrl} target="_blank" rel="noreferrer"> Read the published action notice.</a>
     </span></div>}
     {!growth&&<div className="notice warning"><Info size={16}/><span>This scheme is not a confirmed Growth option. Raw NAV is available. Total-return and risk analytics need distribution-adjusted data for IDCW or dividend options.</span></div>}
     <nav className="detail-tabs" aria-label="Fund research views">{[['overview','Overview'],['returns','Returns'],['risk','Risk'],['portfolio','Portfolio'],['costs','Costs'],['monthly','Monthly returns']].map(([key,label])=><button key={key} className={props.tab===key?'active':''} aria-pressed={props.tab===key} onClick={()=>props.setTab(key)}>{label}</button>)}<button className="method-link" onClick={props.openMethod}><Info size={13}/> Methodology</button></nav>

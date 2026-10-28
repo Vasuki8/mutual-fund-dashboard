@@ -7,7 +7,7 @@ type Event = Omit<VerifiedUnitAdjustment, 'earlierEvents'>;
 const events: readonly Event[] = [
   {
     schemeCode:135854,
-    label:'verified 10-for-1 HDFC Sensex ETF unit split (record date 19 February 2021)',
+    label:'verified 10-for-1 HDFC Sensex ETF unit split (ISIN effective date 19 February 2021)',
     oldNavThrough:'2021-02-19',firstNewNavDate:'2021-02-22',factor:0.1,
     evidenceUrl:'https://www.msei.in/SX-Content/Circulars/2021/February/Circular-10126.pdf',
   },
