@@ -76,6 +76,24 @@ function actionForScheme(fund: FundData): ActionSpec | null {
     oldNavThrough:BIRLA_LAST_OLD_NAV_DATE,firstNewNavDate:BIRLA_FIRST_NEW_NAV_DATE,
     factor:10,evidenceUrl:BIRLA_2011_NOTICE,maxFactorDeviation:0.05,
   };
+  // SBI's March-2012 half-year report documents face value Rs10 -> Rs1000
+  // effective 13-Jan-2012. Exact Sep-2011/Mar-2012 source NAVs connect only
+  // these current Growth identities to the report's historical scheme names.
+  const sbiJanuaryIdentity = ([
+    [100641, 'sbi ultra short term fund - regular plan - growth', 'INF200K01LJ4',
+      'SBI Magnum InstaCash Fund Cash Option', 13],
+    [105274, 'sbi liquid fund - regular plan - growth', 'INF200K01LU1',
+      'SBI Premier Liquid Fund Institutional Growth', 18],
+  ] as const).find(([code]) => code===fund.meta.schemeCode);
+  if (sbiJanuaryIdentity && fund.meta.schemeName.toLowerCase()===sbiJanuaryIdentity[1]
+    && fund.meta.isinGrowth===sbiJanuaryIdentity[2] && fund.meta.fundHouse==='SBI Mutual Fund') return {
+    schemeCode:fund.meta.schemeCode,
+    label:`verified 100-to-1 ${sbiJanuaryIdentity[3]} unit consolidation effective 13 January 2012`,
+    oldNavThrough:'2012-01-12',firstNewNavDate:'2012-01-13',
+    // Retain ordinary interest return by applying the documented factor.
+    factor:100,maxFactorDeviation:0.1,
+    evidenceUrl:`https://www.sbimf.com/docs/default-source/scheme-portfolios/default-library/unaudited-half-yearly-results-(as-on-march-31-2012).pdf?sfvrsn=24795812_0#page=${sbiJanuaryIdentity[4]}`,
+  };
   // HDFC's 14-Aug-2015 notice covers both Regular and Direct plans.
   // Checkpoints 207/208 independently verify these two Growth identities
   // and their exact 28-to-30 August source boundaries. No other plan is implied.
