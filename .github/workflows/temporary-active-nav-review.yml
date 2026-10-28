@@ -1,0 +1,94 @@
+name: Temporary active NAV discrepancy review
+on:
+  push:
+    branches: [audit/recovered-active-nav-review]
+    paths: [.github/workflows/temporary-active-nav-review.yml]
+permissions:
+  contents: read
+jobs:
+  inspect:
+    if: github.repository == 'Vasuki8/mutual-fund-dashboard'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Verify live catalogue and saved active histories without source requests or writes
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          node --experimental-strip-types --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { createHash } from 'node:crypto';
+          import { gunzipSync } from 'node:zlib';
+          import { createGitHubStore, readLimited } from './scripts/archive-store.ts';
+          import { validateCatalogue, validateShardStates } from './scripts/archive-model.ts';
+          import { auditArchiveSnapshot } from './scripts/archive-data-audit.ts';
+          import { isActiveRepairCandidate } from './scripts/active-repair-scope.ts';
+          import { isCurrentlyReportingOpenEnded } from './src/lib/current-official-schemes.ts';
+          import { createSharedArchiveClient } from './src/lib/shared-archive.ts';
+          const repository=process.env.GITHUB_REPOSITORY;
+          assert.equal(repository,'Vasuki8/mutual-fund-dashboard');
+          const store=createGitHubStore({repository,token:process.env.GITHUB_TOKEN,deadline:Date.now()+5*60_000});
+          const snapshot=await store.loadSnapshot(); assert.ok(snapshot);
+          const {checkpoint,catalogue}=snapshot,at=Date.now();
+          const base='https://vasuki8.github.io/mutual-fund-dashboard/';
+          const client=createSharedArchiveClient({baseUrl:base});
+          const manifest=await client.loadManifest();
+          assert.equal(manifest.status,'ready'); assert.ok(manifest.sequence>=199);
+          const uri=new URL(manifest.catalogue.path,base);
+          assert.equal(uri.origin,new URL(base).origin);
+          const response=await fetch(uri,{redirect:'error',credentials:'omit',signal:AbortSignal.timeout(30000)});
+          assert.equal(response.status,200);
+          const bytes=Buffer.from(await readLimited(response,32*1024*1024));
+          assert.equal(bytes.length,manifest.catalogue.bytes);
+          assert.equal(createHash('sha256').update(bytes).digest('hex'),manifest.catalogue.sha256);
+          const plain=gunzipSync(bytes,{maxOutputLength:100*1024*1024});
+          assert.equal(plain.length,manifest.catalogue.expandedBytes);
+          const live=validateCatalogue(JSON.parse(plain.toString('utf8')));
+          assert.equal(live.membership?.source,'mf-list');
+          const directory=await client.loadCurrentOpenEndedDirectory(); assert.ok(directory);
+          const liveSeven=live.entries.filter(e=>isCurrentlyReportingOpenEnded(e,at));
+          assert.deepEqual(directory.map(e=>e.schemeCode).sort((a,b)=>a-b),liveSeven.map(e=>e.schemeCode).sort((a,b)=>a-b));
+          for(const code of [138875,145536,154804]) assert.ok(directory.some(e=>e.schemeCode===code));
+          if(manifest.sequence===checkpoint.sequence) assert.equal(manifest.catalogue.sha256,checkpoint.catalogue.sha256);
+          console.log('LIVE_MEMBERSHIP_VERIFIED '+JSON.stringify({checkedAt:new Date(at).toISOString(),
+            savedSequence:checkpoint.sequence,publishedSequence:manifest.sequence,catalogueSha256:manifest.catalogue.sha256,
+            membership:live.membership,liveRepairEligible:live.entries.filter(e=>isActiveRepairCandidate(e,at)).length,
+            liveDirectoryCount:directory.length,restoredExamples:[138875,145536,154804],
+            savedHealth:auditArchiveSnapshot(snapshot,at).currentlyReporting,archiveWrites:0,providerRequests:0}));
+          const active=catalogue.entries.filter(e=>isActiveRepairCandidate(e,at));
+          const option=e=>/\b(?:idcw|dividend)\b/i.test(e.schemeName)?'distribution':/\bgrowth\b/i.test(e.schemeName)?'growth':'other';
+          const groups={};
+          for(const e of active){
+            const s=checkpoint.states[e.schemeCode]; if(!s.quality)continue;
+            const kind=option(e); groups[kind]??={total:0,invalid:0,discontinuity:0,other:0};groups[kind].total++;
+            const invalid=s.warnings.some(w=>/^(Invalid NAV|Conflicting NAV)/.test(w));
+            const jump=s.warnings.some(w=>/^Unresolved discontinuity/.test(w));
+            if(invalid)groups[kind].invalid++;if(jump)groups[kind].discontinuity++;if(!invalid&&!jump)groups[kind].other++;
+          }
+          console.log('ACTIVE_OPTION_BREAKDOWN '+JSON.stringify({sequence:checkpoint.sequence,eligible:active.length,groups}));
+          const sample=active.filter(e=>option(e)==='growth'&&checkpoint.states[e.schemeCode].quality
+            &&checkpoint.states[e.schemeCode].warnings.some(w=>/^Unresolved discontinuity/.test(w))
+            &&!checkpoint.states[e.schemeCode].warnings.some(w=>/^(Invalid NAV|Conflicting NAV)/.test(w))
+            &&![100047,145535,145536].includes(e.schemeCode)).slice(0,12);
+          const cached=new Map(),iso=s=>s.slice(6,10)+'-'+s.slice(3,5)+'-'+s.slice(0,2);
+          for(const e of sample){
+            const bucket=String(Math.floor(e.schemeCode/32)),ref=checkpoint.shards[bucket];assert.ok(ref);
+            if(!cached.has(bucket)){
+              assert.ok(cached.size<12);const shard=await store.readShard(ref,bucket);
+              validateShardStates(shard,checkpoint.states);cached.set(bucket,shard);
+            }
+            const doc=cached.get(bucket).records.find(d=>d.schemeCode===e.schemeCode);assert.ok(doc);
+            const rows=[...doc.payload.data].reverse(),moves=[];
+            for(let i=1;i<rows.length;i++){
+              const factor=Number(rows[i].nav)/Number(rows[i-1].nav);
+              if(factor>1.4+1e-12||factor<0.6-1e-12)moves.push({before:iso(rows[i-1].date),after:iso(rows[i].date),factor:Number(factor.toFixed(8))});
+            }
+            console.log('ACTIVE_GROWTH_DISCREPANCY '+JSON.stringify({code:e.schemeCode,name:doc.payload.meta.scheme_name,
+              fundHouse:doc.payload.meta.fund_house,latestNavDate:e.latestDate,historyEnd:doc.coverageEnd,
+              observations:rows.length,largeMoves:moves.length,examples:moves.slice(0,5),shardSha256:ref.sha256}));
+          }
+          NODE
