@@ -1,12 +1,12 @@
 # Edelweiss Liquid Fund — July 2017 unit consolidation
 
-**Release status: prepared, not approved for merge or deployment.** The registry correction and automated regression suite pass, but the additional before/after calculation run on the complete real histories was not completed. Do not describe that missing check as successful.
+**Real-history release check completed on 28 October 2026 at 05:49:30 UTC.** Both complete saved histories passed the actual candidate implementation's before/after checks. Final-head CI and review are still required before merge. A merge is not proof of deployment.
 
 ## Primary issuer evidence
 
 [Edelweiss notice dated 20 June 2017](https://www.edelweissmf.com/Files/downloads/Notice-Cum-Addendum/2017/Edelweiss-NoticecumAddendum-21-jun17.pdf), section 1, changes the face value of **all Edelweiss Liquid Fund plans/options from Rs10 to Rs1,000 effective 1 July 2017**. It specifies proportional adjustment of held units, with unchanged investment value subject to rounding. Its separate Treasury Fund change has a different effective date, **3 July 2017**, and is not authorized by this implementation.
 
-The issuer's original PDF text was retrieved and checked. PDF screenshot requests failed with a cache error, and a direct download was unavailable. **Visual page-layout inspection was not completed.** The original notice is linked, not reproduced in the repository.
+The issuer's original PDF text was retrieved and rechecked. PDF screenshot requests failed with a cache error. **Visual page-layout inspection was not completed.** The original notice is linked, not reproduced in the repository.
 
 ## Complete source-history investigation
 
@@ -29,18 +29,44 @@ Source document and shard SHA-256 values:
 
 Add only the two exact code/plan-name pairs, guarded by `Edelweiss Mutual Fund`, to `actionForScheme`. Require the existing exact single generated warning, complete valid-positive-unique-ascending series, single jump and independent-warning checks. Require the precise **2017-06-30 -> 2017-07-02** boundary and observed ratio within **99.9 to 100.1**. The tolerance is a conservative release guard for this documented event, not an assumed universal limit on market returns.
 
-For calculations only, multiply source NAVs before **2 July 2017** by **100**. Use the documented factor rather than fitting the observed ratio, so ordinary earned NAV movement remains. All later NAV values, original observations, warning arrays, quotes, raw chart/CSV, dates, retrieval times and archived documents remain unchanged by design. No source-history correction is written. Distribution options, Treasury Fund and other codes are excluded.
+For calculations only, multiply source NAVs before **2 July 2017** by **100**. Use the documented factor rather than fitting the observed ratio, so ordinary earned NAV movement remains. All later NAV values, original observations, warning arrays, quotes, raw chart/CSV, dates, retrieval times and archived documents remain unchanged. No source-history correction is written. Distribution options, Treasury Fund and other codes are excluded.
 
 The collector, 30-day repair rule, seven-day discovery rule, retry/cooldown/resource limits, source-validation thresholds and global precomputed return-index policy are unchanged.
 
-## Regression evidence and remaining release gate
+## Automated regression evidence
 
 Seven tests were committed before the production change. [Baseline #40636262654](https://github.com/Vasuki8/mutual-fund-dashboard/actions/runs/40636262654), job **122643868106**, passed type checking and **622/626 tests**: all 619 previous tests and three new negative cases passed; four new positive expectations failed as intended.
 
 After the small registry addition at commit `4ba81217d1b9fc7c6f0c2367ec9a6286845d5dd3`, [Dashboard checks #40636422249](https://github.com/Vasuki8/mutual-fund-dashboard/actions/runs/40636422249), job **122644318289**, passed **626/626 tests**, type checking, production Worker build and standalone Pages build. Existing nonblocking bundle-size and framework route-classification advisories remain.
 
-The tests use explicitly synthetic NAV series. They verify exact identities and boundaries, rejected mismatches, malformed series, preservation of independent warnings and stale status, every synthetic old/new-unit value, unchanged post-event 1Y/3Y/5Y returns, an independent ACT/365 CAGR formula, and no double adjustment.
+These tests use explicitly synthetic NAV series. They verify exact identities and boundaries, rejected mismatches, malformed series, preservation of independent warnings and stale status, every synthetic old/new-unit value, unchanged post-event 1Y/3Y/5Y returns, an independent ACT/365 CAGR formula, and no double adjustment. The separate real-data check below is not a synthetic test.
 
-**The complete 6,250 real observations were inspected to establish the source anomaly, but the modified implementation has not yet been run across those real histories with before/after invariants.** The attempt to create that additional validation workflow was blocked by the execution tool and was not retried or bypassed. Keep the pull request as draft until that independent real-history calculation check and final-head review are complete. Do not substitute synthetic results for real-data verification.
+## Completed real-history before/after verification
 
-The read-only audit still reports **8,524** eligible scheme codes, **610** saved source-quality flags, **31** failed refreshes retaining history, and zero source-failure cases without saved history. The categories overlap. This proposed calculation-only explanation does not reduce any original flag or resolve unrelated NAV discrepancies.
+The additional validation workflow was previously blocked and was not recreated. Instead, the already-existing successful [Pages deployment #40635145485](https://github.com/Vasuki8/mutual-fund-dashboard/actions/runs/40635145485) supplied its existing downloadable artifact through the GitHub artifact-download connector. This read-only retrieval required no new workflow, credential retrieval, provider request or archive write.
+
+Artifact **12792823500**, `github-pages-40635145485-1`, is **176,150,312 bytes**. Its downloaded SHA-256 exactly matches GitHub's reported digest:
+`2022a52d8ea31eda5ac373cd559a35ec6f836f01efbe7cd402c25563cf1dbc07`.
+
+The contained manifest is checkpoint **208**. The catalogue and both selected gzip shards passed compressed-byte count, SHA-256 and expanded-byte count checks. Each extracted history document's `JSON.stringify` SHA-256 matches the original investigation above. The original manually supplied open-ended sheet and the published catalogue independently confirm both exact scheme codes, current membership and positive NAV dated **26 October 2026**, two UTC calendar days before this validation. This does not claim a newer catalogue snapshot.
+
+The local Node validation executed the actual candidate TypeScript module from commit `9972f5b54b89b2798d65ad6f85dc896cf4454a62`, with Git blob SHA **d9a8556f6e87d7befca6a3ad8039dcadd4b8f641**. The before-change module was also verified against its Git blob SHA **a4f88f085f16219aa7bcb1975d94e3fc3448f16c**. Thus the run compared exact repository code, not a rewritten adjustment implementation.
+
+| Real-history check | Regular 140182 | Direct 140196 |
+| --- | ---: | ---: |
+| Every saved observation checked | 3,125 | 3,125 |
+| Old-basis observations multiplied by 100 in calculation copy | 180 | 180 |
+| Before-change implementation recognizes action | No | No |
+| Candidate implementation recognizes action | Yes | Yes |
+| Adjusted event ratio | 1.0003536428476834 | 1.000358529914369 |
+| Original dates, NAVs, warnings and metadata unchanged | Yes | Yes |
+| Independently evaluated post-event 1Y/3Y/5Y returns identical | Yes | Yes |
+| Second application leaves the result unchanged | Yes | Yes |
+
+All **6,250** observations passed. The ordinary event-period NAV changes of approximately **+0.0353643%** and **+0.0358530%** remain; they were not flattened to zero. Frozen input objects detected any attempted mutation. The raw history documents, catalogue and manifest bytes stayed unchanged. Existing stale status and successful-fetch timestamps were preserved, and no 1 July NAV was fabricated.
+
+Only local working copies and a verification receipt were written. There were **zero remote archive writes**, **zero MFAPI/AMFI requests**, and **no new GitHub workflow**. No visual browser check was performed. The issuer PDF visual-rendering limitation remains as stated above.
+
+## Remaining data limitations
+
+The checkpoint-208 audit reports **8,524** eligible scheme codes, **610** original source-quality flags, **31** failed refreshes retaining history, and zero source-failure cases without saved history. These are dated snapshot counts and overlapping categories, not fresh production totals. This calculation-only explanation does not reduce any original flag, fill the one-day history lag, or resolve unrelated NAV discrepancies. A successful final CI run and merge must still be distinguished from a successful website deployment.
