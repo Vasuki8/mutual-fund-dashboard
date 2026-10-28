@@ -24,7 +24,7 @@ function text(value:unknown):string{
 function rawFund():FundData{return{
   meta:{schemeCode:135854,schemeName:'HDFC BSE Sensex ETF - Growth Option',isinGrowth:'INF179KC1HX2',
     fundHouse:'HDFC Mutual Fund',schemeType:'Open Ended Schemes',schemeCategory:'Other Scheme - Other ETFs'},
-  points:[{date:'2015-12-09',nav:2500},{date:'2020-10-23',nav:4000},
+  points:[{date:'2015-12-09',nav:2500},{date:'2018-10-23',nav:3200},{date:'2020-10-23',nav:4000},
     {date:'2021-02-19',nav:5000},{date:'2021-02-22',nav:490},{date:'2021-10-22',nav:520},
     {date:'2023-10-23',nav:630},{date:'2024-02-02',nav:700},{date:'2024-02-05',nav:69.65},
     {date:'2025-10-23',nav:75},{date:'2026-10-23',nav:80.5}],
