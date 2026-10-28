@@ -105,6 +105,23 @@ function actionForScheme(fund: FundData): ActionSpec | null {
     factor:100,maxFactorDeviation:0.1,
     evidenceUrl:'https://files.hdfcfund.com/s3fs-public/addenda-reports/636%20-%20Addendum%20-%20Change%20in%20Face%20Value%20of%20Liquid%20Schemes%20-%20August%2014,%202015.pdf',
   };
+  // MSE/LIST/10126/2021 and the issuer's February 2021 factsheet confirm
+  // these splits and new ISINs. Checkpoint 208 verifies both full histories.
+  // The source NAV denomination changes after the 19-Feb record-date NAV.
+  const hdfcEtfIdentity = ([
+    [113049, 'hdfc gold etf - growth option', 'INF179KC1981', 0.01, 100, 'HDFC Gold ETF'],
+    [135853, 'hdfc nifty 50 etf - growth option', 'INF179KC1965', 0.1, 10, 'HDFC NIFTY 50 ETF'],
+  ] as const).find(([code]) => code===fund.meta.schemeCode);
+  if (hdfcEtfIdentity && fund.meta.schemeName.toLowerCase()===hdfcEtfIdentity[1]
+    && fund.meta.isinGrowth===hdfcEtfIdentity[2] && fund.meta.fundHouse==='HDFC Mutual Fund') return {
+    schemeCode:fund.meta.schemeCode,
+    label:`verified ${hdfcEtfIdentity[4]}-for-1 ${hdfcEtfIdentity[5]} unit split (record date 19 February 2021)`,
+    oldNavThrough:'2021-02-19',firstNewNavDate:'2021-02-22',
+    // Retain the actual market return, not the apparent 90%/99% denomination
+    // loss. A separate 5% residual-move bound applies only to these two events.
+    factor:hdfcEtfIdentity[3],maxFactorDeviation:hdfcEtfIdentity[3]*0.05,
+    evidenceUrl:'https://www.msei.in/SX-Content/Circulars/2021/February/Circular-10126.pdf',
+  };
   return null;
 }
 
