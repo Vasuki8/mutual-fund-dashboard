@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { ArrowDown, Bookmark, Check, Plus, RefreshCw } from 'lucide-react';
+import { ArrowDown, ArrowUpDown, ArrowRight, Bookmark, Check, Plus, RefreshCw } from 'lucide-react';
 import type { FundData, Scheme } from '../lib/types.ts';
 import { currency, percent, shortName, planLabel, categoryLabel, fundInitials, dateLabel } from '../lib/format.ts';
 import { returnValue, type FundReturnLookup, type FundSort, type FundSortKey } from '../lib/fund-sort.ts';
@@ -17,13 +17,14 @@ export function FundTable({schemes,funds,errors,ensureFund,openFund,watchlist,co
   // Home owns the sort across ALL matches and passes only the already sorted page.
   const getReturn=(scheme:Scheme,years:1|3|5)=>returnValue(returnsByScheme[scheme.schemeCode],String(years) as '1'|'3'|'5');
   const sortedState=(key:FundSortKey):'ascending'|'descending'|undefined=>sort.key===key?(sort.desc?'descending':'ascending'):undefined;
-  return <div className="table-scroll" role="region" aria-label="Fund results table" tabIndex={0}><table className="fund-table"><thead><tr>
-    <th scope="col" className="fund-name-column" aria-sort={sortedState('name')}><button onClick={()=>onSort('name')}>Fund name {sort.key==='name'&&<ArrowDown size={12} className={sort.desc?'':'rotate'}/>}</button></th>
+  const sortIcon=(key:FundSortKey,enabled=true)=>sort.key===key?<ArrowDown size={12} aria-hidden="true" className={sort.desc?'':'rotate'}/>:enabled?<ArrowUpDown size={12} aria-hidden="true" className="sort-neutral"/>:null;
+  return <><div className="table-scroll-hint"><ArrowRight size={13} aria-hidden="true"/><span>Scroll horizontally to view all columns</span></div><div className="table-scroll" role="region" aria-label="Fund results table" tabIndex={0}><table className="fund-table"><thead><tr>
+    <th scope="col" className="fund-name-column" aria-sort={sortedState('name')}><button onClick={()=>onSort('name')}>Fund name {sortIcon('name')}</button></th>
     <th scope="col" className="numeric">NAV</th>
-    <th scope="col" className="numeric" aria-sort={sortedState('1')}><button onClick={()=>onSort('1')} disabled={!canSortReturns} title={!canSortReturns?'Global return sorting requires a published return index or complete loaded history':undefined}>1Y return {sort.key==='1'&&<ArrowDown size={12} className={sort.desc?'':'rotate'}/>}</button></th>
-    <th scope="col" className="numeric" aria-sort={sortedState('3')}><button onClick={()=>onSort('3')} disabled={!canSortReturns} title={!canSortReturns?'Global return sorting requires a published return index or complete loaded history':undefined}>3Y CAGR {sort.key==='3'&&<ArrowDown size={12} className={sort.desc?'':'rotate'}/>}</button></th>
-    <th scope="col" className="numeric" aria-sort={sortedState('5')}><button onClick={()=>onSort('5')} disabled={!canSortReturns} title={!canSortReturns?'Global return sorting requires a published return index or complete loaded history':undefined}>5Y CAGR {sort.key==='5'&&<ArrowDown size={12} className={sort.desc?'':'rotate'}/>}</button></th>
-    <th scope="col" className="numeric" aria-sort={sortedState('dd3')}><button onClick={()=>onSort('dd3')} disabled={!canSortDrawdown} title={!canSortDrawdown?'Global 3Y max drawdown requires the updated verified archive or complete loaded histories.':'Largest observed peak-to-trough NAV loss over the trailing three years; smaller losses sort first by default.'}>3Y max drawdown {sort.key==='dd3'&&<ArrowDown size={12} className={sort.desc?'':'rotate'}/>}</button></th>
+    <th scope="col" className="numeric" aria-sort={sortedState('1')}><button onClick={()=>onSort('1')} disabled={!canSortReturns} title={!canSortReturns?'Global return sorting requires a published return index or complete loaded history':undefined}>1Y return {sortIcon('1',canSortReturns)}</button></th>
+    <th scope="col" className="numeric" aria-sort={sortedState('3')}><button onClick={()=>onSort('3')} disabled={!canSortReturns} title={!canSortReturns?'Global return sorting requires a published return index or complete loaded history':undefined}>3Y CAGR {sortIcon('3',canSortReturns)}</button></th>
+    <th scope="col" className="numeric" aria-sort={sortedState('5')}><button onClick={()=>onSort('5')} disabled={!canSortReturns} title={!canSortReturns?'Global return sorting requires a published return index or complete loaded history':undefined}>5Y CAGR {sortIcon('5',canSortReturns)}</button></th>
+    <th scope="col" className="numeric" aria-sort={sortedState('dd3')}><button onClick={()=>onSort('dd3')} disabled={!canSortDrawdown} title={!canSortDrawdown?'Global 3Y max drawdown requires the updated verified archive or complete loaded histories.':'Largest observed peak-to-trough NAV loss over the trailing three years; smaller losses sort first by default.'}>3Y max drawdown {sortIcon('dd3',canSortDrawdown)}</button></th>
     <th scope="col" className="actions-head">Save / compare</th>
   </tr></thead><tbody>{schemes.map((scheme)=>{
     const fund=funds[scheme.schemeCode];const latest=fund?.points.at(-1);const saved=watchlist.some(s=>s.schemeCode===scheme.schemeCode);const added=compared.some(s=>s.schemeCode===scheme.schemeCode);
@@ -41,5 +42,5 @@ export function FundTable({schemes,funds,errors,ensureFund,openFund,watchlist,co
         </td>;})()}
       <td><div className="table-actions"><button className={`icon-button ${saved?'active':''}`} aria-pressed={saved} onClick={()=>toggleWatch(scheme)} aria-label={`${saved?'Remove':'Save'} ${shortName(scheme.schemeName)} ${saved?'from':'to'} watchlist`} title={saved?'Remove from watchlist':'Save to watchlist'}><Bookmark size={17} fill={saved?'currentColor':'none'}/></button><button className={`compare-toggle ${added?'active':''}`} aria-pressed={added} onClick={()=>toggleCompare(scheme)} aria-label={`${added?'Remove':'Add'} ${shortName(scheme.schemeName)} ${added?'from':'to'} comparison`} title={added?'Remove from comparison':'Add to comparison'}>{added?<Check size={14}/>:<Plus size={15}/>}</button></div></td>
     </tr>;
-  })}</tbody></table>{!schemes.length&&<div className="empty-state">No funds to display.</div>}{schemes.length>0&&!schemes.some(s=>funds[s.schemeCode]||errors[s.schemeCode])&&<span className="sr-only" role="status">Loading NAV data</span>}</div>;
+  })}</tbody></table>{!schemes.length&&<div className="empty-state">No funds to display.</div>}{schemes.length>0&&!schemes.some(s=>funds[s.schemeCode]||errors[s.schemeCode])&&<span className="sr-only" role="status">Loading NAV data</span>}</div></>;
 }
