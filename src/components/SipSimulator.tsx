@@ -11,6 +11,7 @@ import { RangeNotice, RangePicker } from './AnalysisRangePicker.tsx';
 interface Props { fund: FundData; unitAdjustment?: VerifiedUnitAdjustment }
 
 export function SipSimulator({ fund, unitAdjustment }: Props) {
+  const unitAdjustments = unitAdjustment ? [...(unitAdjustment.earlierEvents ?? []), unitAdjustment] : [];
   const [range, setRange] = useState<AnalysisRange>('3Y');
   const [amountDraft, setAmountDraft] = useState('1000');
   const amount = amountDraft.trim() ? Number(amountDraft) : Number.NaN;
@@ -40,7 +41,7 @@ export function SipSimulator({ fund, unitAdjustment }: Props) {
       ['Fund', fund.meta.schemeName],
       ['Scheme code', fund.meta.schemeCode],
       ['NAV source', 'https://api.mfapi.in/mf/' + fund.meta.schemeCode],
-      ['NAV calculation basis', unitAdjustment ? `Source NAV through ${unitAdjustment.oldNavThrough} multiplied by ${unitAdjustment.factor}; new unit basis begins ${unitAdjustment.firstNewNavDate}; scheme ${unitAdjustment.schemeCode}; raw observations unchanged` : 'Source reported NAV'],
+      ['NAV calculation basis', unitAdjustments.length ? unitAdjustments.map(action => `Source NAV through ${action.oldNavThrough} multiplied by ${action.factor}; new unit basis begins ${action.firstNewNavDate}; scheme ${action.schemeCode}; raw observations unchanged`).join(' | ') + (unitAdjustments.length > 1 ? '; Factors compound where event ranges overlap.' : '') : 'Source reported NAV'],
       ['Original NAV retrieval', fund.fetchedAt],
       ['Calculation', 'Hypothetical fixed monthly contribution; no real transactions'],
       ['Monthly anchor', 'Requested start day (clamped to month-end when needed)'],
@@ -60,7 +61,7 @@ export function SipSimulator({ fund, unitAdjustment }: Props) {
       ['Simple gain divided by contributions (decimal)', result.gainShare],
       ['Money-weighted XIRR (decimal, ACT/365)', result.annualizedXirr],
       ['Excluded from illustration', 'Taxes, transaction charges, exit loads, allotment rounding and distributions'],
-      ['Scheduled date', 'Actual NAV date', 'Reported NAV (INR/unit)', 'Hypothetical contribution (INR)',
+      ['Scheduled date', 'Actual NAV date', unitAdjustment ? 'Unit-adjusted NAV (INR/unit)' : 'Reported NAV (INR/unit)', 'Hypothetical contribution (INR)',
         'Fractional units', 'Status'],
       ...rows.map(item => [item.scheduled, item.execution, item.nav, item.contribution, item.units, item.status]),
     ], 'fundscope-' + fund.meta.schemeCode + '-historical-sip.csv');
@@ -69,7 +70,7 @@ export function SipSimulator({ fund, unitAdjustment }: Props) {
   return <section className="panel sip-simulator" aria-labelledby="sip-simulator-heading">
     <div className="panel-heading"><div>
       <h2 id="sip-simulator-heading">Historical SIP simulation</h2>
-      <p>How an assumed monthly investment would have behaved using Growth-option NAVs{unitAdjustment ? `, adjusted for the ${unitAdjustment.label}` : ''}.</p>
+      <p>How an assumed monthly investment would have behaved using Growth-option NAVs{unitAdjustments.length ? `, adjusted for the ${unitAdjustments.map(action => action.label).join('; ')}` : ''}. {unitAdjustments.length > 1 ? 'Factors compound where event ranges overlap.' : ''}</p>
     </div><button className="button secondary small" onClick={exportCsv}
       aria-label="Export hypothetical SIP cash flows as CSV" disabled={!successful}>
       <Download size={14}/> CSV

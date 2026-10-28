@@ -1,4 +1,5 @@
 import type { FundData, NavPoint } from './types.ts';
+import { sensexFinancialNavBasis } from './sensex-unit-splits.ts';
 
 /**
  * A documented 10:1 ICICI Prudential Overnight Fund unit consolidation.
@@ -43,6 +44,8 @@ export interface VerifiedUnitAdjustment {
   firstNewNavDate: string;
   factor: number;
   evidenceUrl: string;
+  /** Earlier verified events; factors compound for observations preceding multiple events. */
+  earlierEvents?: readonly Omit<VerifiedUnitAdjustment, 'earlierEvents'>[];
 }
 
 export interface FinancialNavBasis {
@@ -232,6 +235,7 @@ function adjustedForKnownAction(raw: NavPoint[], action: ActionSpec): NavPoint[]
  * may be explained, after independent validation of the actual raw values.
  */
 export function financialNavBasis(fund: FundData): FinancialNavBasis {
+  if (fund.meta.schemeCode===135854) return sensexFinancialNavBasis(fund);
   const unchanged: FinancialNavBasis={fund,adjusted:false};
   const action=actionForScheme(fund);
   if (!action) return unchanged;
