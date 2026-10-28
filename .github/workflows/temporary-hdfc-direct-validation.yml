@@ -1,0 +1,77 @@
+name: Temporary HDFC Direct calculation verification
+on:
+  push:
+    branches: [audit/hdfc-liquid-growth-plans]
+    paths: [.github/workflows/temporary-hdfc-direct-validation.yml]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: 1bcb76b824fd40c73a80f8bfd2e504558c777dc7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Verify all retained NAVs and calculation-only treatment
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          node --experimental-strip-types --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { createHash } from 'node:crypto';
+          import { createGitHubStore } from './scripts/archive-store.ts';
+          import { validateShardStates } from './scripts/archive-model.ts';
+          import { isActiveRepairCandidate } from './scripts/active-repair-scope.ts';
+          import { financialNavBasis } from './src/lib/corporate-actions.ts';
+          import { qualityBlocked } from './src/lib/format.ts';
+          import { cagr, trailingReturn } from './src/lib/analytics.ts';
+          const repository=process.env.GITHUB_REPOSITORY;
+          assert.equal(repository,'Vasuki8/mutual-fund-dashboard');
+          const store=createGitHubStore({repository,token:process.env.GITHUB_TOKEN,deadline:Date.now()+4*60000});
+          const snapshot=await store.loadSnapshot();assert.ok(snapshot);
+          const results=[];
+          for(const code of [119091,100868]){
+            const entry=snapshot.catalogue.entries.find(e=>e.schemeCode===code);
+            assert.ok(entry&&isActiveRepairCandidate(entry,Date.now()),'Must remain in strict 30-day scope');
+            const bucket=String(Math.floor(code/32)),ref=snapshot.checkpoint.shards[bucket];assert.ok(ref);
+            const shard=await store.readShard(ref,bucket);validateShardStates(shard,snapshot.checkpoint.states);
+            const doc=shard.records.find(d=>d.schemeCode===code);assert.ok(doc);
+            const originalDocument=JSON.stringify(doc),meta=doc.payload.meta;
+            const raw={meta:{schemeCode:meta.scheme_code,schemeName:meta.scheme_name,fundHouse:meta.fund_house,
+              schemeType:meta.scheme_type,schemeCategory:meta.scheme_category},
+              points:[...doc.payload.data].reverse().map(p=>({date:p.date.slice(6,10)+'-'+p.date.slice(3,5)+'-'+p.date.slice(0,2),nav:Number(p.nav)})),
+              warnings:[...doc.warnings],fetchedAt:doc.fetchedAt,source:'mfapi.in',stale:false,fromCache:true};
+            const originalFund=JSON.stringify(raw),basis=financialNavBasis(raw);
+            assert.equal(basis.adjusted,true);assert.equal(basis.adjustment?.schemeCode,code);
+            assert.equal(basis.adjustment.factor,100);assert.equal(qualityBlocked(basis.fund),false);
+            assert.equal(qualityBlocked(raw),true);assert.equal(basis.fund.points.length,raw.points.length);
+            let changed=0;
+            for(let i=0;i<raw.points.length;i++){
+              const old=raw.points[i],next=basis.fund.points[i],pre=old.date<'2015-08-30';
+              if(pre)changed++;
+              assert.equal(next.date,old.date);assert.equal(next.nav,pre?old.nav*100:old.nav);
+            }
+            const index=raw.points.findIndex(p=>p.date==='2015-08-30');assert.ok(index>0);
+            assert.equal(raw.points[index-1].date,'2015-08-28');
+            const rawFactor=raw.points[index].nav/raw.points[index-1].nav;
+            const adjustedFactor=basis.fund.points[index].nav/basis.fund.points[index-1].nav;
+            assert.ok(Math.abs(rawFactor-100)<0.1);assert.ok(Math.abs(adjustedFactor-1)<0.001);
+            for(const years of [1,3,5])assert.equal(trailingReturn(basis.fund.points,years),trailingReturn(raw.points,years));
+            const first=basis.fund.points[0],last=basis.fund.points.at(-1);
+            const years=(Date.parse(last.date)-Date.parse(first.date))/(86400000*365);
+            assert.ok(Math.abs(cagr(basis.fund.points)-((last.nav/first.nav)**(1/years)-1))<1e-10);
+            assert.equal(financialNavBasis(basis.fund).adjusted,false);
+            assert.equal(JSON.stringify(doc),originalDocument);assert.equal(JSON.stringify(raw),originalFund);
+            results.push({code,name:meta.scheme_name,observations:raw.points.length,oldBasisObservations:changed,
+              latestNavDate:entry.latestDate,historyEnd:doc.coverageEnd,rawFactor,adjustedFactor,
+              sourceUnchanged:true,postEventReturnsUnchanged:true,
+              rawDocumentSha256:createHash('sha256').update(originalDocument).digest('hex'),shardSha256:ref.sha256});
+          }
+          console.log('HDFC_BOTH_GROWTH_VERIFIED '+JSON.stringify({checkedAt:new Date().toISOString(),
+            commit:'1bcb76b824fd40c73a80f8bfd2e504558c777dc7',sequence:snapshot.checkpoint.sequence,
+            results,archiveWrites:0,providerRequests:0}));
+          NODE
