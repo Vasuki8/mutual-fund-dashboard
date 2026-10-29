@@ -33,7 +33,7 @@ for (const fixture of [
     stage: 'membership_list', reason: 'response_not_array' },
   { name: 'undersized list response', list: [], stage: 'membership_list', reason: 'row_count_out_of_range', rows: 0 },
   { name: 'invalid list identity', list: [null], stage: 'membership_list', reason: 'scheme_identity_invalid', rows: 1 },
-  { name: 'duplicate list codes', list: [identity, identity],
+  { name: 'conflicting duplicate list codes', list: [identity, { ...identity, schemeName: 'Conflicting Growth' }],
     stage: 'membership_list', reason: 'duplicate_scheme_code', rows: 2 },
 ]) {
   test(`catalogue diagnostics identify ${fixture.name} without exposing source content`, async () => {
