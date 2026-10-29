@@ -110,6 +110,100 @@ function actionForScheme(fund: FundData): ActionSpec | null {
     factor:100,maxFactorDeviation:0.1,
     evidenceUrl:'https://mf.nipponindiaim.com/InvestorServices/AnnualHalfYearlyReportsFY20122013/Half_Yearly_Portfolio_-_Financials_-_Oct-_2012_-_for_Website_upload.pdf#page=34',
   };
+  // NSE/CML/42888 binds these six ETF ISINs to the December-2019 splits.
+  // Each saved NAV series changes basis after its 20-Dec observation,
+  // independently of the 19-Dec exchange ex-date and 20-Dec ISIN date.
+  const nipponDecemberEtfIdentity = ([
+    [134782, 'nippon india etf nifty 50 value 20 - direct plan', 'INF204KB18I3', 0.1, 10, 'Nippon India ETF Nifty 50 Value 20'],
+    [140084, 'nippon india etf nifty 50 bees - direct plan', 'INF204KB14I2', 0.1, 10, 'Nippon India ETF Nifty 50 BeES'],
+    [140087, 'nippon india etf nifty bank bees - direct plan', 'INF204KB15I9', 0.1, 10, 'Nippon India ETF Nifty Bank BeES'],
+    [140088, 'nippon india etf gold bees - direct plan', 'INF204KB17I5', 0.01, 100, 'Nippon India ETF Gold BeES'],
+    [140089, 'nippon india etf nifty psu bank bees - direct plan', 'INF204KB16I7', 0.1, 10, 'Nippon India ETF Nifty PSU Bank BeES'],
+    [140095, 'nippon india etf hang seng bees - direct plan', 'INF204KB19I1', 0.1, 10, 'Nippon India ETF Hang Seng BeES'],
+  ] as const).find(([code]) => code===fund.meta.schemeCode);
+  if (nipponDecemberEtfIdentity && fund.meta.schemeName.toLowerCase()===nipponDecemberEtfIdentity[1]
+    && fund.meta.isinGrowth===nipponDecemberEtfIdentity[2] && fund.meta.fundHouse==='Nippon India Mutual Fund') return {
+    schemeCode:fund.meta.schemeCode,
+    label:`verified ${nipponDecemberEtfIdentity[4]}-for-1 ${nipponDecemberEtfIdentity[5]} unit split (exchange effective date 19 December 2019)`,
+    oldNavThrough:'2019-12-20',firstNewNavDate:'2019-12-23',
+    factor:nipponDecemberEtfIdentity[3],maxFactorDeviation:nipponDecemberEtfIdentity[3]*0.05,
+    evidenceUrl:'https://archives.nseindia.com/content/circulars/CML42888.pdf',
+  };
+  // The issuer's October-2014 factsheet documents Rs10 -> Rs100 on
+  // 7-Oct-2011. Exact 2014 NAV anchors and issuer rename notices bind
+  // these four Growth identities; their last old-basis dates differ.
+  const birlaOctoberDebtIdentity = ([
+    [101317, 'aditya birla sun life ultra short term fund - regular plan - growth', 'INF209K01LZ1', '2011-10-05', 'Birla Sun Life Savings Fund Regular Growth', 54],
+    [101976, 'aditya birla sun life money market fund - regular plan - growth', 'INF209K01RV7', '2011-10-06', 'Birla Sun Life Floating Rate Short Term Regular Growth', 61],
+    [103192, 'aditya birla sun life ultra short to short term fund - regular plan - growth', 'INF209K01LQ0', '2011-10-05', 'Birla Sun Life Cash Manager Regular Growth', 53],
+    [108273, 'aditya birla sun life banking & psu debt fund - regular plan - growth', 'INF209K01LV0', '2011-10-05', 'Birla Sun Life Ultra Short Term Regular Growth', 55],
+  ] as const).find(([code]) => code===fund.meta.schemeCode);
+  if (birlaOctoberDebtIdentity && fund.meta.schemeName.toLowerCase()===birlaOctoberDebtIdentity[1]
+    && fund.meta.isinGrowth===birlaOctoberDebtIdentity[2] && fund.meta.fundHouse==='Aditya Birla Sun Life Mutual Fund') return {
+    schemeCode:fund.meta.schemeCode,
+    label:`verified 10-to-1 ${birlaOctoberDebtIdentity[4]} unit consolidation effective 7 October 2011`,
+    oldNavThrough:birlaOctoberDebtIdentity[3],firstNewNavDate:'2011-10-07',
+    factor:10,maxFactorDeviation:0.01,
+    evidenceUrl:`https://mutualfund.adityabirlacapital.com/-/media/bsl/files/resources/factsheets/2014/empower-october-2014.pdf#page=${birlaOctoberDebtIdentity[5]}`,
+  };
+  // NSE/CML/50382 confirms the exact new ISINs and split factors. The
+  // issuer's Addendum 41/2021 gives the 26-Nov record date; saved NAVs
+  // first use new units on 29-Nov. Gold uses 0.01, the other four 0.1.
+  const birlaNovemberEtfIdentity = ([
+    [115127, 'aditya birla sun life gold etf', 'INF209KB18D3', 0.01, 100, 'Aditya Birla Sun Life Gold ETF'],
+    [115512, 'aditya birla sun life nifty 50 etf', 'INF209KB19D1', 0.1, 10, 'Aditya Birla Sun Life Nifty 50 ETF'],
+    [139581, 'aditya birla sun life bse sensex etf', 'INF209KB10E8', 0.1, 10, 'Aditya Birla Sun Life BSE Sensex ETF'],
+    [145881, 'aditya birla sun life nifty next 50 etf', 'INF209KB16D7', 0.1, 10, 'Aditya Birla Sun Life Nifty Next 50 ETF'],
+    [147735, 'aditya birla sun life nifty bank etf', 'INF209KB17D5', 0.1, 10, 'Aditya Birla Sun Life Nifty Bank ETF'],
+  ] as const).find(([code]) => code===fund.meta.schemeCode);
+  if (birlaNovemberEtfIdentity && fund.meta.schemeName.toLowerCase()===birlaNovemberEtfIdentity[1]
+    && fund.meta.isinGrowth===birlaNovemberEtfIdentity[2] && fund.meta.fundHouse==='Aditya Birla Sun Life Mutual Fund') return {
+    schemeCode:fund.meta.schemeCode,
+    label:`verified ${birlaNovemberEtfIdentity[4]}-for-1 ${birlaNovemberEtfIdentity[5]} unit split (record date 26 November 2021)`,
+    oldNavThrough:'2021-11-26',firstNewNavDate:'2021-11-29',
+    factor:birlaNovemberEtfIdentity[3],maxFactorDeviation:birlaNovemberEtfIdentity[3]*0.05,
+    evidenceUrl:'https://nsearchives.nseindia.com/content/circulars/CML50382.pdf#page=1',
+  };
+  // UTI Addendum 14/2026-27 and NSE/NMFTM/74721 document Rs1000 ->
+  // Rs100 effective 19-Jun-2026. CDSL notice 2026/416 binds the new
+  // Growth ISINs; saved NAVs first change basis on 20-Jun.
+  const utiJuneLiquidIdentity = ([
+    [102012, 'uti - liquid fund - regular plan - growth', 'INF789F1AF85', 'Regular'],
+    [120304, 'uti - liquid fund - direct plan - growth', 'INF789F1AD46', 'Direct'],
+  ] as const).find(([code]) => code===fund.meta.schemeCode);
+  if (utiJuneLiquidIdentity && fund.meta.schemeName.toLowerCase()===utiJuneLiquidIdentity[1]
+    && fund.meta.isinGrowth===utiJuneLiquidIdentity[2] && fund.meta.fundHouse==='UTI Mutual Fund') return {
+    schemeCode:fund.meta.schemeCode,
+    label:`verified 10-for-1 UTI Liquid Fund ${utiJuneLiquidIdentity[3]} Growth unit split effective 19 June 2026`,
+    oldNavThrough:'2026-06-19',firstNewNavDate:'2026-06-20',
+    factor:0.1,maxFactorDeviation:0.0001,
+    evidenceUrl:'https://nsearchives.nseindia.com/content/circulars/NMF74721.zip',
+  };
+  // The issuer's May-2013 factsheet documents Rs10 -> Rs1000 at close
+  // on 18-Apr. Exact plan NAV anchors, code/ISIN bindings and rename
+  // notices support these ten identities; legacy 105189/112120 are deferred.
+  const invescoAprilDebtIdentity = ([
+    [105185, 'invesco india short term fund - regular plan - growth', 'INF205K01UN6', 'Short Term Growth'],
+    [106177, 'invesco india corporate bond fund - regular plan - growth', 'INF205K01RM4', 'Active Income Growth'],
+    [107477, 'invesco india gilt fund - regular plan - growth', 'INF205K01SR1', 'Gilt Long Duration Growth'],
+    [112123, 'invesco india money market fund - regular plan - growth', 'INF205K01SD1', 'Credit Opportunities Growth'],
+    [114359, 'invesco india ultra short term fund - regular plan - growth', 'INF205K01TM0', 'Medium Term Bond Growth'],
+    [120497, 'invesco india corporate bond fund - direct plan - growth', 'INF205K01RF8', 'Active Income Direct Growth'],
+    [120507, 'invesco india money market fund - direct plan - growth', 'INF205K01RY9', 'Credit Opportunities Direct Growth'],
+    [120520, 'invesco india gilt fund - direct plan - growth', 'INF205K01SN0', 'Gilt Long Duration Direct Growth'],
+    [120541, 'invesco india ultra short term fund - direct plan - growth', 'INF205K01TH0', 'Medium Term Bond Direct Growth'],
+    [120560, 'invesco india short term fund - direct plan - growth', 'INF205K01UH8', 'Short Term Direct Growth'],
+  ] as const).find(([code]) => code===fund.meta.schemeCode);
+  if (invescoAprilDebtIdentity && fund.meta.schemeName.toLowerCase()===invescoAprilDebtIdentity[1]
+    && fund.meta.isinGrowth===invescoAprilDebtIdentity[2] && fund.meta.fundHouse==='Invesco Mutual Fund') return {
+    schemeCode:fund.meta.schemeCode,
+    label:`verified 100-to-1 Religare Invesco ${invescoAprilDebtIdentity[3]} unit consolidation effective 18 April 2013`,
+    oldNavThrough:'2013-04-18',firstNewNavDate:'2013-04-22',
+    // A 0.5% bound permits ordinary return over the four-day observed gap;
+    // retain the documented factor rather than fitting the observed ratio.
+    factor:100,maxFactorDeviation:0.5,
+    evidenceUrl:'https://www.invescomutualfund.com/docs/default-source/Fact-Sheet/factsheet_may_2013.pdf?sfvrsn=0#page=5',
+  };
   // HDFC's 14-Aug-2015 notice covers both Regular and Direct plans.
   // Checkpoints 207/208 independently verify these two Growth identities
   // and their exact 28-to-30 August source boundaries. No other plan is implied.
