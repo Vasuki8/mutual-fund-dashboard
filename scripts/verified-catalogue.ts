@@ -67,7 +67,10 @@ export async function fetchVerifiedCatalogue(
   try {
     for (const raw of rawList) {
       const identity = scheme(raw);
-      requireValue(!listing.has(identity.schemeCode), 'source_catalogue_invalid', {
+      const existing = listing.get(identity.schemeCode);
+      requireValue(!existing || (existing.schemeName === identity.schemeName
+        && existing.isinGrowth === identity.isinGrowth
+        && existing.isinDivReinvestment === identity.isinDivReinvestment), 'source_catalogue_invalid', {
         stage: 'membership_list', reason: 'duplicate_scheme_code', rows: rawList.length });
       listing.set(identity.schemeCode, identity);
     }
@@ -76,6 +79,8 @@ export async function fetchVerifiedCatalogue(
     throw new CatalogueIntegrityError('source_catalogue_invalid', {
       stage: 'membership_list', reason: validationReason(error), rows: rawList.length });
   }
+  requireValue(listing.size >= minimumSize, 'source_catalogue_invalid', {
+    stage: 'membership_list', reason: 'row_count_out_of_range', rows: rawList.length, listedSchemes: listing.size });
   // A sudden large disappearance is ambiguous, even if both endpoints share
   // an upstream partial cache. Preserve the prior catalogue for review.
   if (previous && previous.entries.length >= 100) {
@@ -89,7 +94,8 @@ export async function fetchVerifiedCatalogue(
   // Verify that the unpaginated response was not merely a default first page.
   // A nonempty terminal page (including a concurrent source expansion) fails
   // closed; do not silently publish a partial or mixed membership snapshot.
-  const tail = await source(`/mf?limit=1&offset=${listing.size}`);
+  // Offsets count returned rows, including identical copies, not unique codes.
+  const tail = await source(`/mf?limit=1&offset=${rawList.length}`);
   requireValue(Array.isArray(tail), 'source_catalogue_incomplete', { stage: 'terminal_probe', reason: 'response_not_array' });
   requireValue(tail.length === 0, 'source_catalogue_incomplete', { stage: 'terminal_probe', reason: 'terminal_not_empty', rows: tail.length });
 
@@ -103,6 +109,8 @@ export async function fetchVerifiedCatalogue(
   const missingBulkNav = listing.size - bulkCodes.size;
   const warnings = next.warnings.filter(warning =>
     !/^\d+ previously known scheme\(s\) are absent from the current provider catalogue and remain retained\.$/.test(warning));
+  const duplicateRows = rawList.length - listing.size;
+  if (duplicateRows) warnings.push(`${duplicateRows} identical duplicate scheme-list rows were consolidated; membership counts use unique scheme codes.`);
   if (absent) warnings.push(`${absent} previously known scheme(s) are absent from the independently verified source scheme list; saved observations remain retained.`);
   if (missingBulkNav) warnings.push(`${missingBulkNav} listed scheme(s) are absent from the bulk NAV response; original saved NAV observations are retained where available, without assigning a new price or date.`);
   const fetchedAt = new Date(now()).toISOString();

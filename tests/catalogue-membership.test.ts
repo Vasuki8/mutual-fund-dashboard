@@ -147,14 +147,33 @@ test('a genuinely unlisted code stays non-current while its observations and war
   assert.deepEqual(store.snapshot!.checkpoint.shards, before.checkpoint.shards);
 });
 
-test('duplicate identities and bulk codes absent from the independently checked list fail before a first publication', async () => {
-  for (const list of [identities([low, low]), identities([high])]) {
+test('conflicting duplicate identities and bulk codes absent from the checked list fail before a first publication', async () => {
+  for (const list of [[...identities([low]), { ...identities([low])[0], schemeName: 'Conflicting Growth' }], identities([high])]) {
     const store = new MemoryStore();
     await assert.rejects(run({ store, now: () => NOW, minCatalogueSize: 1,
       activeRepairOnly: true, verifyCatalogueMembership: true,
       source: metadataSource([], list) }), /source_catalogue_(invalid|membership_conflict)/);
     assert.equal(store.snapshot, null); assert.equal(store.assets.size, 0);
   }
+});
+
+test('consolidating identical list copies preserves saved histories and unresolved quality state', async () => {
+  const store = await seed(), before = structuredClone(store.snapshot!);
+  const requests: string[] = [];
+  const result = await run({ store, now: () => NOW + 1000, minCatalogueSize: 1,
+    activeRepairOnly: true, verifyCatalogueMembership: true,
+    source: metadataSource(requests, identities([low, high, low, high])) });
+  assert.deepEqual(requests, ['/mf/latest', '/mf', '/mf?limit=1&offset=4']);
+  assert.equal(result.attempted, 0);
+  assert.equal(result.lastCatalogueError, null);
+  assert.equal(store.snapshot!.catalogue.entries.length, 2);
+  assert.equal(store.snapshot!.catalogue.membership?.listedSchemes, 2);
+  assert.equal(store.snapshot!.catalogue.membership?.missingBulkNav, 1);
+  assert.deepEqual(store.snapshot!.checkpoint.states, before.checkpoint.states);
+  assert.deepEqual(store.snapshot!.checkpoint.shards, before.checkpoint.shards);
+  assert.equal(result.counts?.qualityIssues, before.checkpoint.counts.qualityIssues);
+  assert.equal(store.snapshot!.catalogue.entries[1].nav, before.catalogue.entries[1].nav);
+  assert.equal(store.snapshot!.catalogue.entries[1].latestDate, before.catalogue.entries[1].latestDate);
 });
 
 test('a rate limit during membership verification keeps the catalogue and honors the existing global cooldown', async () => {
