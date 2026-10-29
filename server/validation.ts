@@ -1,4 +1,5 @@
 import type { Scheme } from '../src/lib/types.ts';
+import { validateRejectedZeroNavDates } from '../src/lib/nav-quality-evidence.ts';
 import { ApiError } from './types.ts';
 import type { ArchiveIndex, Catalogue, CatalogueEntry, HistoryDocument, ProviderHistory, RawNav } from './types.ts';
 
@@ -61,7 +62,9 @@ export function searchResults(value: unknown): Scheme[] {
   return [...schemes.values()];
 }
 
-export function validateHistory(value: unknown, code: number): { payload: ProviderHistory; warnings: string[] } {
+export function validateHistory(value: unknown, code: number): {
+  payload: ProviderHistory; warnings: string[]; rejectedZeroNavDates?: string[];
+} {
   if (!validCode(code)) throw new ApiError('Invalid requested scheme code.', 400);
   const body = record(value, 'history response');
   if (body.status !== 'SUCCESS') throw new ApiError('MFAPI returned an unsuccessful response status.');
@@ -80,13 +83,20 @@ export function validateHistory(value: unknown, code: number): { payload: Provid
   const observations = new Map<string, RawNav>();
   let duplicates = 0;
   let invalid = 0;
+  const rejectedZeroDates = new Set<string>();
   const conflicting = new Set<string>();
   for (const raw of body.data) {
     if (!raw || typeof raw !== 'object' || Array.isArray(raw)) { invalid += 1; continue; }
     const item = raw as Record<string, unknown>;
     const date = dateISO(item.date);
     const nav = navString(item.nav);
-    if (!date || !nav) { invalid += 1; continue; }
+    if (!date || !nav) {
+      invalid += 1;
+      if (date && typeof item.nav === 'string' && item.nav.length <= 128 && /^0+(?:\.0+)?$/.test(item.nav.trim())) {
+        rejectedZeroDates.add(date);
+      }
+      continue;
+    }
     const existing = observations.get(date);
     if (existing) {
       duplicates += 1;
@@ -113,7 +123,13 @@ export function validateHistory(value: unknown, code: number): { payload: Provid
       : duplicates ? [`Identical duplicate NAV dates were consolidated (${duplicates}).`] : []),
   ];
   warnings.push(...discontinuityWarnings(data));
-  return { payload: { status: 'SUCCESS', meta: parsedMeta, data }, warnings };
+  // The raw rejected rows, not an invalid count or a normalized payload,
+  // establish this complete set. Repeated/colliding dates make it unknown.
+  const rejectedZeroNavDates = invalid > 0 && rejectedZeroDates.size === invalid && !conflicting.size
+    && [...rejectedZeroDates].every(date => !observations.has(date))
+    ? validateRejectedZeroNavDates([...rejectedZeroDates].sort(), warnings, observations.keys()) : undefined;
+  return { payload: { status: 'SUCCESS', meta: parsedMeta, data }, warnings,
+    ...(rejectedZeroNavDates ? { rejectedZeroNavDates } : {}) };
 }
 
 function discontinuityWarnings(data: RawNav[]): string[] {
@@ -132,6 +148,9 @@ export function mergeHistory(incoming: ReturnType<typeof validateHistory>, previ
   const latest = dateISO(incoming.payload.data[0].date)!;
   const olderHistory = previous !== null && latest < previous.coverageEnd;
   const lateResponse = previous !== null && fetchedAt < previous.fetchedAt;
+  const incomingEvidence = incoming.rejectedZeroNavDates === undefined ? undefined
+    : validateRejectedZeroNavDates(incoming.rejectedZeroNavDates, incoming.warnings,
+      incoming.payload.data.map(point => dateISO(point.date)!));
   const questionable = incoming.warnings.some(warning => /^(Invalid NAV|Conflicting NAV)/.test(warning));
   const preferPrevious = olderHistory || lateResponse || (questionable && previous !== null);
   const observations = new Map<string, RawNav>();
@@ -170,6 +189,22 @@ export function mergeHistory(incoming: ReturnType<typeof validateHistory>, previ
   if (behindCatalogue) warnings.push(`The history response has not yet reached the catalogue NAV date ${expectedLatest}.`);
   const mergedDiscontinuities = discontinuityWarnings(data);
   warnings.push(...mergedDiscontinuities);
+  // Evidence describes only this complete incoming response. Never inherit it
+  // from an old document or attach it to a union containing other observations.
+  let rejectedZeroNavDates: string[] | undefined;
+  // A quality record retains its old successful fetchedAt. Requiring this
+  // request to start after that record was archived also excludes ambiguous
+  // overlapping responses without changing the existing observation merge.
+  if (incomingEvidence && !olderHistory && !lateResponse && (!previous || fetchedAt >= previous.archivedAt)) {
+    const sameIdentity = !previous || (['scheme_code', 'scheme_name', 'fund_house', 'scheme_type',
+      'scheme_category', 'isin_growth', 'isin_div_reinvestment'] as const)
+      .every(field => previous.payload.meta[field] === incoming.payload.meta[field]);
+    const incomingValues = new Map(incoming.payload.data.map(point => [point.date, point.nav]));
+    const previousUnchanged = !previous || previous.payload.data.every(point => incomingValues.get(point.date) === point.nav);
+    const matchesIncoming = data.length === incoming.payload.data.length
+      && data.every((point, index) => point.date === incoming.payload.data[index].date && point.nav === incoming.payload.data[index].nav);
+    if (sameIdentity && previousUnchanged && matchesIncoming) rejectedZeroNavDates = incomingEvidence;
+  }
   return { version: 1, schemeCode: code,
     payload: { ...(preferPrevious && previous ? previous.payload : incoming.payload), data },
     fetchedAt: preferPrevious && previous ? previous.fetchedAt : fetchedAt, archivedAt,
@@ -177,7 +212,7 @@ export function mergeHistory(incoming: ReturnType<typeof validateHistory>, previ
     unresolved: mergedDiscontinuities.length > 0 || (lateResponse
       ? !!previous?.unresolved || behindCatalogue || earlierQualityWarnings.length > 0
       : olderHistory || behindCatalogue || questionable || retainedQualityWarnings.length > 0),
-    warnings: [...new Set(warnings)] };
+    warnings: [...new Set(warnings)], ...(rejectedZeroNavDates ? { rejectedZeroNavDates } : {}) };
 }
 
 export function buildCatalogue(payload: unknown, previous: Catalogue | null, indexes: ArchiveIndex[], fetchedAt: string): Catalogue {

@@ -1,6 +1,7 @@
 import type { Catalogue, HistoryDocument } from '../server/types.ts';
 import { dateISO, scheme, validCode, validateHistory } from '../server/validation.ts';
 import type { ArchiveCounts, ArchiveIssue } from '../src/lib/archive-types.ts';
+import { validateRejectedZeroNavDates } from '../src/lib/nav-quality-evidence.ts';
 
 export const RECONCILE_MS = 7 * 24 * 3600_000;
 export const MAX_COMPRESSED_BYTES = 32 * 1024 * 1024;
@@ -146,6 +147,8 @@ export function validateHistoryShard(value: unknown, bucket: string): HistorySha
     requireValue(JSON.stringify(parsed.payload.data) === JSON.stringify(payload.data), 'history_observations_invalid');
     requireValue(doc.coverageStart === dateISO(parsed.payload.data.at(-1)!.date)
       && doc.coverageEnd === dateISO(parsed.payload.data[0].date), 'history_coverage_invalid');
+    validateRejectedZeroNavDates(doc.rejectedZeroNavDates, doc.warnings as string[],
+      parsed.payload.data.map(point => dateISO(point.date)!));
     requireValue(![...parsed.warnings, ...doc.warnings].some(isQualityWarning) || doc.unresolved, 'history_quality_invalid');
   }
   return item as unknown as HistoryShard;

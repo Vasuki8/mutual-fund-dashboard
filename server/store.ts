@@ -1,7 +1,8 @@
 import { ApiError } from './types.ts';
 import type { ArchiveBindings, ArchiveIndex, Catalogue, CatalogueState, FailureRow, HistoryDocument,
   RunRow, Runtime, WorkQueue } from './types.ts';
-import { mergeHistory, validateHistory } from './validation.ts';
+import { dateISO, mergeHistory, validateHistory } from './validation.ts';
+import { validateRejectedZeroNavDates } from '../src/lib/nav-quality-evidence.ts';
 
 const LEASE_MILLISECONDS = 90_000;
 
@@ -68,6 +69,8 @@ export class ArchiveStore {
     if (document.version !== 1 || document.schemeCode !== code || document.payload?.meta.scheme_code !== code) {
       throw new ApiError('Archived scheme identity is invalid.', 503);
     }
+    validateRejectedZeroNavDates(document.rejectedZeroNavDates, document.warnings,
+      document.payload.data.map(point => dateISO(point.date)!));
     return document;
   }
 

@@ -36,6 +36,8 @@ export interface HistoryDocument {
   coverageEnd: string;
   unresolved: boolean;
   warnings: string[];
+  /** Complete rejected zero-NAV dates from a qualifying raw response; absent means unknown. */
+  rejectedZeroNavDates?: string[];
 }
 
 export interface ArchiveIndex {

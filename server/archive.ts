@@ -94,7 +94,8 @@ class Service {
   private provenance(document: HistoryDocument, fromArchive: boolean, stale = document.unresolved, extra: string[] = []): ArchiveProvenance {
     return { fetchedAt: document.fetchedAt, archivedAt: document.archivedAt, fromArchive, stale,
       coverageStart: document.coverageStart, coverageEnd: document.coverageEnd,
-      observationCount: document.payload.data.length, warnings: [...new Set([...document.warnings, ...extra])] };
+      observationCount: document.payload.data.length, warnings: [...new Set([...document.warnings, ...extra])],
+      ...(document.rejectedZeroNavDates ? { rejectedZeroNavDates: [...document.rejectedZeroNavDates] } : {}) };
   }
 
   async fund(code: number): Promise<HistoryDocument['payload'] & { _fundscope: ArchiveProvenance }> {
