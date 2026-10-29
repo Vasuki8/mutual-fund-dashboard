@@ -71,6 +71,86 @@ export function navReviewSummary(review: VerifiedNavReview, includeEvidence = tr
   return `${basis} ${events} Raw source observations and warnings remain unchanged.${includeEvidence?` Evidence: ${correction.evidenceUrl}`:''}`;
 }
 
+/** Exact interior zero repairs with independently reviewed full issuer histories. */
+function reviewedTaurusDspZeros(fund: FundData): {fund: FundData; review: VerifiedNavReview} | null {
+  const taurusDates=['2006-11-11','2006-11-12','2006-11-18'];
+  const taurusAnchorDates=['2006-11-10','2006-11-13','2006-11-14','2006-11-15',
+    '2006-11-16','2006-11-17','2006-11-19','2006-11-20'];
+  const identity=([
+    {code:100476,name:'Taurus Flexi Cap Fund - Regular Plan - Growth',house:'Taurus Mutual Fund',
+      isin:'INF044D01989',category:'Equity Scheme - Flexi Cap Fund',navId:'561',
+      zeroDates:taurusDates,zeroNavs:[38.95,38.95,38.71],anchorDates:taurusAnchorDates,
+      anchorNavs:[38.95,40.11,39.76,39.46,39.42,38.71,38.71,38.14],
+      correction:{date:'2007-02-12',source:41.05,verified:40.93,
+        dates:['2007-02-09','2007-02-12','2007-02-13','2007-02-14'],navs:[42.12,41.05,40.81,40.33]}},
+    {code:100477,name:'Taurus Mid Cap Fund - Regular Plan - Growth',house:'Taurus Mutual Fund',
+      isin:'INF044D01815',category:'Equity Scheme - Mid Cap Fund',navId:'557',
+      zeroDates:taurusDates,zeroNavs:[15.05,15.05,14.75],anchorDates:taurusAnchorDates,
+      anchorNavs:[15.05,15.36,15.22,15.1,15.08,14.75,14.75,14.48],
+      correction:{date:'2008-09-30',source:13.99,verified:13.92,
+        dates:['2008-09-26','2008-09-29','2008-09-30','2008-10-01','2008-10-03'],navs:[14.85,13.92,13.99,14.05,13.58]}},
+    {code:100480,name:'Taurus ELSS Tax Saver Fund - Regular Plan - Growth',house:'Taurus Mutual Fund',
+      isin:'INF044D01AC9',category:'Equity Scheme - ELSS',navId:'563',
+      zeroDates:taurusDates,zeroNavs:[17.34,17.34,17.06],anchorDates:taurusAnchorDates,
+      anchorNavs:[17.34,17.44,17.38,17.28,17.41,17.06,17.06,16.81],
+      correction:{date:'2007-12-17',source:33.67,verified:35.2,
+        dates:['2007-12-14','2007-12-17','2007-12-18','2007-12-19','2007-12-20'],navs:[35.2,33.67,33.71,33.69,33.23]}},
+    {code:105989,name:'DSP Small Cap Fund - Regular Plan - Growth',house:'DSP Mutual Fund',
+      isin:'INF740K01797',category:'Equity Scheme - Small Cap Fund',navId:null,
+      zeroDates:['2007-06-28'],zeroNavs:[10.135],
+      anchorDates:['2007-06-20','2007-06-21','2007-06-25','2007-06-27','2007-07-04'],
+      anchorNavs:[10.032,10.063,10.074,10.122,10.272],correction:null},
+  ] as const).find(item=>item.code===fund.meta.schemeCode);
+  if(!identity || fund.source!=='mfapi.in' || fund.meta.schemeName!==identity.name
+    || fund.meta.fundHouse!==identity.house || fund.meta.isinGrowth!==identity.isin
+    || fund.meta.isinDivReinvestment!==null || fund.meta.schemeType!=='Open Ended Schemes'
+    || fund.meta.schemeCategory!==identity.category || !validSeries(fund.points)
+    || largeMoveIndexes(fund.points).length!==0)return null;
+  const warning=`Invalid NAV observations were excluded (${identity.zeroDates.length}); derived analytics are blocked until the data is resolved.`;
+  const quality=fund.warnings.filter(value=>/^(?:Invalid NAV|Conflicting NAV|Unresolved discontinuity)\b/i.test(value));
+  if(quality.length>0 && (quality.length!==1 || quality[0]!==warning))return null;
+  const matchesWindow=(expected:NavPoint[])=>{
+    const window=fund.points.filter(point=>point.date>=expected[0].date && point.date<=expected.at(-1)!.date);
+    return window.length===expected.length && window.every((point,index)=>
+      point.date===expected[index].date && point.nav===expected[index].nav);
+  };
+  const issuerUrl=(from:string,through:string)=>identity.navId
+    ? `https://taurusmutualfund.com/NAVs/NAV_search?field_nav_target_id=${identity.navId}&field_plan_target_id=52`
+      +`&field_date_value%5Bmin%5D=${from.split('-').reverse().join('-')}&field_date_value%5Bmax%5D=${through.split('-').reverse().join('-')}`
+    : 'https://www.dspim.com/investor-centre/nav';
+  const anchors=identity.anchorDates.map((date,index)=>({date,nav:identity.anchorNavs[index]}));
+  const restored=identity.zeroDates.map((date,index)=>({date,nav:identity.zeroNavs[index]}));
+  let correction:VerifiedNavCorrection|undefined;
+  if(identity.correction){
+    const spec=identity.correction,source=fund.points.find(point=>point.date===spec.date);
+    if(!source || source.nav!==spec.source && source.nav!==spec.verified)return null;
+    if(!matchesWindow(spec.dates.map((date,index)=>({date,nav:date===spec.date?source.nav:spec.navs[index]}))))return null;
+    correction={date:spec.date,sourceNav:source.nav,verifiedNav:spec.verified,applied:source.nav!==spec.verified,
+      evidenceUrl:issuerUrl(spec.dates[0],spec.dates.at(-1)!)};
+  }
+  const correctedSource=()=>fund.points.map(point=>({...point,
+    nav:point.date===correction?.date?correction.verifiedNav:point.nav}));
+  if(quality.length===0){
+    // An absent warning alone cannot prove that the provider repaired the zeros.
+    if(fund.rejectedZeroNavDates!==undefined || !correction?.applied
+      || !matchesWindow([...anchors,...restored].sort((a,b)=>a.date.localeCompare(b.date))))return null;
+    const points=correctedSource();
+    if(!validSeries(points) || largeMoveIndexes(points).length!==0)return null;
+    const review:VerifiedNavReview={schemeCode:identity.code,events:[],correction};
+    return {review,fund:{...fund,points,warnings:[...fund.warnings,navReviewSummary(review)]}};
+  }
+  if(!Array.isArray(fund.rejectedZeroNavDates) || fund.rejectedZeroNavDates.length!==identity.zeroDates.length
+    || !identity.zeroDates.every((date,index)=>fund.rejectedZeroNavDates![index]===date)
+    || !matchesWindow(anchors) || fund.points.some(point=>identity.zeroDates.some(date=>point.date===date)))return null;
+  const points=[...correctedSource(),...restored].sort((a,b)=>a.date.localeCompare(b.date));
+  if(!validSeries(points) || largeMoveIndexes(points).length!==0)return null;
+  const review:VerifiedNavReview={schemeCode:identity.code,events:[],restoration:{
+    fromDate:identity.zeroDates[0],throughDate:identity.zeroDates.at(-1)!,addedObservations:restored.length,
+    evidenceUrl:issuerUrl(anchors[0].date,anchors.at(-1)!.date),...(correction?{corrections:[correction]}:{}),
+  }};
+  return {review,fund:{...fund,points,warnings:[...fund.warnings.filter(value=>value!==warning),navReviewSummary(review)]}};
+}
+
 /** Every rejected row must be identified before an issuer value can replace it. */
 function reviewedSundaramZeros(fund: FundData): {fund: FundData; review: VerifiedNavReview} | null {
   const identity=([
@@ -192,6 +272,8 @@ function reviewedAbslBasis(fund: FundData): {fund: FundData; review: VerifiedNav
  * fitted to the curve. Full evidence: docs/BULK_DISCREPANCY_FINALIZATION_2026-10-29.md.
  */
 export function reviewedNavBasis(fund: FundData): { fund: FundData; review: VerifiedNavReview } | null {
+  const taurusDsp=reviewedTaurusDspZeros(fund);
+  if(taurusDsp)return taurusDsp;
   const sundaram=reviewedSundaramZeros(fund);
   if(sundaram)return sundaram;
   const sbiHistory=reviewedSbiHistory(fund);
