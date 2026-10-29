@@ -2,9 +2,11 @@
 
 ## Outcome and scope
 
-This batch registers **17 additional exact fund identities** for calculation-only treatment of documented unit consolidations or splits. The owner requested larger reviewed batches on 28 October (Toronto time). The existing common matching, validation and calculation mechanisms remain intact.
+This batch registers **27 additional exact fund identities** for calculation-only treatment of documented unit consolidations or splits. The owner requested larger reviewed batches on 28 October (Toronto time). The existing common matching, validation and calculation mechanisms remain intact.
 
-All **60,757 saved observations** were checked. Every selected identity passes the production active-repair predicate using the actual UTC date: existing official open-ended numeric roster membership, current membership in the retained verified MFAPI catalogue, and a finite positive NAV no more than 30 days old and not future dated. The catalogue's selected NAV dates are 26 October 2026. This establishes the configured repair scope, not purchase eligibility or newly refreshed catalogue membership.
+All **99,249 saved observations** were checked. Every selected identity passes the production active-repair predicate using the actual UTC date: existing official open-ended numeric roster membership, current membership in the retained verified MFAPI catalogue, and a finite positive NAV no more than 30 days old and not future dated. The catalogue's selected NAV dates are 26 October 2026. This establishes the configured repair scope, not purchase eligibility or newly refreshed catalogue membership.
+
+The result has two distinct counts: **16 Growth identities become eligible for detail/comparison analytics after their explained discontinuity is removed from the calculation copy; 11 ETF identities gain verified unit-action registrations but remain blocked by the existing Growth-only consumer rule**. `docs/METHODOLOGY.md` requires a confirmed Growth name, and `docs/UI_DESIGN.md` preserves that gate. Registering an ETF unit split does not establish distribution-adjusted total-return eligibility. The global precomputed return index and raw archive flags retain their existing behavior.
 
 The catalogue remains the last accepted snapshot, fetched **2026-10-27T16:59:52.790Z**. Its duplicate/pagination incident is recorded separately in [CATALOGUE_REFRESH_2026-10-28.md](CATALOGUE_REFRESH_2026-10-28.md). This change does not relax catalogue validation.
 
@@ -31,8 +33,18 @@ Names below are the current saved source identities. Matching is case-insensitiv
 | 139581 | Aditya Birla Sun Life BSE Sensex ETF | INF209KB10E8 | 2021-11-26 | 2021-11-29 | 0.1 | 2,535 |
 | 145881 | Aditya Birla Sun Life Nifty Next 50 ETF | INF209KB16D7 | 2021-11-26 | 2021-11-29 | 0.1 | 1,934 |
 | 147735 | ADITYA BIRLA SUN LIFE NIFTY BANK ETF | INF209KB17D5 | 2021-11-26 | 2021-11-29 | 0.1 | 1,731 |
+| 105185 | Invesco India Short Term Fund - Regular Plan - Growth | INF205K01UN6 | 2013-04-18 | 2013-04-22 | 100 | 4,724 |
+| 106177 | Invesco India Corporate Bond Fund - Regular Plan - Growth | INF205K01RM4 | 2013-04-18 | 2013-04-22 | 100 | 4,637 |
+| 107477 | Invesco India Gilt Fund - Regular Plan - Growth | INF205K01SR1 | 2013-04-18 | 2013-04-22 | 100 | 4,506 |
+| 112123 | Invesco India Money Market Fund - Regular Plan - Growth | INF205K01SD1 | 2013-04-18 | 2013-04-22 | 100 | 4,140 |
+| 114359 | Invesco India Ultra Short Term Fund - Regular Plan - Growth | INF205K01TM0 | 2013-04-18 | 2013-04-22 | 100 | 3,815 |
+| 120497 | Invesco India Corporate Bond Fund - Direct Plan - Growth | INF205K01RF8 | 2013-04-18 | 2013-04-22 | 100 | 3,334 |
+| 120507 | Invesco India Money Market Fund - Direct Plan - Growth | INF205K01RY9 | 2013-04-18 | 2013-04-22 | 100 | 3,334 |
+| 120520 | Invesco India Gilt Fund - Direct Plan - Growth | INF205K01SN0 | 2013-04-18 | 2013-04-22 | 100 | 3,334 |
+| 120541 | Invesco India Ultra Short Term Fund - Direct Plan - Growth | INF205K01TH0 | 2013-04-18 | 2013-04-22 | 100 | 3,334 |
+| 120560 | Invesco India Short Term Fund - Direct Plan - Growth | INF205K01UH8 | 2013-04-18 | 2013-04-22 | 100 | 3,334 |
 
-Exact houses are `Nippon India Mutual Fund`, `Aditya Birla Sun Life Mutual Fund`, and `UTI Mutual Fund`. A neighboring plan, historical name, old ISIN or similar name does not authorize an adjustment.
+Exact houses are `Nippon India Mutual Fund`, `Aditya Birla Sun Life Mutual Fund`, `UTI Mutual Fund`, and `Invesco Mutual Fund`. A neighboring plan, historical name, old ISIN or similar name does not authorize an adjustment.
 
 ## Primary evidence
 
@@ -94,15 +106,51 @@ The securities were admitted on 18 June. A single explicit old→new ISIN conver
 
 Both saved series retain the old basis on **19 June** and first report the new basis on **20 June**. The issuer effective date remains 19 June.
 
+### Ten Invesco Growth identities: April 2013
+
+The contemporaneous issuer [May 2013 factsheet](https://www.invescomutualfund.com/docs/default-source/Fact-Sheet/factsheet_may_2013.pdf?sfvrsn=0#page=5), PDF/printed page 5, states that face value changed **Rs10→Rs1,000 at close of business on 18 April 2013**. Its central note explicitly names Short Term, Credit Opportunities, Medium Term Bond, Active Income and Gilt Long Duration, among other schemes. The documented earlier-NAV multiplier is **100**. All ten selected saved series retain the old basis on **18 April** and first report the new basis on **22 April**; the four-day observed interval is retained.
+
+Exact **31 May 2013** Growth NAVs bind each selected saved series to its historical issuer plan column:
+
+| Historical issuer scheme | Base Growth code / issuer NAV | Direct Growth code / issuer NAV | PDF / printed page |
+| --- | --- | --- | ---: |
+| Short Term | 105185 / 1624.9320 | 120560 / 1628.3762 | 26 |
+| Credit Opportunities | 112123 / 1346.9409 | 120507 / 1348.3518 | 27 |
+| Medium Term Bond | 114359 / 1223.5230 | 120541 / 1228.8894 | 28 |
+| Active Income | 106177 / 1453.3516 | 120497 / 1456.2509 | 29 |
+| Gilt — Long Duration | 107477 / 1321.2990 | 120520 / 1329.2668 | 34 |
+
+The [NSE-hosted May 2026 issuer Scheme Summary Document](https://nsearchives.nseindia.com/trading_security/mf/pdf/Invesco_20052026172310_IMF.pdf), fields 28–29, independently binds the ten exact current codes and ISINs:
+
+| Codes, base / Direct | Current Growth ISINs, base / Direct | Current issuer family | PDF page |
+| --- | --- | --- | ---: |
+| 105185 / 120560 | INF205K01UN6 / INF205K01UH8 | Short Duration | 43 |
+| 106177 / 120497 | INF205K01RM4 / INF205K01RF8 | Corporate Bond | 53 |
+| 107477 / 120520 | INF205K01SR1 / INF205K01SN0 | Gilt | 61 |
+| 112123 / 120507 | INF205K01SD1 / INF205K01RY9 | Money Market | 67 |
+| 114359 / 120541 | INF205K01TM0 / INF205K01TH0 | Ultra Short Duration | 72 |
+
+The identity chain uses issuer records rather than treating similarly named schemes as interchangeable:
+
+- The [2016–17 annual report](https://invescomutualfund.com/docs/default-source/default-document-library/annual-report-fy-2016-2017.pdf?sfvrsn=0), PDF page 106 / printed 102, records the Religare → Religare Invesco → Invesco fund-house history and replacement of the live scheme prefix with **Invesco India on 6 May 2016**. Page 107 / printed 103 records **Gilt Long Duration → Gilt from 1 October 2016**.
+- The [March 2018 issuer recategorization addendum](https://invescomutualfund.com/docs/default-source/default-document-library/44---change-in-fundamental-attributes---mar-21-18.pdf?sfvrsn=0) establishes **Active Income → Corporate Bond** (PDF page 3), **Credit Opportunities → Money Market** (12), and **Medium Term Bond → Ultra Short Term** (20), effective **27 April 2018**, as specified on page 3.
+- The [2024–25 issuer annual report](https://www.invescomutualfund.com/docs/default-source/financial-pdf/invesco-mutual-fund-annual-report-fy-2024-254ecaf807eee8616aaa28ff00007d74af.pdf?sfvrsn=592299c2_0), PDF page 141, establishes **Short Term → Short Duration** and **Ultra Short Term → Ultra Short Duration**, effective **31 January 2024**. The archive still supplies the older Short Term names; matching preserves those exact observed names and the verified code/ISIN pairs. It does not rewrite source metadata or accept arbitrary aliases.
+
+The older pre-2018 Ultra Short Term Fund that became Treasury Advantage is a different lineage. Codes 114359/120541 come from **Medium Term Bond**, then acquired the Ultra Short Term name in 2018. The issuer's [September 2018 fixed-income presentation](https://www.invescomutualfund.com/docs/default-source/Presentations-PDF/fixed-income-investment-process---september-18.pdf?sfvrsn=0), PDF page 9, lists both distinct renamings.
+
+**Two same-name legacy plans remain unadjusted.** Code 105189 / INF205K01UR7 matches the historical Short Term **Plan B Growth** anchor, 1619.0920. Code 112120 / INF205K01SG4 matches Credit Opportunities **Regular Growth**, 1311.7938. The current issuer summary does not bind either exact code/ISIN pair. The 2016–17 report separately lists these legacy plans and says fresh subscriptions ceased from 1 October 2012 while existing investors remained invested. The 2024–25 report still distinguishes the legacy Money Market Regular plan. Exact historical NAV matches corroborate plan identity but do not replace the missing independent primary code/ISIN binding. No merger into the selected base plans is inferred. Regression and full-history checks explicitly require both deferred identities to remain blocked.
+
+The original 36-page May 2013 PDF is **739,848 bytes**, SHA-256 `3fc8cefeb3a1fee6a5a927b45adbfc2ce777e79059493d6c2f8d6477091dcd1c`. Event and anchor pages were text-extracted and visually checked. The ten selected histories contribute **38,492 observations**.
+
 ## Calculation safeguards and verification
 
 The common logic requires one exact generated discontinuity warning, one actual large move, valid ordered positive observations, exact identities and exact adjacent dates. Invalid/conflicting NAV evidence or any additional unexplained move prevents adjustment. A calculation copy cannot be adjusted again, even if its raw warning is restored.
 
-ETF observations must be within **5% of the documented factor**. The four debt consolidations and two UTI liquid splits use **0.1% factor-relative tolerance**: 0.01 around 10 and 0.0001 around 0.1. The multiplier is always the documented constant; ordinary market/interest movement survives.
+ETF observations must be within **5% of the documented factor**. The four debt consolidations and two UTI liquid splits use **0.1% factor-relative tolerance**: 0.01 around 10 and 0.0001 around 0.1. Invesco uses **0.5% factor-relative tolerance**, or 0.5 around 100, over its four-day observed gap. The largest selected residual is Corporate Bond Direct's **+0.22086154%**; a 0.1% bound would incorrectly reject that documented event. This is a fixed bounded acceptance condition, not an inferred multiplier. The multiplier is always the documented constant; ordinary market/interest movement survives.
 
-Raw documents, dates, metadata, source warnings, archive unresolved flags and hashes are retained. Only the explained warning is removed from the transient calculation copy; unrelated source notices remain visible. Raw NAV chart/export and the global precomputed return index retain their existing behavior. This enables detailed financial analytics through `financialNavBasis`, not a raw-history or global-index rewrite.
+Raw documents, dates, metadata, source warnings, archive unresolved flags and hashes are retained. Only the explained warning is removed from the transient calculation copy; unrelated source notices remain visible. Raw NAV chart/export and the global precomputed return index retain their existing behavior. For the 16 selected Growth identities, `financialNavBasis` supplies an eligible calculation copy to the existing detail/comparison paths. All 11 selected ETF names fail the unchanged literal-Growth eligibility predicate and remain consumer blocked. These are calculation-copy changes; the global index is not rewritten.
 
-At **2026-10-29T00:45:12.381Z**, the independent verifier checked all 17 eligibility predicates and all 60,757 observations; exact factor application; date and post-event preservation; event residual returns; full-history returns from independent endpoints and actual elapsed days; independently selected 1/3/5-year and 1/3/6-month predecessors; repeat-application refusal; warning preservation; and unchanged source-file and production-code bytes.
+At **2026-10-29T00:57:51.607Z**, the independent verifier checked all 27 eligibility predicates and all 99,249 observations; exact factor application; date and post-event preservation; event residual returns; full-history returns from independent endpoints and actual elapsed days; independently selected 1/3/5-year and 1/3/6-month predecessors; repeat-application refusal; warning preservation; and unchanged source-file and production-code bytes. It separately checked the production Growth predicate, the 16/11 consumer eligibility split and both deferred legacy refusals. This checks the calculation functions and consumer predicates; it is not a claim of rendered UI or published-return verification.
 
 UTI's recent event crosses all current 1/3/5-year baselines. Verified calculation-copy results through 26 October 2026:
 
@@ -113,7 +161,7 @@ UTI's recent event crosses all current 1/3/5-year baselines. Verified calculatio
 
 These are calculation verification examples from saved data, not new observations or investment recommendations. Previously blocked raw-denomination calculations are not described as returns that the website previously displayed.
 
-For all five ABSL 2021 ETFs, the current five-year period crosses the split; one- and three-year periods do not. Nippon 2019 and Birla 2011 events precede all current 1/3/5-year baselines. All 17 preserve identical one- and three-month observations and returns. Full saved coverage does not prove inception completeness or agreement with an independent daily NAV source.
+For all five ABSL 2021 ETFs, the current five-year period crosses the split; one- and three-year periods do not. Nippon 2019, Birla 2011 and Invesco 2013 events precede all current 1/3/5-year baselines. The ETF period calculations are verification of their calculation copies, not displayed return eligibility. All 27 preserve identical one- and three-month observations and returns. Full saved coverage does not prove inception completeness or agreement with an independent daily NAV source.
 
 ## Archive provenance
 
@@ -121,9 +169,9 @@ Discovery used the existing Pages artifact from [run 40735957107](https://github
 
 The offline scan, evaluated on actual UTC 29 October, covered **8,524 eligible saved histories / 17,267,865 observations**, validating **914 assets**. It found 610 unresolved histories, including 426 with large moves; 30 of these already had recognized adjustments in the baseline. The other 396 remain research candidates with differing blockers. These are checkpoint-210 counts, not a new checkpoint-213 census.
 
-The selected 17 histories were separately verified against live **checkpoint 213**, timestamp **2026-10-29T00:10:48.697Z**, published in [run 40793436577](https://github.com/Vasuki8/mutual-fund-dashboard/actions/runs/40793436577). Retrieved public-manifest SHA-256: `8b0f65e852a6492e3938d5245da25a25416c2d844b0555db45450d4a51ec0180`.
+The selected 27 histories were separately verified against live **checkpoint 213**, timestamp **2026-10-29T00:10:48.697Z**, published in [run 40793436577](https://github.com/Vasuki8/mutual-fund-dashboard/actions/runs/40793436577). Retrieved public-manifest SHA-256: `8b0f65e852a6492e3938d5245da25a25416c2d844b0555db45450d4a51ec0180`.
 
-Eleven selected history shards and the catalogue are byte-identical to checkpoint 210. Updated shards 4361 and 4377 were downloaded from the public archive and passed exact compressed SHA-256, compressed/expanded lengths and production structure validation. Each of six selected histories gains three observations through 28 October while preserving every earlier row and warning. Fourteen selected compressed assets were revalidated.
+Nineteen selected history shards and the catalogue are byte-identical to checkpoint 210. Updated shards 4361 and 4377 were downloaded from the public archive and passed exact compressed SHA-256, compressed/expanded lengths and production structure validation. Each of six selected histories gains three observations through 28 October while preserving every earlier row and warning. Twenty-two selected compressed assets were revalidated.
 
 | Asset | SHA-256 |
 | --- | --- |
@@ -141,6 +189,14 @@ Eleven selected history shards and the catalogue are byte-identical to checkpoin
 | 4361 | `93046afa3b6d526e914c0065f9b8b1c52282c08c5d70c8147c8cffdb45e25b7e` |
 | 4558 | `0fa242188b8b51dce35e64051970f73d1ca36a3f81df4d725026de0b39a1147c` |
 | 4616 | `7bba4efce8f77047ec4811f91add0678f35327098426780db1ecc2bc9d163a43` |
+| 3287 | `3955dac6a785de1a231a05720b67cd7bb6044f589c916e1dceb4e8185bde091a` |
+| 3318 | `8e288306a7a0197097c1880758429d3c5cae2840e0308b4d0c664e728dd816bb` |
+| 3358 | `6e488a703bd95922527de18bb3bcc7aafada42fcd1d0618c4b80af0c6030d741` |
+| 3503 | `1fa07e6ae5f98c249d4512debb8fada97f6101e0cb5625891578af8d198101fe` |
+| 3573 | `4fc694e411f659dba740c66b900274842309c2eb683edff0d8c8b034a19ff6c5` |
+| 3765 | `86efa7e846d727a48df487e64626f1eac9f74e4265cd848fdb6a6ebc65edc7ce` |
+| 3766 | `be565b5a88c963e9313a2b6e1fa4fb4f061399e562eb83a6df9e4aae4800dfae` |
+| 3767 | `6e26a3d4a4a217ce53aed3cb5272aaaaf4f6d3c3291b036936ce32fa5679dbea` |
 
 The following hashes identify the saved JSON representations used in the full-history verification, including their existing serialization and trailing newline:
 
@@ -163,19 +219,32 @@ The following hashes identify the saved JSON representations used in the full-hi
 | 139581 | 2,535 | 2026-10-28 | `f0bd06f396d0cd06bc6002c327fa601be64a1bf61f03fa48a0518c990b3e143c` |
 | 145881 | 1,934 | 2026-10-23 | `441a526f5594e323fa0a27a2251c3cdb99e8cb1c629e75bed6b67a3999422937` |
 | 147735 | 1,731 | 2026-10-26 | `90077e617dd76d60b0a16dbdba7943e2175e22fede2679ce4025a7870ca5c7cf` |
+| 105185 | 4,724 | 2026-10-23 | `1c9a7c7123a90345dc5ddcac3c0e33432706e49c738794d756483454c56ecb15` |
+| 106177 | 4,637 | 2026-10-26 | `17bc0d36e9d17316bf5b846151753accd655caac06a1636060f01496d70e6f13` |
+| 107477 | 4,506 | 2026-10-23 | `3a625199a329e9ca46c005e5dbdc87980404046b5f1d30826c0bf180db9ae766` |
+| 112123 | 4,140 | 2026-10-26 | `657903414f56173b3fd650810fdb242b54452c632da39cc65b26b3fb6b5896e6` |
+| 114359 | 3,815 | 2026-10-26 | `b9ddc92ffea30138ee772d75b84ebb4170901b672631bb287e5ea65486493145` |
+| 120497 | 3,334 | 2026-10-26 | `cb9a4ef637dc013d3293a28eb8499d7d6db90b230a5189e3b7cb02ea1d7c9dac` |
+| 120507 | 3,334 | 2026-10-26 | `4c24e57acb302b3a41d63f914836483be943b92991db4abac6df04d506cd7c45` |
+| 120520 | 3,334 | 2026-10-26 | `f61c384c2a742341f4df321b2a38deba08916e8e72273ce4d8e9c1e1e51acbfa` |
+| 120541 | 3,334 | 2026-10-26 | `70a918645f63b19b003aa096346c7e022b072fc788716ece50d67c6e10b42cde` |
+| 120560 | 3,334 | 2026-10-26 | `e480d239443e82b6f42dec91320e90ced1016333e1aee4b1dfcdb8e12812d9f6` |
 
 ## Validation and integration
 
-- Immutable pre-batch corporate-action blob `171801aa720a0f89df80890efbc90e87c5f5b619` refuses all 17 histories.
-- Locally verified candidate blob: `944f6d539ca8c33d1928db1fbfd31c6cffb54a88`.
-- Regression red run: **190 cases, 102 passed, 88 expected adjustment-absent failures**.
-- Same regression tests after the narrow registry additions: **190/190 passed**.
-- Independent full-history checks: **17/17 funds, 60,757/60,757 observations, 14/14 assets passed**.
-- The complete suite, typecheck, both builds, independent whole-branch review and actual Pages publication remain integration gates. Final immutable head/run evidence is recorded in the associated PR.
+- Immutable pre-batch corporate-action blob `171801aa720a0f89df80890efbc90e87c5f5b619` refuses all 27 selected histories.
+- Locally verified expanded candidate blob: `cc943e729f3c586a9b5009d4f0ceba4a5d846a7b`. All common machinery and prior registrations are byte-identical to the baseline after removing the 94 added registry lines.
+- Initial 17-identity red run: **190 cases, 102 passed, 88 expected adjustment-absent failures**, followed by **190/190 passed**.
+- Expanded 27-identity red run, before adding Invesco: **303 cases, 252 passed, 51 expected missing-adjustment failures**, followed by **303/303 passed**.
+- The expanded tests cover both same-name legacy refusals and the preserved Growth-only consumer predicate.
+- Independent full-history checks: **27/27 selected funds, 99,249/99,249 observations, 22/22 assets passed**. Both deferred histories also remain unadjusted with their raw points, hashes and warnings intact.
+- The first 17 registrations produce exactly the same calculation copies and action metadata as reviewed blob `944f6d539ca8c33d1928db1fbfd31c6cffb54a88`.
+- Independent review of the initial head identified the consumer-eligibility overstatement; the evidence document and PR distinguish 16 eligible Growth histories from 11 registered but blocked ETFs. The consumer gate remains unchanged.
+- Initial-head CI passed **938 tests**, typecheck and both builds. Expanded-head suite, typecheck, both builds, focused independent review and actual Pages publication remain integration gates. Final immutable head/run evidence is recorded in the associated PR.
 
 ## Follow-up batches
 
-The full audit provides larger leads: 12 Invesco Growth histories around April 2013, five Kotak ETFs around February 2026, and ICICI ETF groups of four and five around March/May 2024. These are candidate cohorts, not verified events or implemented fixes. Each requires exact primary evidence and full-history verification.
+The full audit provides further leads: five Kotak ETFs around February 2026 and ICICI ETF groups of four and five around March/May 2024. The two deferred Invesco legacy plans require exact primary identity evidence before reconsideration. These are candidate cohorts, not verified events or implemented fixes. Each requires exact primary evidence and full-history verification.
 
 UTI Overnight, January 2013 Kotak liquid/money-market events and the discontinued UTI Liquid Growth identity remain unadjusted. Retained raw flags mean calculation-only corrections do not reduce the archive's stored unresolved count.
 

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { financialNavBasis } from '../src/lib/corporate-actions.ts';
-import { absoluteReturn, trailingReturn } from '../src/lib/analytics.ts';
+import { absoluteReturn, trailingReturn, isGrowthScheme } from '../src/lib/analytics.ts';
 import type { FundData, FundMeta, NavPoint } from '../src/lib/types.ts';
 
 const WARNING = 'Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked.';
@@ -82,6 +82,46 @@ const FIXTURES: Fixture[] = [
     dates: ["2021-11-25","2021-11-26","2021-11-29","2021-11-30"], navs: [371.9525,358.6222,35.813,35.5331],
     expectedNavs: [37.19525,35.86222,35.813,35.5331], factor: 0.1, deviation: 0.005000000000000001,
     eventReturn: -0.0013724749889995657, source: "https://nsearchives.nseindia.com/content/circulars/CML50382.pdf#page=1" },
+  { meta: {"schemeCode":105185,"schemeName":"Invesco India Short Term Fund - Regular Plan - Growth","fundHouse":"Invesco Mutual Fund","isinGrowth":"INF205K01UN6","isinDivReinvestment":null,"schemeType":"Open Ended Schemes","schemeCategory":"Income/Debt Oriented Schemes - Short Term Fund"},
+    dates: ["2013-04-17","2013-04-18","2013-04-22","2013-04-23"], navs: [16.0135,16.0287,1604.3069,1604.943],
+    expectedNavs: [1601.35,1602.87,1604.3069,1604.943], factor: 100, deviation: 0.5,
+    eventReturn: 0.0008964544847679474, source: "https://www.invescomutualfund.com/docs/default-source/Fact-Sheet/factsheet_may_2013.pdf?sfvrsn=0#page=5" },
+  { meta: {"schemeCode":106177,"schemeName":"Invesco India Corporate Bond Fund - Regular Plan - Growth","fundHouse":"Invesco Mutual Fund","isinGrowth":"INF205K01RM4","isinDivReinvestment":null,"schemeType":"Open Ended Schemes","schemeCategory":"Income/Debt Oriented Schemes - Corporate Bond Fund"},
+    dates: ["2013-04-17","2013-04-18","2013-04-22","2013-04-23"], navs: [14.1216,14.1343,1416.4808,1417.9216],
+    expectedNavs: [1412.16,1413.43,1416.4808,1417.9216], factor: 100, deviation: 0.5,
+    eventReturn: 0.0021584372766956976, source: "https://www.invescomutualfund.com/docs/default-source/Fact-Sheet/factsheet_may_2013.pdf?sfvrsn=0#page=5" },
+  { meta: {"schemeCode":107477,"schemeName":"Invesco India Gilt Fund - Regular Plan - Growth","fundHouse":"Invesco Mutual Fund","isinGrowth":"INF205K01SR1","isinDivReinvestment":null,"schemeType":"Open Ended Schemes","schemeCategory":"Income/Debt Oriented Schemes - Gilt Fund"},
+    dates: ["2013-04-17","2013-04-18","2013-04-22","2013-04-23"], navs: [12.7929,12.8067,1282.6982,1284.5116],
+    expectedNavs: [1279.29,1280.67,1282.6982,1284.5116], factor: 100, deviation: 0.5,
+    eventReturn: 0.0015837022808373742, source: "https://www.invescomutualfund.com/docs/default-source/Fact-Sheet/factsheet_may_2013.pdf?sfvrsn=0#page=5" },
+  { meta: {"schemeCode":112123,"schemeName":"Invesco India Money Market Fund - Regular Plan - Growth","fundHouse":"Invesco Mutual Fund","isinGrowth":"INF205K01SD1","isinDivReinvestment":null,"schemeType":"Open Ended Schemes","schemeCategory":"Income/Debt Oriented Schemes - Money Market Fund"},
+    dates: ["2013-04-17","2013-04-18","2013-04-22","2013-04-23"], navs: [13.3321,13.3353,1334.801,1335.1414],
+    expectedNavs: [1333.21,1333.53,1334.801,1335.1414], factor: 100, deviation: 0.5,
+    eventReturn: 0.0009531094163610867, source: "https://www.invescomutualfund.com/docs/default-source/Fact-Sheet/factsheet_may_2013.pdf?sfvrsn=0#page=5" },
+  { meta: {"schemeCode":114359,"schemeName":"Invesco India Ultra Short Term Fund - Regular Plan - Growth","fundHouse":"Invesco Mutual Fund","isinGrowth":"INF205K01TM0","isinDivReinvestment":null,"schemeType":"Open Ended Schemes","schemeCategory":"Income/Debt Oriented Schemes - Ultra Short Term Fund"},
+    dates: ["2013-04-17","2013-04-18","2013-04-22","2013-04-23"], navs: [12.0773,12.0797,1208.9293,1209.123],
+    expectedNavs: [1207.73,1207.97,1208.9293,1209.123], factor: 100, deviation: 0.5,
+    eventReturn: 0.0007941422386317541, source: "https://www.invescomutualfund.com/docs/default-source/Fact-Sheet/factsheet_may_2013.pdf?sfvrsn=0#page=5" },
+  { meta: {"schemeCode":120497,"schemeName":"Invesco India Corporate Bond Fund - Direct Plan - Growth","fundHouse":"Invesco Mutual Fund","isinGrowth":"INF205K01RF8","isinDivReinvestment":null,"schemeType":"Open Ended Schemes","schemeCategory":"Income/Debt Oriented Schemes - Corporate Bond Fund"},
+    dates: ["2013-04-17","2013-04-18","2013-04-22","2013-04-23"], navs: [14.1385,14.1514,1418.2655,1419.7256],
+    expectedNavs: [1413.85,1415.14,1418.2655,1419.7256], factor: 100, deviation: 0.5,
+    eventReturn: 0.002208615402009695, source: "https://www.invescomutualfund.com/docs/default-source/Fact-Sheet/factsheet_may_2013.pdf?sfvrsn=0#page=5" },
+  { meta: {"schemeCode":120507,"schemeName":"Invesco India Money Market Fund - Direct Plan - Growth","fundHouse":"Invesco Mutual Fund","isinGrowth":"INF205K01RY9","isinDivReinvestment":null,"schemeType":"Open Ended Schemes","schemeCategory":"Income/Debt Oriented Schemes - Money Market Fund"},
+    dates: ["2013-04-17","2013-04-18","2013-04-22","2013-04-23"], navs: [13.342,13.3454,1335.8423,1336.1921],
+    expectedNavs: [1334.2,1334.54,1335.8423,1336.1921], factor: 100, deviation: 0.5,
+    eventReturn: 0.000975841863113882, source: "https://www.invescomutualfund.com/docs/default-source/Fact-Sheet/factsheet_may_2013.pdf?sfvrsn=0#page=5" },
+  { meta: {"schemeCode":120520,"schemeName":"Invesco India Gilt Fund - Direct Plan - Growth","fundHouse":"Invesco Mutual Fund","isinGrowth":"INF205K01SN0","isinDivReinvestment":null,"schemeType":"Open Ended Schemes","schemeCategory":"Income/Debt Oriented Schemes - Gilt Fund"},
+    dates: ["2013-04-17","2013-04-18","2013-04-22","2013-04-23"], navs: [12.8542,12.8686,1289.0836,1290.9536],
+    expectedNavs: [1285.42,1286.86,1289.0836,1290.9536], factor: 100, deviation: 0.5,
+    eventReturn: 0.0017279268918141833, source: "https://www.invescomutualfund.com/docs/default-source/Fact-Sheet/factsheet_may_2013.pdf?sfvrsn=0#page=5" },
+  { meta: {"schemeCode":120541,"schemeName":"Invesco India Ultra Short Term Fund - Direct Plan - Growth","fundHouse":"Invesco Mutual Fund","isinGrowth":"INF205K01TH0","isinDivReinvestment":null,"schemeType":"Open Ended Schemes","schemeCategory":"Income/Debt Oriented Schemes - Ultra Short Term Fund"},
+    dates: ["2013-04-17","2013-04-18","2013-04-22","2013-04-23"], navs: [12.1194,12.1222,1213.3416,1213.5762],
+    expectedNavs: [1211.94,1212.22,1213.3416,1213.5762], factor: 100, deviation: 0.5,
+    eventReturn: 0.0009252445925657059, source: "https://www.invescomutualfund.com/docs/default-source/Fact-Sheet/factsheet_may_2013.pdf?sfvrsn=0#page=5" },
+  { meta: {"schemeCode":120560,"schemeName":"Invesco India Short Term Fund - Direct Plan - Growth","fundHouse":"Invesco Mutual Fund","isinGrowth":"INF205K01UH8","isinDivReinvestment":null,"schemeType":"Open Ended Schemes","schemeCategory":"Income/Debt Oriented Schemes - Short Term Fund"},
+    dates: ["2013-04-17","2013-04-18","2013-04-22","2013-04-23"], navs: [16.0368,16.0523,1606.7675,1607.4293],
+    expectedNavs: [1603.68,1605.23,1606.7675,1607.4293], factor: 100, deviation: 0.5,
+    eventReturn: 0.0009578066694492378, source: "https://www.invescomutualfund.com/docs/default-source/Fact-Sheet/factsheet_may_2013.pdf?sfvrsn=0#page=5" },
 ];
 
 function fixture(spec: Fixture): FundData {
@@ -490,3 +530,31 @@ for (const period of PERIOD_FIXTURES) {
   });
 }
 
+
+// Legacy plans share the current source name but have distinct code/ISIN pairs.
+// Their historical anchors match, but primary exact identity evidence is incomplete.
+for (const [selectedCode, deferredCode, deferredIsin] of [
+  [105185, 105189, 'INF205K01UR7'],
+  [112123, 112120, 'INF205K01SG4'],
+] as const) {
+  test(`${selectedCode}: refuses the distinct same-name legacy code and ISIN`, () => {
+    const spec = FIXTURES.find(item => item.meta.schemeCode === selectedCode)!;
+    for (const change of [{ schemeCode: deferredCode }, { isinGrowth: deferredIsin },
+      { schemeCode: deferredCode, isinGrowth: deferredIsin }]) {
+      const raw = fixture(spec); Object.assign(raw.meta, change);
+      unchanged(raw, 'distinct legacy plan identity');
+    }
+  });
+}
+
+test('verified unit actions preserve the existing Growth-only display eligibility', () => {
+  const eligible = new Set([101317,101976,103192,108273,102012,120304,
+    105185,106177,107477,112123,114359,120497,120507,120520,120541,120560]);
+  for (const spec of FIXTURES) {
+    const result = financialNavBasis(fixture(spec));
+    assert.equal(result.adjusted, true);
+    assert.deepEqual(result.fund.warnings, []);
+    assert.equal(isGrowthScheme(result.fund.meta.schemeName), eligible.has(spec.meta.schemeCode),
+      `${spec.meta.schemeCode}: a registered unit action does not override the consumer Growth gate`);
+  }
+});

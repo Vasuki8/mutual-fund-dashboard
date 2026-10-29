@@ -179,6 +179,31 @@ function actionForScheme(fund: FundData): ActionSpec | null {
     factor:0.1,maxFactorDeviation:0.0001,
     evidenceUrl:'https://nsearchives.nseindia.com/content/circulars/NMF74721.zip',
   };
+  // The issuer's May-2013 factsheet documents Rs10 -> Rs1000 at close
+  // on 18-Apr. Exact plan NAV anchors, code/ISIN bindings and rename
+  // notices support these ten identities; legacy 105189/112120 are deferred.
+  const invescoAprilDebtIdentity = ([
+    [105185, 'invesco india short term fund - regular plan - growth', 'INF205K01UN6', 'Short Term Growth'],
+    [106177, 'invesco india corporate bond fund - regular plan - growth', 'INF205K01RM4', 'Active Income Growth'],
+    [107477, 'invesco india gilt fund - regular plan - growth', 'INF205K01SR1', 'Gilt Long Duration Growth'],
+    [112123, 'invesco india money market fund - regular plan - growth', 'INF205K01SD1', 'Credit Opportunities Growth'],
+    [114359, 'invesco india ultra short term fund - regular plan - growth', 'INF205K01TM0', 'Medium Term Bond Growth'],
+    [120497, 'invesco india corporate bond fund - direct plan - growth', 'INF205K01RF8', 'Active Income Direct Growth'],
+    [120507, 'invesco india money market fund - direct plan - growth', 'INF205K01RY9', 'Credit Opportunities Direct Growth'],
+    [120520, 'invesco india gilt fund - direct plan - growth', 'INF205K01SN0', 'Gilt Long Duration Direct Growth'],
+    [120541, 'invesco india ultra short term fund - direct plan - growth', 'INF205K01TH0', 'Medium Term Bond Direct Growth'],
+    [120560, 'invesco india short term fund - direct plan - growth', 'INF205K01UH8', 'Short Term Direct Growth'],
+  ] as const).find(([code]) => code===fund.meta.schemeCode);
+  if (invescoAprilDebtIdentity && fund.meta.schemeName.toLowerCase()===invescoAprilDebtIdentity[1]
+    && fund.meta.isinGrowth===invescoAprilDebtIdentity[2] && fund.meta.fundHouse==='Invesco Mutual Fund') return {
+    schemeCode:fund.meta.schemeCode,
+    label:`verified 100-to-1 Religare Invesco ${invescoAprilDebtIdentity[3]} unit consolidation effective 18 April 2013`,
+    oldNavThrough:'2013-04-18',firstNewNavDate:'2013-04-22',
+    // A 0.5% bound permits ordinary return over the four-day observed gap;
+    // retain the documented factor rather than fitting the observed ratio.
+    factor:100,maxFactorDeviation:0.5,
+    evidenceUrl:'https://www.invescomutualfund.com/docs/default-source/Fact-Sheet/factsheet_may_2013.pdf?sfvrsn=0#page=5',
+  };
   // HDFC's 14-Aug-2015 notice covers both Regular and Direct plans.
   // Checkpoints 207/208 independently verify these two Growth identities
   // and their exact 28-to-30 August source boundaries. No other plan is implied.
