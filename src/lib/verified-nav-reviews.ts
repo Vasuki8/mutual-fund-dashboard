@@ -1,14 +1,21 @@
 import type { FundData, NavPoint } from './types.ts';
+import { SBI_INFRASTRUCTURE_HISTORY } from './verified-sbi-infrastructure-history.ts';
 
-export interface VerifiedNavReview {
+export type VerifiedNavReview = {
   schemeCode: number;
-  correction: { date: string; sourceNav: number; verifiedNav: number; applied: boolean; evidenceUrl: string };
   events: { previousDate: string; date: string; description: string; evidenceUrl: string }[];
-}
+} & ({
+  correction: { date: string; sourceNav: number; verifiedNav: number; applied: boolean; evidenceUrl: string };
+  restoration?: never;
+} | {
+  correction?: never;
+  restoration: { fromDate: string; throughDate: string; addedObservations: number; evidenceUrl: string };
+});
 
 const BOI_2022_REPORT = 'https://www.boimf.in/docs/default-source/reports/financials/annual-report-2021-224ace7e8cb8f74e8f8d11443c4b271be0.pdf?sfvrsn=32295bd6_6';
 const BOI_2020_REPORT = 'https://www.boimf.in/docs/default-source/reports/financials/annual-report-2019-20.pdf';
 const TWO_MOVES = 'Unresolved discontinuity: 2 single-observation move(s) exceed 40%; derived analytics are blocked.';
+const ONE_MOVE = 'Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked.';
 
 function validSeries(points: NavPoint[]): boolean {
   return points.length >= 5 && points.every((point,index)=>
@@ -27,14 +34,22 @@ function largeMoveIndexes(points: NavPoint[]): number[] {
   return indexes;
 }
 
-function reviewableSeries(fund: FundData): boolean {
+function reviewableSeries(fund: FundData, expectedWarning = TWO_MOVES): boolean {
   const warnings=fund.warnings.filter(warning=>/^Unresolved discontinuity\b/i.test(warning));
-  return warnings.length===1 && warnings[0]===TWO_MOVES
+  return warnings.length===1 && warnings[0]===expectedWarning
     && !fund.warnings.some(warning=>/^(?:Invalid NAV observations|Conflicting NAV values)\b/i.test(warning))
     && validSeries(fund.points);
 }
 
+export function navReviewEvidenceUrl(review: VerifiedNavReview): string {
+  return review.restoration ? review.restoration.evidenceUrl : review.correction.evidenceUrl;
+}
+
 export function navReviewSummary(review: VerifiedNavReview, includeEvidence = true): string {
+  if(review.restoration){
+    const restored=review.restoration;
+    return `Added ${restored.addedObservations} issuer-verified NAV observations for calculations from ${restored.fromDate} through ${restored.throughDate}. Existing source NAV values are retained. Raw source observations and warnings remain unchanged.${includeEvidence?` Evidence: ${restored.evidenceUrl}`:''}`;
+  }
   const correction=review.correction;
   const basis=correction.applied
     ? `Calculation NAV on ${correction.date}: source ${correction.sourceNav} replaced by issuer-verified ${correction.verifiedNav}.`
@@ -43,6 +58,35 @@ export function navReviewSummary(review: VerifiedNavReview, includeEvidence = tr
     ? `Economic investment returns are retained: ${review.events.map(event=>`${event.date} ${event.description}`).join('; ')}.`
     : 'All other calculation NAVs are unchanged.';
   return `${basis} ${events} Raw source observations and warnings remain unchanged.${includeEvidence?` Evidence: ${correction.evidenceUrl}`:''}`;
+}
+
+/** Restore one exact documented gap; never infer values or waive a large move. */
+function reviewedSbiHistory(fund: FundData): {fund: FundData; review: VerifiedNavReview} | null {
+  if(fund.meta.schemeCode!==106096 || fund.source!=='mfapi.in'
+    || fund.meta.schemeName!=='SBI INFRASTRUCTURE FUND - Regular Plan - Growth'
+    || fund.meta.fundHouse!=='SBI Mutual Fund' || fund.meta.isinGrowth!=='INF200K01CT2'
+    || fund.meta.isinDivReinvestment!=null || fund.meta.schemeType!=='Open Ended Schemes'
+    || fund.meta.schemeCategory!=='Equity Scheme - Sectoral/ Thematic'
+    || !reviewableSeries(fund,ONE_MOVE))return null;
+
+  const gapEnd=fund.points.findIndex(point=>point.date==='2010-07-09');
+  if(gapEnd<1 || fund.points[gapEnd-1].date!=='2009-04-02')return null;
+  const expectedAnchors=SBI_INFRASTRUCTURE_HISTORY.filter(point=>point.date<='2009-04-02' || point.date>='2010-07-09');
+  const sourceWindow=fund.points.filter(point=>point.date>='2009-04-01' && point.date<='2010-07-15');
+  if(sourceWindow.length!==7 || expectedAnchors.length!==7
+    || !expectedAnchors.every((point,index)=>point.date===sourceWindow[index].date && point.nav===sourceWindow[index].nav))return null;
+  const rawMoves=largeMoveIndexes(fund.points);
+  if(rawMoves.length!==1 || rawMoves[0]!==gapEnd)return null;
+
+  const added=SBI_INFRASTRUCTURE_HISTORY.filter(point=>point.date>'2009-04-02' && point.date<'2010-07-09');
+  if(added.length!==303)return null;
+  const points=[...fund.points,...added].map(point=>({...point})).sort((a,b)=>a.date.localeCompare(b.date));
+  if(!validSeries(points) || largeMoveIndexes(points).length!==0)return null;
+  const review:VerifiedNavReview={schemeCode:106096,events:[],restoration:{
+    fromDate:'2009-04-06',throughDate:'2010-07-08',addedObservations:added.length,
+    evidenceUrl:'https://www.sbimf.com/mutual-fund-nav',
+  }};
+  return {review,fund:{...fund,points,warnings:[...fund.warnings.filter(warning=>warning!==ONE_MOVE),navReviewSummary(review)]}};
 }
 
 /** The issuer's exact historical NAV corrects one spike; no event exemption. */
@@ -81,6 +125,8 @@ function reviewedAbslBasis(fund: FundData): {fund: FundData; review: VerifiedNav
  * fitted to the curve. Full evidence: docs/BULK_DISCREPANCY_FINALIZATION_2026-10-29.md.
  */
 export function reviewedNavBasis(fund: FundData): { fund: FundData; review: VerifiedNavReview } | null {
+  const sbiHistory=reviewedSbiHistory(fund);
+  if(sbiHistory)return sbiHistory;
   const absl=reviewedAbslBasis(fund);
   if(absl)return absl;
   const identity=([

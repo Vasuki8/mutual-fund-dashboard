@@ -1,0 +1,270 @@
+{
+  "reviewer": "closure_final_review",
+  "reviewedAt": "2026-10-29T05:08:46.623074+00:00",
+  "baselineCommit": "056ac7d2bee9edd733d45182385152c218ece6c8",
+  "reviewedProductManifest": {
+    "baselineCommit": "056ac7d2bee9edd733d45182385152c218ece6c8",
+    "files": [
+      {
+        "path": "src/lib/verified-nav-reviews.ts",
+        "beforeSha256": "f758fd903a5d54e28617e0aec307c2db32ee15d1e8d3f902e823d28cb5c60849",
+        "afterSha256": "470b7cb67ae236141ef7f1e7623b9a87da2be2de6baefe16764198b6fdcfd937",
+        "bytes": 11044
+      },
+      {
+        "path": "src/lib/verified-sbi-infrastructure-history.ts",
+        "beforeSha256": null,
+        "afterSha256": "057f0e32358adafb6df28d63950e46d41bdbb42c008c9071c70802e83b6fedad",
+        "bytes": 10444
+      },
+      {
+        "path": "src/lib/format.ts",
+        "beforeSha256": "37985e48f63dc26a2a5cc7e1ef2c45f054a22ceec4d780bb92160f29d661c19c",
+        "afterSha256": "975122113ac307b08775a0202c52855269de249c47c4a90506de7f226992874e",
+        "bytes": 3260
+      },
+      {
+        "path": "src/components/FundDetail.tsx",
+        "beforeSha256": "be6fe6062aef57f9d797045c9a701d8e6d69ab7c36ac30ec3d56d3fa51cd39c1",
+        "afterSha256": "db1488996efd116c8f4e4a15faaabdd418e0644c0f8e0e99099fdad8b5551df7",
+        "bytes": 34835
+      },
+      {
+        "path": "src/components/Comparison.tsx",
+        "beforeSha256": "6d904cd54da4bdeff70b0cf4b59fff1b3768ccd52f4bbfdb9f96f0d9691f9631",
+        "afterSha256": "67a04f37b8e16b7a2b64b8888fb5fbf8edc902f2400bce59b2ffe2c991ff5d1a",
+        "bytes": 14391
+      },
+      {
+        "path": "src/components/SipSimulator.tsx",
+        "beforeSha256": "0c400087948d41f0f4a87984f40cb29300b91a28d376ba0d7c3defa7edb9be83",
+        "afterSha256": "2209f962fb675f0a1f653108a5fa5437604c9d8ff4c2749a5b1673bd33e128fd",
+        "bytes": 11873
+      },
+      {
+        "path": "tests/fixtures/sbi-history-review.ts",
+        "beforeSha256": null,
+        "afterSha256": "3204cb5b0546ae1e705089b0b86ad2ac23afbed3fd18735f0cd1e8996f3aa71c",
+        "bytes": 965
+      },
+      {
+        "path": "tests/verified-history-restoration.test.ts",
+        "beforeSha256": null,
+        "afterSha256": "da8f2e027cf2582454eee974b8afe87f89c45dedec205fdfcad5cd6a5ea8518a",
+        "bytes": 5152
+      },
+      {
+        "path": "tests/verified-nav-review-views.test.ts",
+        "beforeSha256": "58bccc8088622e45075bdab520c59bc39f9fa0c39acec562413ed26d318576c3",
+        "afterSha256": "6781a4d76b228dec8090ddab0f42ff068b817ede1e220104104fb682582490f0",
+        "bytes": 27712
+      }
+    ]
+  },
+  "scope": "Independent read-only whole-patch review of the nine-file product/test snapshot and final research report/ledger; no product, test, branch, or audit artifacts modified.",
+  "strengths": [
+    "Exact scheme/source/name/house/type/category/Growth ISIN identity, seven unchanged overlap anchors, no in-gap source points, unique exact warning, full raw and merged validity/jump checks.",
+    "All 310 literal rows independently compared equal to the preserved original issuer response; embedded PDF bytes equal the retained PDF; canonical row digest verified.",
+    "Fresh calculation points preserve raw points and source warnings, with a separate restoration review and no unit-adjustment flag.",
+    "Detail, Comparison, SIP and nested calculation exports use review-aware provenance and evidence links.",
+    "All 277 frozen baseline blobs independently match the retained immutable Git tree; all nine initial product file hashes match their manifest.",
+    "104-case report and ledger agree with audit cohort membership, counts, observation totals, source hashes, warning text and classifications; local report links resolve."
+  ],
+  "critical": [],
+  "important": [
+    {
+      "id": "R1",
+      "priority": "P2",
+      "title": "Use raw dates and availability for raw NAV chart and export metadata",
+      "file": "src/components/FundDetail.tsx",
+      "lines": [
+        41,
+        45,
+        65,
+        70
+      ],
+      "testCoverageFile": "tests/verified-nav-review-views.test.ts",
+      "testCoverageLine": 421,
+      "effect": "The restoration makes source and calculation date sets different. Raw NAV CSV Actual NAV dates and NAV-chart title/subtitle still use calculation points; an entirely restored custom interval renders an empty raw chart claiming MFAPI coverage instead of reporting no source observations.",
+      "reproductions": [
+        {
+          "range": {
+            "start": "2009-04-06",
+            "end": "2010-07-15"
+          },
+          "mode": "NAV",
+          "csvActualNavDates": "2009-04-06 to 2010-07-15",
+          "csvAndChartRawDates": [
+            "2009-04-02",
+            "2010-07-09",
+            "2010-07-12",
+            "2010-07-13",
+            "2010-07-14",
+            "2010-07-15"
+          ],
+          "chartSubtitle": "6 Apr 2009 \u2013 15 Jul 2010 \u00b7 MFAPI NAV \u00b7 INR per unit",
+          "note": "The permitted predecessor is 2009-04-02; there is no MFAPI source row dated 2009-04-06."
+        },
+        {
+          "range": {
+            "start": "2009-04-06",
+            "end": "2009-04-09"
+          },
+          "mode": "NAV",
+          "chartPresent": true,
+          "chartPointCount": 0,
+          "chartSubtitle": "6 Apr 2009 \u2013 9 Apr 2009 \u00b7 MFAPI NAV \u00b7 INR per unit",
+          "rawExportDisabled": true,
+          "noObservationsNotice": false
+        }
+      ],
+      "verification": "Executed the existing real-component transpilation/state/export-handler harness in memory against the manifest snapshot, without modifying files or running the full suite.",
+      "requestedFix": "Derive raw export coverage from rawPoints; derive NAV-chart title, subtitle and availability from sourcePoints. Distinguish calculation-period controls from raw-source coverage when they differ. Add component regressions for boundaries within the restoration interval and an interval containing only restored dates.",
+      "status": "resolved",
+      "resolution": {
+        "reviewedAt": "2026-10-29T05:10:08.300299+00:00",
+        "finding": "R1",
+        "status": "resolved",
+        "changedFiles": [
+          "src/components/FundDetail.tsx",
+          "tests/verified-nav-review-views.test.ts"
+        ],
+        "fix": "Raw CSV actual dates now derive from rawPoints. NAV chart title/subtitle/availability derive from sourcePoints via chartPoints. Toolbar/RangeNotice use raw dates in NAV mode and calculation dates in calculation modes. Restored-only intervals show no raw observations and no empty Chart; calculation chart remains available.",
+        "deltaVerification": "Reconstructed original after-files in memory from frozen baseline and original unified patch, verified their initial manifest hashes, and diffed against current files. Only the focused R1 implementation and three regression tests changed; other seven product/test files remain byte-identical.",
+        "tests": "All three new real component regressions fail in custom-range-red.log (18 pass / 3 fail), then pass in custom-range-green.log (21/21). Reviewer independently reran the view-test file successfully, exit 0; test runner reported the file as one passing suite unit.",
+        "finalValidationEvidence": [
+          "full-tests-final.log:1714/1714",
+          "typecheck-final.log plus implementing-agent exit 0 report",
+          "build-worker-final.log:build complete",
+          "build-pages-final.log:built, index-CXyapgt4.js"
+        ],
+        "remainingFindings": {
+          "critical": 0,
+          "important": 0,
+          "minor": 0
+        }
+      }
+    }
+  ],
+  "minor": [],
+  "edgeChecks": [
+    "Repeated calls on the original raw object produce equal complete results and no duplicate observations.",
+    "Passing the already restored calculation fund through financialNavBasis returns the same fund/points without adding rows. It returns no new review, consistent with existing source-correction behavior; current consumers explicitly pass review metadata to nested views.",
+    "Full upstream backfill receives no restoration. A stale unresolved warning remains blocking; a clean full source series follows the existing source path. Partial or conflicting in-gap source rows fail the restoration guard.",
+    "Known independent invalid/conflicting warnings, missing/changed anchors, malformed series and additional jumps remain blocked."
+  ],
+  "evidenceReviewed": {
+    "independentChecks": [
+      "277 frozen Git blob SHA1 checks",
+      "nine manifest before/after SHA256 checks",
+      "310 original issuer rows and canonical digest",
+      "issuer embedded PDF byte equality",
+      "real raw-chart/export custom-range reproductions",
+      "repeated application/upstream-backfill probes",
+      "104-case report/ledger consistency and relative links"
+    ],
+    "existingValidationObserved": [
+      "core-green.log:54/54",
+      "full-tests.log:1711/1711",
+      "typecheck.log and implementing-agent successful exit report",
+      "Worker and Pages build-complete logs",
+      "audit source and output:23069 assertions,610 histories,609 full results unchanged,all raw inputs stable"
+    ],
+    "documentationHashes": {
+      "docs/BULK_HISTORY_CLOSURE_2026-10-29.md": "555a7a537a551b5b494115bc932a9c983a6e9a475959d3f3f15442453e1d3463",
+      "docs/evidence/2026-10-29-bulk-closure-research.json": "d78884fbc229bc02805639aeaed13a5461978651be469b183c3eff5f34ffd560"
+    }
+  },
+  "declinedToJudge": [
+    "Live deployment, merge/CI status and live artifact agreement: outside this read-only pre-merge review and not yet established by this review.",
+    "Fresh public-source availability or a fresh eligibility census: no network calls made; retained exact evidence and offline scope proof reviewed.",
+    "Independent visual re-review of all source PDFs and every rejected historical hypothesis: relied on the separate primary-source reviewers for those documentary conclusions; independently checked selected literal-row/response/PDF-byte agreement and report consistency.",
+    "Browser pixel rendering, accessibility beyond the concrete chart label issue, load performance and operational collector behavior: no browser or collector execution.",
+    "Any later product edits or final validation/release-status documentation updates: this verdict applies to the recorded manifest and documentation hashes."
+  ],
+  "readyToMerge": "Yes",
+  "reason": "R1 is resolved and regression-verified. No remaining Critical, Important or Minor findings in the recorded final nine-file product/test snapshot.",
+  "initialReadyToMerge": "With fixes",
+  "resolutionAddendum": {
+    "reviewedAt": "2026-10-29T05:10:08.300299+00:00",
+    "finding": "R1",
+    "status": "resolved",
+    "changedFiles": [
+      "src/components/FundDetail.tsx",
+      "tests/verified-nav-review-views.test.ts"
+    ],
+    "fix": "Raw CSV actual dates now derive from rawPoints. NAV chart title/subtitle/availability derive from sourcePoints via chartPoints. Toolbar/RangeNotice use raw dates in NAV mode and calculation dates in calculation modes. Restored-only intervals show no raw observations and no empty Chart; calculation chart remains available.",
+    "deltaVerification": "Reconstructed original after-files in memory from frozen baseline and original unified patch, verified their initial manifest hashes, and diffed against current files. Only the focused R1 implementation and three regression tests changed; other seven product/test files remain byte-identical.",
+    "tests": "All three new real component regressions fail in custom-range-red.log (18 pass / 3 fail), then pass in custom-range-green.log (21/21). Reviewer independently reran the view-test file successfully, exit 0; test runner reported the file as one passing suite unit.",
+    "finalValidationEvidence": [
+      "full-tests-final.log:1714/1714",
+      "typecheck-final.log plus implementing-agent exit 0 report",
+      "build-worker-final.log:build complete",
+      "build-pages-final.log:built, index-CXyapgt4.js"
+    ],
+    "remainingFindings": {
+      "critical": 0,
+      "important": 0,
+      "minor": 0
+    }
+  },
+  "finalReviewedProductManifest": {
+    "baselineCommit": "056ac7d2bee9edd733d45182385152c218ece6c8",
+    "files": [
+      {
+        "path": "src/lib/verified-nav-reviews.ts",
+        "beforeSha256": "f758fd903a5d54e28617e0aec307c2db32ee15d1e8d3f902e823d28cb5c60849",
+        "afterSha256": "470b7cb67ae236141ef7f1e7623b9a87da2be2de6baefe16764198b6fdcfd937",
+        "bytes": 11044
+      },
+      {
+        "path": "src/lib/verified-sbi-infrastructure-history.ts",
+        "beforeSha256": null,
+        "afterSha256": "057f0e32358adafb6df28d63950e46d41bdbb42c008c9071c70802e83b6fedad",
+        "bytes": 10444
+      },
+      {
+        "path": "src/lib/format.ts",
+        "beforeSha256": "37985e48f63dc26a2a5cc7e1ef2c45f054a22ceec4d780bb92160f29d661c19c",
+        "afterSha256": "975122113ac307b08775a0202c52855269de249c47c4a90506de7f226992874e",
+        "bytes": 3260
+      },
+      {
+        "path": "src/components/FundDetail.tsx",
+        "beforeSha256": "be6fe6062aef57f9d797045c9a701d8e6d69ab7c36ac30ec3d56d3fa51cd39c1",
+        "afterSha256": "61cec153d4343dcc4849657a150225199e356fa69287bc3c41c6f145a3022f0f",
+        "bytes": 35331
+      },
+      {
+        "path": "src/components/Comparison.tsx",
+        "beforeSha256": "6d904cd54da4bdeff70b0cf4b59fff1b3768ccd52f4bbfdb9f96f0d9691f9631",
+        "afterSha256": "67a04f37b8e16b7a2b64b8888fb5fbf8edc902f2400bce59b2ffe2c991ff5d1a",
+        "bytes": 14391
+      },
+      {
+        "path": "src/components/SipSimulator.tsx",
+        "beforeSha256": "0c400087948d41f0f4a87984f40cb29300b91a28d376ba0d7c3defa7edb9be83",
+        "afterSha256": "2209f962fb675f0a1f653108a5fa5437604c9d8ff4c2749a5b1673bd33e128fd",
+        "bytes": 11873
+      },
+      {
+        "path": "tests/fixtures/sbi-history-review.ts",
+        "beforeSha256": null,
+        "afterSha256": "3204cb5b0546ae1e705089b0b86ad2ac23afbed3fd18735f0cd1e8996f3aa71c",
+        "bytes": 965
+      },
+      {
+        "path": "tests/verified-history-restoration.test.ts",
+        "beforeSha256": null,
+        "afterSha256": "da8f2e027cf2582454eee974b8afe87f89c45dedec205fdfcad5cd6a5ea8518a",
+        "bytes": 5152
+      },
+      {
+        "path": "tests/verified-nav-review-views.test.ts",
+        "beforeSha256": "58bccc8088622e45075bdab520c59bc39f9fa0c39acec562413ed26d318576c3",
+        "afterSha256": "1fbfe4fb4640706b5e407c6d605dbd4ef0cc73dd07c1951239eb448f70534e8b",
+        "bytes": 30394
+      }
+    ]
+  }
+}

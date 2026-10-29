@@ -10,6 +10,7 @@ import * as selectedPeers from '../src/lib/selected-peers.ts';
 import * as returnCorrelation from '../src/lib/return-correlation.ts';
 import { BOI_CASES, boiFixture } from './fixtures/boi-nav-review.ts';
 import { ABSL_CASES, abslFixture } from './fixtures/absl-nav-review.ts';
+import { sbiHistoryFixture } from './fixtures/sbi-history-review.ts';
 import * as chartData from '../src/lib/chart-data.ts';
 import type { FundData, NavPoint, Scheme } from '../src/lib/types.ts';
 
@@ -415,4 +416,99 @@ test('nested plan and correlation CSV preserve already-correct BOI source wordin
     assert.match(String(csv.rows.find(row => row[0] === 'NAV calculation basis' && String(row[1]).includes('Scheme 133867:'))?.[1]), /already matches issuer-verified/);
   }
   page.unmount();
+});
+
+test('history restoration detail uses all issuer dates while raw NAV chart and CSV keep the original seven',()=>{
+  const fund=sbiHistoryFixture(),raw=structuredClone(fund);
+  const page=view('FundDetail',{fund,code:106096});page.range('MAX');
+  assert.match(page.content(),/303 issuer-verified NAV observations/);
+  assert.match(page.content(),/2009-04-06/);assert.match(page.content(),/2010-07-08/);
+  assert.ok(page.links().includes('https://www.sbimf.com/mutual-fund-nav'));
+  assert.equal(page.chart()!.series[0].data.length,310);
+  assert.match(page.chart()!.subtitle,/reviewed NAV.*issuer/i);
+  page.click('NAV');assert.equal(page.chart()!.series[0].data.length,7);
+  assert.doesNotMatch(page.chart()!.subtitle,/reviewed NAV/i);
+  const csv=page.export('Export selected NAV history as CSV');
+  assert.deepEqual(csv.rows.filter(row=>/^\d{4}-/.test(String(row[0]))),fund.points.map(point=>[point.date,point.nav]));
+  page.change({tab:'monthly'});
+  const monthly=page.export('Export selected monthly returns as CSV');
+  assert.match(String(monthly.rows.find(row=>row[0]==='NAV calculation basis')?.[1]),/303 issuer-verified/);
+  assert.match(String(monthly.rows.find(row=>row[0]==='Source')?.[1]),/reviewed calculation NAV.*issuer/i);
+  page.change({tab:'risk'});assert.match(page.chart()!.subtitle,/reviewed NAV.*issuer/i);
+  assert.deepEqual(fund,raw);page.unmount();
+});
+
+for(const range of [
+  {start:'2009-04-06',end:'2010-07-15'},
+  {start:'2009-04-01',end:'2009-04-09'},
+]){
+  test(`restored custom range ${range.start} through ${range.end} labels raw chart and CSV using their own dates`,()=>{
+    const fund=sbiHistoryFixture();
+    const page=view('FundDetail',{fund,code:106096});page.range(range);
+    const calculated=analytics.selectRange(format.financialNavBasis(fund).fund.points,range);
+    assert.match(page.chart()!.title,new RegExp(`${calculated[0].date} to ${calculated.at(-1)!.date}`));
+    page.click('NAV');
+    const raw=analytics.selectRange(fund.points,range);
+    assert.deepEqual(page.chart()!.series[0].data,raw.map(point=>({date:point.date,value:point.nav})));
+    assert.match(page.chart()!.title,new RegExp(`${raw[0].date} to ${raw.at(-1)!.date}`));
+    assert.ok(page.chart()!.subtitle.startsWith(`${format.dateLabel(raw[0].date,true)} – ${format.dateLabel(raw.at(-1)!.date,true)}`));
+    assert.match(page.content(),/RAW NAV DATES/);
+    const notice=page.find(node=>node.type===noticeType)!;
+    assert.equal(notice.props.actualStart,raw[0].date);assert.equal(notice.props.actualEnd,raw.at(-1)!.date);
+    const csv=page.export('Export selected NAV history as CSV');
+    assert.equal(csv.rows.find(row=>row[0]==='Actual NAV dates')?.[1],`${raw[0].date} to ${raw.at(-1)!.date}`);
+    assert.deepEqual(csv.rows.filter(row=>/^\d{4}-/.test(String(row[0]))),raw.map(point=>[point.date,point.nav]));
+    page.click('Growth');
+    assert.match(page.content(),/CALCULATION NAV DATES/);
+    assert.equal(page.find(node=>node.type===noticeType)!.props.actualStart,calculated[0].date);
+    assert.equal(page.find(node=>node.type===noticeType)!.props.actualEnd,calculated.at(-1)!.date);
+    page.unmount();
+  });
+}
+
+test('a restored-only date range keeps calculation charts available and reports absent raw NAV coverage',()=>{
+  const page=view('FundDetail',{fund:sbiHistoryFixture(),code:106096});
+  page.range({start:'2009-04-06',end:'2009-04-09'});
+  assert.ok(page.chart()!.series[0].data.length>=2);
+  page.click('NAV');
+  assert.equal(page.chart(),undefined);
+  assert.match(page.content(),/No raw NAV observations fall within this date range/);
+  assert.equal(page.find(node=>node.props['aria-label']==='Export selected NAV history as CSV')?.props.disabled,true);
+  assert.equal(page.find(node=>node.type===noticeType)!.props.actualStart,undefined);
+  assert.equal(page.find(node=>node.type===noticeType)!.props.actualEnd,undefined);
+  page.click('Growth');assert.ok(page.chart()!.series[0].data.length>=2);
+  assert.doesNotMatch(page.content(),/No raw NAV observations fall within this date range/);
+  page.unmount();
+});
+
+test('history restoration reaches the SIP simulator with added-date values and export provenance',()=>{
+  const fund=sbiHistoryFixture();
+  const page=view('FundDetail',{fund,code:106096,tab:'returns'});
+  const simulator=view('SipSimulator',page.find(node=>node.type===sipType)!.props);
+  simulator.range({start:'2009-04-06',end:'2009-04-09'});
+  assert.match(simulator.content(),/303 issuer-verified NAV observations/);
+  assert.ok(simulator.links().includes('https://www.sbimf.com/mutual-fund-nav'));
+  assert.match(simulator.chart()!.subtitle,/reviewed NAV.*issuer/i);
+  const csv=simulator.export('Export hypothetical SIP cash flows as CSV');
+  assert.equal(csv.rows.find(row=>row[0]==='2009-04-06')?.[2],6.1);
+  assert.match(String(csv.rows.find(row=>row[0]==='NAV calculation basis')?.[1]),/303 issuer-verified/);
+  assert.equal(csv.rows.find(row=>row[0]==='2009-04-06')?.[5],'Valued using reviewed calculation NAV');
+  page.unmount();simulator.unmount();
+});
+
+test('comparison and nested exports carry history-restoration provenance for the exact reviewed scheme',()=>{
+  const fund=sbiHistoryFixture(),raw=structuredClone(fund);
+  const peer=sbiHistoryFixture();peer.meta={...peer.meta,schemeCode:900001,schemeName:'Example Infrastructure Fund - Regular Plan - Growth'};
+  peer.points=[{date:'2009-04-01',nav:20},{date:'2009-04-06',nav:20.1},{date:'2009-04-09',nav:20.2},{date:'2010-07-09',nav:21},{date:'2010-07-15',nav:21.1}];
+  peer.warnings=[];
+  const page=comparisonPage([fund,peer]);page.range('MAX');
+  assert.match(page.content(),/303 issuer-verified NAV observations/);
+  assert.ok(page.links().includes('https://www.sbimf.com/mutual-fund-nav'));
+  assert.match(page.chart()!.subtitle,/reviewed NAV.*issuer/i);
+  const csv=page.export('Export comparison as CSV');assertReviewRows(csv.rows,[fund]);
+  assert.ok(csv.rows.some(row=>row[0]==='2009-04-06'));
+  for(const [child,label] of [['SelectedPeers','Export selected peer statistics as CSV'],['ReturnCorrelation','Export monthly return correlation as CSV']]){
+    assertReviewRows(page.nestedExport(child,label).rows,[fund]);
+  }
+  assert.deepEqual(fund,raw);page.unmount();
 });

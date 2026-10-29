@@ -1,0 +1,151 @@
+{
+  "baselineCommit": "056ac7d2bee9edd733d45182385152c218ece6c8",
+  "status": "local validation and independent review passed; CI/deployment pending",
+  "checks": {
+    "fullTestSuite": {
+      "command": "pnpm test",
+      "exitCode": 0,
+      "tests": 1714,
+      "passed": 1714,
+      "failed": 0,
+      "skipped": 0
+    },
+    "typecheck": {
+      "command": "pnpm typecheck",
+      "exitCode": 0
+    },
+    "workerBuild": {
+      "command": "pnpm build",
+      "exitCode": 0
+    },
+    "pagesBuild": {
+      "command": "pnpm build:pages",
+      "exitCode": 0
+    },
+    "customRangeRegression": {
+      "redTests": 21,
+      "redFailed": 3,
+      "greenTests": 21,
+      "greenPassed": 21
+    },
+    "completeCohort": {
+      "histories": 610,
+      "rawObservations": 2414742,
+      "assertions": 23069,
+      "unselectedResultsUnchanged": 609,
+      "selectedScheme": 106096,
+      "addedIssuerObservations": 303
+    }
+  },
+  "logs": [
+    {
+      "name": "core-red.log",
+      "bytes": 3189,
+      "sha256": "3f4e302d902221cc99769d02f1c02b2a52e1f5d51a02f284777d87a2d63b7170"
+    },
+    {
+      "name": "core-green.log",
+      "bytes": 4885,
+      "sha256": "12e6334cd7256f403bcb47dcadb9eabb94fcf774ff16c0393e22ac5819b4b75c"
+    },
+    {
+      "name": "views-red.log",
+      "bytes": 5584,
+      "sha256": "159219d412bda409d72aac53327ef8032458d7e541ca7db714c4df043ab7a2d9"
+    },
+    {
+      "name": "provenance-red.log",
+      "bytes": 5441,
+      "sha256": "a43d4aedbd95bee2ab6c59bbe6bb3a60f346e2d2e24e14414b1f53bc9fe4b2ba"
+    },
+    {
+      "name": "combined-green.log",
+      "bytes": 6775,
+      "sha256": "08020643d45d534712b05c822a1cffe46fe5bf7f40f4c28f0d5883b5e63d9657"
+    },
+    {
+      "name": "custom-range-red.log",
+      "bytes": 6174,
+      "sha256": "5295122625942cb2782395a0220d579fc6210fbc6632d7b7688d16af3bf34b59"
+    },
+    {
+      "name": "custom-range-green.log",
+      "bytes": 2349,
+      "sha256": "dd3e155931493384455567ecd92cb774c98407294fd89eb2f2f6045731b153b0"
+    },
+    {
+      "name": "full-tests-final.log",
+      "bytes": 167948,
+      "sha256": "c94d5188bdc23081940f3aad30a83e5b662fc4c28dcb4f96b5d91d3f8fecaac8"
+    },
+    {
+      "name": "typecheck-final.log",
+      "bytes": 15,
+      "sha256": "8366207267355d3e3d5bf3bf6e8c94c5f93f6078c34f08973fa2b38cdda6cc92"
+    },
+    {
+      "name": "build-worker-final.log",
+      "bytes": 1766,
+      "sha256": "1b440084e25fe81cc40cd5089ed5934faa1cebfd566df89ecc032f835575351e"
+    },
+    {
+      "name": "build-pages-final.log",
+      "bytes": 785,
+      "sha256": "a9e804c67e4791423a77422a7efd5fffa12e74f2a87ba705e0093386e14fa0d6"
+    }
+  ],
+  "localPagesAssets": [
+    {
+      "path": "assets/index-9K_3mv2j.css",
+      "bytes": 54741,
+      "sha256": "97fe87b9f067651213a6989714faa950e5a7e815baf74db091d1f8ddb79da03a"
+    },
+    {
+      "path": "assets/index-CXyapgt4.js",
+      "bytes": 1099381,
+      "sha256": "5bd0f5cf34f78316552de38436b386c65a5c846f5d045bd83a3ce48bcefb318a"
+    },
+    {
+      "path": "favicon.svg",
+      "bytes": 297,
+      "sha256": "7bc51db22826f93002dd6a302b607294ec3fdf5441634c68b51c03d66ab4a8e7"
+    },
+    {
+      "path": "file.svg",
+      "bytes": 392,
+      "sha256": "1e0ae4d1a1ddfa36752988647b731e4abf150c414d069ec83c96fb0aaeff0307"
+    },
+    {
+      "path": "globe.svg",
+      "bytes": 1036,
+      "sha256": "d051a8c47936990a9085693d307bb7cea1bc1b6d7ed956bcbaacf674f4ec96b9"
+    },
+    {
+      "path": "index.html",
+      "bytes": 1008,
+      "sha256": "2e17d6dba2b7ed1f4c9715567db838dd6e5d2f32c076ca558da01b84c6f0fc04"
+    },
+    {
+      "path": "window.svg",
+      "bytes": 386,
+      "sha256": "decf1cf7bb22b5c99c4857cfcd5718ce5465c4454166317589c83fc73df74b66"
+    }
+  ],
+  "buildWarnings": [
+    "Existing large-chunk advisory",
+    "Existing vinext static route classification notice"
+  ],
+  "review": {
+    "status": "ready to merge",
+    "criticalOpen": 0,
+    "importantOpen": 0,
+    "minorOpen": 0,
+    "resolvedFinding": "R1: raw NAV coverage dates",
+    "artifact": "2026-10-29-bulk-closure-review.json",
+    "finalProductHashesMatch": true
+  },
+  "release": {
+    "status": "pending CI and deployment verification"
+  },
+  "detailedEvidence": "Complete audit and test/build logs retained in the separately delivered owner evidence archive."
+}
