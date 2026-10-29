@@ -79,11 +79,20 @@ export function selectWork(catalogue: Catalogue, states: Record<string, ArchiveS
   }
   return selected;
 }
+interface SourceDiagnostic {
+  stage: 'bulk_nav' | 'membership_list' | 'terminal_probe' | 'history';
+  reason: 'deadline' | 'request_timeout' | 'request_failed' | 'http_status' | 'response_size_invalid'
+    | 'response_body_missing' | 'response_timeout' | 'response_read_failed' | 'json_parse_failed';
+  attempts: number;
+  status?: number;
+  bytes?: number;
+}
 class SourceError extends Error {
   readonly retryAfterMs: number;
   readonly sourceWide: boolean;
-  constructor(code: string, retryAfterMs = 0, sourceWide = false) {
-    super(code); this.retryAfterMs = retryAfterMs; this.sourceWide = sourceWide;
+  readonly diagnostic?: SourceDiagnostic;
+  constructor(code: string, retryAfterMs = 0, sourceWide = false, diagnostic?: SourceDiagnostic) {
+    super(code); this.retryAfterMs = retryAfterMs; this.sourceWide = sourceWide; this.diagnostic = diagnostic;
   }
 }
 export function safeFailure(error: unknown): string {
@@ -120,36 +129,50 @@ export function createSource(options: { fetch?: typeof fetch; now?: () => number
     const allowed = path === '/mf' || /^\/mf\/(?:latest|[1-9]\d*)$/.test(path)
       || terminal !== null && Number(terminal[1]) <= 100_000;
     if (!allowed) throw new SourceError('source_path_invalid');
+    const stage: SourceDiagnostic['stage'] = path === '/mf/latest' ? 'bulk_nav' : path === '/mf' ? 'membership_list'
+      : terminal ? 'terminal_probe' : 'history';
     for (let attempt = 0; attempt < 2; attempt++) {
       const remaining = options.deadline - now();
-      if (remaining <= 0) throw new SourceError('source_deadline');
+      if (remaining <= 0) throw new SourceError('source_deadline', 0, false, { stage, reason: 'deadline', attempts: attempt });
       const init: RequestInit = { redirect: 'error', credentials: 'omit',
         headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(Math.max(1, Math.min(12_000, remaining))) };
       // Count only an actual first request, not a deadline deferral.
       if (attempt === 0) onStart?.();
       let response: Response;
       try { response = await request(`https://api.mfapi.in${path}`, init); }
-      catch {
+      catch (error) {
         if (attempt === 0 && options.deadline - now() > 1000) { await sleep(500); continue; }
-        throw new SourceError('source_transport');
+        throw new SourceError('source_transport', 0, false, { stage, attempts: attempt + 1,
+          reason: error instanceof Error && ['TimeoutError', 'AbortError'].includes(error.name) ? 'request_timeout' : 'request_failed' });
       }
       if (!response.ok) {
         const retryHeader = response.headers.get('retry-after');
         const requestedDelay = retryAfter(retryHeader, now());
         const delay = requestedDelay ?? 500;
         const transient = [408, 425, 429, 500, 502, 503, 504].includes(response.status);
+        const diagnostic: SourceDiagnostic = { stage, reason: 'http_status', status: response.status, attempts: attempt + 1 };
         await response.body?.cancel();
         if (response.status === 429) {
-          throw new SourceError('source_http_429', requestedDelay && requestedDelay > 0 ? requestedDelay : BACKOFF_MIN_MS, true);
+          throw new SourceError('source_http_429', requestedDelay && requestedDelay > 0 ? requestedDelay : BACKOFF_MIN_MS, true, diagnostic);
         }
         if (response.status === 503 && requestedDelay !== null && requestedDelay > 0) {
-          throw new SourceError('source_http_503', requestedDelay, true);
+          throw new SourceError('source_http_503', requestedDelay, true, diagnostic);
         }
         if (attempt === 0 && transient && delay <= 5000 && now() + delay + 1000 < options.deadline) { await sleep(delay); continue; }
-        throw new SourceError(`source_http_${response.status}`, transient ? delay : 0);
+        throw new SourceError(`source_http_${response.status}`, transient ? delay : 0, false, diagnostic);
       }
-      try { return JSON.parse(Buffer.from(await readLimited(response, MAX_SOURCE_BYTES)).toString('utf8')); }
-      catch { throw new SourceError('source_payload_invalid'); }
+      let bytes: Uint8Array;
+      try { bytes = await readLimited(response, MAX_SOURCE_BYTES); }
+      catch (error) {
+        const reason: SourceDiagnostic['reason'] = error instanceof Error && error.message === 'response_size_invalid'
+          ? 'response_size_invalid' : error instanceof Error && error.message === 'response_body_missing'
+            ? 'response_body_missing' : error instanceof Error && ['TimeoutError', 'AbortError'].includes(error.name)
+              ? 'response_timeout' : 'response_read_failed';
+        throw new SourceError('source_payload_invalid', 0, false, { stage, reason, attempts: attempt + 1 });
+      }
+      try { return JSON.parse(Buffer.from(bytes).toString('utf8')); }
+      catch { throw new SourceError('source_payload_invalid', 0, false, {
+        stage, reason: 'json_parse_failed', attempts: attempt + 1, bytes: bytes.length }); }
     }
     throw new SourceError('source_unavailable');
   };
@@ -247,7 +270,8 @@ export async function runTranche(options: TrancheOptions): Promise<TrancheResult
       if (catalogueWriteStarted) throw error;
       catalogueError = safeFailure(error);
       applySourceCooldown(error);
-      log({ phase: 'catalogue', outcome: 'failed', error: catalogueError, sourceRetryAt });
+      const diagnostic = error instanceof SourceError || error instanceof CatalogueIntegrityError ? error.diagnostic : undefined;
+      log({ phase: 'catalogue', outcome: 'failed', error: catalogueError, sourceRetryAt, ...(diagnostic ? { diagnostic } : {}) });
       if (!catalogue) throw error instanceof SourceError ? error : new SourceError(catalogueError);
       changed ||= catalogueError !== previous?.checkpoint.lastCatalogueError;
     }

@@ -160,6 +160,7 @@ test('duplicate identities and bulk codes absent from the independently checked 
 test('a rate limit during membership verification keeps the catalogue and honors the existing global cooldown', async () => {
   const store = await seed(), before = structuredClone(store.snapshot!);
   const requests: string[] = [];
+  const events: Record<string, unknown>[] = [];
   const source = createSource({ now: () => NOW + 1000, deadline: NOW + 60_000,
     fetch: (async input => {
       const path = new URL(String(input)).pathname; requests.push(path);
@@ -167,12 +168,19 @@ test('a rate limit during membership verification keeps the catalogue and honors
         : new Response('', { status: 429, headers: { 'Retry-After': '900' } });
     }) as typeof fetch });
   const result = await run({ store, now: () => NOW + 1000, minCatalogueSize: 1,
-    activeRepairOnly: true, verifyCatalogueMembership: true, source });
+    activeRepairOnly: true, verifyCatalogueMembership: true, source, log: event => { events.push(event); } });
   assert.deepEqual(requests, ['/mf/latest', '/mf']);
   assert.equal(result.lastCatalogueError, 'source_http_429');
   assert.equal(result.sourceRetryAt, new Date(NOW + 901_000).toISOString());
   assert.deepEqual(store.snapshot!.catalogue, before.catalogue);
   assert.deepEqual(store.snapshot!.checkpoint.states, before.checkpoint.states);
+  assert.deepEqual(store.snapshot!.checkpoint.shards, before.checkpoint.shards);
+  assert.deepEqual(store.snapshot!.checkpoint.catalogue, before.checkpoint.catalogue);
+  assert.deepEqual(events.find(event => event.phase === 'catalogue'), {
+    phase: 'catalogue', outcome: 'failed', error: 'source_http_429', sourceRetryAt: '2026-10-27T08:15:01.000Z',
+    diagnostic: { stage: 'membership_list', reason: 'http_status', status: 429, attempts: 1 },
+  });
+  assert.ok(!JSON.stringify(store.snapshot).includes('"diagnostic"'));
 });
 
 test('source transport permits only the exact bounded list and terminal-probe paths', async () => {
