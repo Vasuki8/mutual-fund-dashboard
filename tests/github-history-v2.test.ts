@@ -6,6 +6,7 @@ import { runTranche as runCollector, catalogueSlot, selectWork, createSource, co
 import { calculateCounts, validateCheckpoint, validateHistoryShard,
   type ArchiveAssetRef, type ArchiveCheckpoint, type ArchiveSnapshot, type ArchiveSchemeState, type HistoryShard } from '../scripts/archive-model.ts';
 import type { ArchiveStore } from '../scripts/archive-store.ts';
+import { continueBackfill } from '../scripts/backfill-control.ts';
 
 const START = Date.parse('2026-10-21T08:00:00.000Z');
 const CODE = 118955;
@@ -47,6 +48,47 @@ class MemoryStore implements ArchiveStore {
     this.snapshot = { checkpoint: structuredClone(checkpoint), catalogue }; this.commits += 1;
   }
 }
+
+test('first-pass continuation counts only saved schemes still eligible after UTC midnight', async () => {
+  for (const agesOut of [true, false]) {
+    const store = new MemoryStore();
+    const start = Date.parse('2026-10-21T23:59:59.000Z'); let time = start;
+    const sourceCalls: string[] = [];
+    const sourceDate = agesOut ? '21-09-2026' : '22-09-2026';
+    const result = await runTranche({ store, now: () => time, minCatalogueSize: 1, maxSchemes: 1, activeRepairOnly: true,
+      source: async path => {
+        sourceCalls.push(path);
+        if (path === '/mf/latest') return [...rawCatalogue([100601], sourceDate), ...rawCatalogue([CODE])];
+        assert.equal(path, '/mf/100601'); time = Date.parse('2026-10-22T00:00:01.000Z');
+        return history(100601, [{ date: sourceDate, nav: '11.00' }, { date: '20-09-2026', nav: '10.00' }]);
+      } });
+    assert.deepEqual(sourceCalls, ['/mf/latest', '/mf/100601']);
+    assert.equal(result.firstAttempted, 1); assert.equal(result.historiesAdded, 1);
+    assert.equal(result.activeRepairProgress!.after.pending, 1);
+    if (agesOut) assert.deepEqual(result.activeRepairProgress!.before, result.activeRepairProgress!.after);
+    const checkpoint = store.snapshot!.checkpoint; const requests: string[] = [];
+    const publicRef = (ref: ArchiveAssetRef) => ({ path: `archive/${ref.name}`, sha256: ref.sha256,
+      bytes: ref.bytes, expandedBytes: ref.expandedBytes });
+    const outcome = await continueBackfill({ store, result, now: () => time,
+      context: { rootRunId: '100', parentRunId: null, runId: '100', runAttempt: 1, position: 1,
+        startingSequence: null, deadline: new Date(start + 4 * 3600_000).toISOString() },
+      env: { GITHUB_REPOSITORY: 'Vasuki8/mutual-fund-dashboard', GITHUB_REF: 'refs/heads/main',
+        FUNDSCOPE_GITHUB_ARCHIVE_ENABLED: 'true', GITHUB_TOKEN: 'fixture-token', GITHUB_RUN_ID: '100', GITHUB_RUN_ATTEMPT: '1' },
+      fetch: async (_input, init) => {
+        requests.push(init?.method ?? 'GET');
+        return Response.json(init?.method === 'POST' ? { workflow_run_id: 102 } : {
+          version: 2, source: 'mfapi.in', status: 'ready', collectionEnabled: true,
+          sequence: checkpoint.sequence, checkpointAt: checkpoint.updatedAt, counts: checkpoint.counts,
+          catalogue: publicRef(checkpoint.catalogue),
+          shards: Object.fromEntries(Object.entries(checkpoint.shards).map(([key, ref]) => [key, publicRef(ref)])),
+        });
+      } });
+    assert.equal(outcome.reason, agesOut ? 'no_first_pass_progress' : 'dispatched');
+    assert.deepEqual(requests, agesOut ? ['GET'] : ['GET', 'POST']);
+    assert.equal(store.snapshot!.checkpoint.states[100601].observationCount, 2);
+    assert.equal(store.snapshot!.checkpoint.states[CODE].attempts, 0);
+  }
+});
 
 test('catalogue refresh slots cover both daily UTC windows and midnight', () => {
   assert.equal(catalogueSlot(Date.parse('2026-10-21T06:59:59Z')), '2026-10-20T19:00:00.000Z');
@@ -312,6 +354,53 @@ test('post-first-pass repair progress means verified lower backlog or more clean
   assert.equal(hasVerifiedReconciliationProgress(previous,{...previous,sourceGaps:3,refreshPending:11}),false);
   assert.equal(hasVerifiedReconciliationProgress(previous,{...previous,total:21,clean:14}),false,
     'Adding or deleting catalogue schemes is not by itself source-quality cleanup.');
+});
+
+test('active repair progress compares the same catalogue while excluded identities stay pending', async () => {
+  const store = new MemoryStore();
+  const excluded = [154858, 154859, 154860, 154861];
+  await runTranche({ store, now: () => START, activeRepairOnly: true, minCatalogueSize: 1,
+    source: async path => path === '/mf/latest' ? rawCatalogue([CODE, ...excluded], '20-10-2026')
+      : history(CODE, [{ date: '20-10-2026', nav: '11.00' }, { date: '19-10-2026', nav: '10.00' }]) });
+  const originalExcluded = excluded.map(code => structuredClone(store.snapshot!.checkpoint.states[code]));
+  const later = Date.parse('2026-10-21T20:00:00.000Z');
+  const requested: string[] = [];
+  const result = await runTranche({ store, now: () => later, activeRepairOnly: true, minCatalogueSize: 1,
+    source: async path => { requested.push(path); return path === '/mf/latest' ? rawCatalogue([CODE, ...excluded]) : history(); } });
+  assert.equal(result.reconciliationAdvanced, true,
+    'A verified active refresh counts even when the old global backlog omitted the new catalogue date lag.');
+  assert.deepEqual(requested, ['/mf/latest', `/mf/${CODE}`]);
+  assert.equal(result.counts!.pending, 4);
+  assert.equal(result.firstAttempted, 0); assert.equal(result.historiesAdded, 0);
+  assert.deepEqual(excluded.map(code => store.snapshot!.checkpoint.states[code]), originalExcluded);
+  assert.deepEqual(result.activeRepairProgress, {
+    asOf: '2026-10-21T20:00:00.000Z',
+    before: { total: 1, attempted: 1, saved: 1, clean: 1, qualityIssues: 0, sourceGaps: 0,
+      pending: 0, refreshPending: 1, bulkPassComplete: true, coverageComplete: false },
+    after: { total: 1, attempted: 1, saved: 1, clean: 1, qualityIssues: 0, sourceGaps: 0,
+      pending: 0, refreshPending: 0, bulkPassComplete: true, coverageComplete: true },
+  });
+});
+
+test('a fund aging out at the UTC boundary cannot manufacture active repair progress', async () => {
+  const store = new MemoryStore(); const excluded = [154858, 154859, 154860, 154861];
+  const oldDate = '21-09-2026';
+  await runTranche({ store, now: () => START, activeRepairOnly: true, minCatalogueSize: 1,
+    source: async path => path === '/mf/latest' ? rawCatalogue([CODE, ...excluded], oldDate)
+      : history(CODE, [{ date: oldDate, nav: '11.00' }, { date: '20-09-2026', nav: '10.00' }]) });
+  const states = structuredClone(store.snapshot!.checkpoint.states);
+  const requested: string[] = [];
+  const result = await runTranche({ store, now: () => Date.parse('2026-10-22T00:00:00.000Z'),
+    activeRepairOnly: true, minCatalogueSize: 1,
+    source: async path => { requested.push(path); return rawCatalogue([CODE, ...excluded], oldDate); } });
+  assert.deepEqual(requested, ['/mf/latest']);
+  assert.equal(result.attempted, 0); assert.equal(result.reconciliationAdvanced, false);
+  assert.equal(result.counts!.total, 5); assert.equal(result.counts!.saved, 1);
+  assert.equal(result.counts!.pending, 4);
+  assert.deepEqual(store.snapshot!.checkpoint.states, states);
+  const empty = { total: 0, attempted: 0, saved: 0, clean: 0, qualityIssues: 0,
+    sourceGaps: 0, pending: 0, refreshPending: 0, bulkPassComplete: false, coverageComplete: false };
+  assert.deepEqual(result.activeRepairProgress, { asOf: '2026-10-22T00:00:00.000Z', before: empty, after: empty });
 });
 
 test('no-op collector never claims post-first-pass repair progress',async()=>{
