@@ -1,15 +1,21 @@
+import type { VerifiedNavReview } from '../lib/verified-nav-reviews.ts';
 import { AlertCircle, Download, Info } from 'lucide-react';
 import type { FundData } from '../lib/types.ts';
-import { currency, dateLabel, downloadCsv, number, percent } from '../lib/format.ts';
+import { currency, dateLabel, downloadCsv, navReviewSummary, number, percent } from '../lib/format.ts';
 import { summarizePlanNavDifference, type AlignedPlanHistory } from '../lib/plan-comparison.ts';
 
 interface Props {
   funds: FundData[];
   aligned: AlignedPlanHistory;
   requestedPeriod: string;
+  navReviews?: VerifiedNavReview[];
 }
 
-export function PlanComparison({ funds, aligned, requestedPeriod }: Props) {
+export function PlanComparison({ funds, aligned, requestedPeriod, navReviews = [] }: Props) {
+  const reviewMetadata = navReviews.flatMap(review => [
+    ['NAV calculation basis', `Scheme ${review.schemeCode}: reviewed calculation NAV. ${navReviewSummary(review)}`],
+    ...review.events.map(event => ['Economic event evidence', `Scheme ${review.schemeCode}, ${event.date}: ${event.evidenceUrl}`]),
+  ]);
   const result = summarizePlanNavDifference(funds, aligned);
   if (!result.applicable) return null;
   const metrics = result.metrics;
@@ -28,7 +34,8 @@ export function PlanComparison({ funds, aligned, requestedPeriod }: Props) {
   const percentagePointGap = metrics.returnDifference * 100;
   const gap = (percentagePointGap > 0 ? '+' : '') + number(percentagePointGap) + ' pp';
   const exportPlans = () => downloadCsv([
-    ['Data source', 'MFAPI validated Growth NAV observations'],
+    ['Data source', navReviews.length ? 'MFAPI Growth NAV history; reviewed calculation NAV supported by issuer evidence below' : 'MFAPI validated Growth NAV observations'],
+    ...reviewMetadata,
     ['Method', 'Exact common reported NAV dates; no imputation or forward fill'],
     ['Pairing', 'Same normalized scheme name, fund house, category and type; not an AMC-certified pair'],
     ['Requested period', requestedPeriod],
@@ -45,14 +52,14 @@ export function PlanComparison({ funds, aligned, requestedPeriod }: Props) {
     ['Regular scheme name', regular.meta.schemeName],
     ['Regular source', 'https://api.mfapi.in/mf/' + regular.meta.schemeCode],
     ['Regular history retrieved UTC', regular.fetchedAt],
-    ['Direct reported return (decimal)', metrics.directReturn],
-    ['Regular reported return (decimal)', metrics.regularReturn],
+    [navReviews.some(review => review.schemeCode === direct.meta.schemeCode) ? 'Direct reviewed calculation return (decimal)' : 'Direct reported return (decimal)', metrics.directReturn],
+    [navReviews.some(review => review.schemeCode === regular.meta.schemeCode) ? 'Regular reviewed calculation return (decimal)' : 'Regular reported return (decimal)', metrics.regularReturn],
     ['Direct minus Regular return (percentage points)', percentagePointGap],
     ['Direct ending value (INR)', metrics.directEndingValue],
     ['Regular ending value (INR)', metrics.regularEndingValue],
     ['Direct minus Regular ending value (INR)', metrics.endingValueDifference],
     ['Caveat', 'Observed NAV difference is not an estimate of the total expense ratio or all fees'],
-    ['Date', 'Direct NAV', 'Regular NAV', 'Direct normalized INR', 'Regular normalized INR', 'Direct minus Regular INR'],
+    ['Date', navReviews.some(review => review.schemeCode === direct.meta.schemeCode) ? 'Direct reviewed calculation NAV' : 'Direct NAV', navReviews.some(review => review.schemeCode === regular.meta.schemeCode) ? 'Regular reviewed calculation NAV' : 'Regular NAV', 'Direct normalized INR', 'Regular normalized INR', 'Direct minus Regular INR'],
     ...aligned.dates.map((date, index) => {
       const directSeries = aligned.series[metrics.directIndex];
       const regularSeries = aligned.series[metrics.regularIndex];
@@ -73,6 +80,6 @@ export function PlanComparison({ funds, aligned, requestedPeriod }: Props) {
       <div className="metric"><span className="metric-label">₹10,000 ending-value gap</span><strong className={metrics.endingValueDifference<0?'negative':'positive'}>{currency(metrics.endingValueDifference)}</strong><small>Direct {currency(metrics.directEndingValue)} · Regular {currency(metrics.regularEndingValue)}</small></div>
     </div>
     {result.staleCount>0&&<div className="notice warning"><AlertCircle size={16}/><span>{result.staleCount} plan history may be stale after a failed refresh. The original NAV observation dates remain visible.</span></div>}
-    <p className="panel-note"><Info size={13}/> Names and MFAPI metadata match, but MFAPI does not expressly certify these as paired share classes. Confirm the scheme documents with the AMC. Each plan starts with a hypothetical ₹10,000 on the same reported date. NAV already reflects ongoing fund costs; the return gap is <strong>not</strong> an estimate of TER or transaction fees. No distributions, taxes, loads, or new data sources were added.</p>
+    <p className="panel-note"><Info size={13}/> Names and MFAPI metadata match, but MFAPI does not expressly certify these as paired share classes. Confirm the scheme documents with the AMC. Each plan starts with a hypothetical ₹10,000 on the same reported date. NAV already reflects ongoing fund costs; the return gap is <strong>not</strong> an estimate of TER or transaction fees. {navReviews.length ? 'Reviewed calculation NAV uses the issuer evidence disclosed above and in CSV. No distributions, taxes or loads were added.' : 'No distributions, taxes, loads, or new data sources were added.'}</p>
   </section>;
 }

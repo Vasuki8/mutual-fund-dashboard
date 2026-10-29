@@ -1,0 +1,165 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-29T04:18:41.945500+00:00",
+  "baselineCommit": "cac0463a0d9f71b22aa365ce1d1c6a9524de9e2b",
+  "scopeReferenceDate": "2026-10-29",
+  "checkpoint": 213,
+  "localFinalGates": {
+    "tests": {
+      "command": "pnpm test",
+      "nodeIsolation": "default process isolation",
+      "passed": 1691,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0
+    },
+    "typecheck": {
+      "command": "pnpm run typecheck",
+      "exitCode": 0
+    },
+    "workerBuild": {
+      "command": "pnpm run build",
+      "exitCode": 0
+    },
+    "pagesBuild": {
+      "command": "pnpm run build:pages",
+      "exitCode": 0
+    },
+    "nonBlockingBuildMessages": [
+      "Vite emits the existing large-chunk advisory.",
+      "Vinext reports its existing static route-classification limitation."
+    ]
+  },
+  "independentAudit": {
+    "generatedAt": "2026-10-29T04:12:45.495Z",
+    "summarySha256": "4e3e58bdce49142e1217097cda8a0b5a7dc1055d3e425a6e842f072ec260b1fb",
+    "resultsSha256": "2ca5557dabe8d86efae11b2957d3c4b4020eb822bc5b077459187dd619c33c9b",
+    "counts": {
+      "eligibleSchemes": 8524,
+      "rawSourceUnresolved": 610,
+      "rawSourceFlagsCleared": 0,
+      "unitAdjustedBefore": 122,
+      "unitAdjustedAfter": 122,
+      "sourceReviewedBefore": 0,
+      "sourceReviewedAfter": 4,
+      "newlyConsumerEligible": 4,
+      "consumerEligibleBefore": 81,
+      "consumerEligibleAfter": 85,
+      "consumerBlockedAfter": 525,
+      "unselectedFullResultDeepEqual": 606,
+      "unselectedFullResultSerializedEqual": 606,
+      "selectedFullResultsExactlySpecified": 4,
+      "selectedObservations": 13683,
+      "sourceShardsVerified": 237,
+      "sourceAssetsVerified": 238,
+      "rawFixturesVerified": 610,
+      "remainingGrowthBlocked": 104,
+      "remainingUnexplainedJumpHistories": 300
+    },
+    "inputHashes": {
+      "/workspace/scratch/1b58c5a493b9/evidence/bulk-finalization-2026-10-29/audit/baseline-corporate-actions.ts": "5eb4eec5d299d6946c38893edc317cd36975c3f2f7a9d014a082fb487ff9d811",
+      "/workspace/scratch/1b58c5a493b9/evidence/bulk-finalization-2026-10-29/base-source.tar.gz": "d7dc1556355058d78035c394302a6f7e1dc34fd2754da64540d2afc64933d7f3",
+      "/workspace/scratch/1b58c5a493b9/fundscope/src/lib/corporate-actions.ts": "48c79e3b6bc58211effe5d801f468c3431d1705de056789d69d75b78bb44cc77",
+      "/workspace/scratch/1b58c5a493b9/fundscope/src/lib/verified-nav-reviews.ts": "f758fd903a5d54e28617e0aec307c2db32ee15d1e8d3f902e823d28cb5c60849",
+      "/workspace/scratch/1b58c5a493b9/evidence/bulk-continuation-2026-10-29/after/queue-after.json": "01e3cedad936c753b25d6d5c58c0c2be40ed900c90b1a621a4bbe7abceb2797c",
+      "/workspace/scratch/1b58c5a493b9/evidence/bulk-completion-2026-10-29/queue-before.json": "22c394e08460d7fe5702e6f412f79f34084edc35fcec6534ba16710e4992b533",
+      "/workspace/scratch/1b58c5a493b9/evidence/bulk-completion-2026-10-29/public-manifest.json": "ee70ea658762c7f42d34c6cf39f7841bbe85ec593275111a1aaa36a7f0499d0c",
+      "/workspace/scratch/1b58c5a493b9/fundscope/scripts/active-repair-scope.ts": "1fb23e52bd92f1e7fff701307e9ebe165c7988fcd015ed97ce284dca2e9cc172",
+      "/workspace/scratch/1b58c5a493b9/fundscope/src/lib/amfi-open-ended-roster.ts": "31441bcb846eebdc75cda52c51ace505a2f731732408ebe6b4c6748d24c5489c",
+      "/workspace/scratch/1b58c5a493b9/fundscope/src/lib/analytics.ts": "98a93fb1002362cc705ee721b5db160574fc2aedef1ded0a0571d046dfacdebd",
+      "/workspace/scratch/1b58c5a493b9/fundscope/server/validation.ts": "128d4b1bd26cc1c00a6463869b9195b80db5658757caeea5721d416601d6296f",
+      "/workspace/scratch/1b58c5a493b9/evidence/bulk-finalization-2026-10-29/audit/baseline-format.ts": "78937c9d7da5dddaf5dadfed7be586bfd54817196ac71f070d79597f388f7ce6",
+      "/workspace/scratch/1b58c5a493b9/fundscope/src/lib/format.ts": "37985e48f63dc26a2a5cc7e1ef2c45f054a22ceec4d780bb92160f29d661c19c",
+      "/workspace/scratch/1b58c5a493b9/evidence/bulk-finalization-2026-10-29/audit/selected-reviews.json": "bda55842f6de23b0864adfa2dab8893612dcd5cb2e6c02d1f91f9fcbbcabfee4"
+    },
+    "allAuditInputsStillExactAfterUiRemediation": true
+  },
+  "review": {
+    "originalReviewSha256": "fb928860b71a2b3e6c36618350607542afcbae5d8379e519e3444baffe2e57a7",
+    "originalVerdict": "Changes requested for I1; numerical core and primary evidence accepted.",
+    "I1": {
+      "severity": "Important",
+      "finding": "Nested comparison CSV exports omitted review provenance.",
+      "ruling": "Accepted and fixed; closed by root after behavioral verification.",
+      "red": {
+        "passed": 10,
+        "expectedFailures": 5
+      },
+      "green": {
+        "reviewedViewTests": 15,
+        "affectedViewRegressions": 40
+      },
+      "independentReviewerJudgedPostRemediationHashes": false
+    },
+    "M1": {
+      "severity": "Minor",
+      "finding": "Pre-existing PNG exports contain only chart canvas, without outside provenance notice.",
+      "ruling": "Deferred separate follow-up; page notices and CSV provenance included in this release."
+    }
+  },
+  "finalSourceAndTestHashes": {
+    "src/lib/verified-nav-reviews.ts": "f758fd903a5d54e28617e0aec307c2db32ee15d1e8d3f902e823d28cb5c60849",
+    "src/lib/corporate-actions.ts": "48c79e3b6bc58211effe5d801f468c3431d1705de056789d69d75b78bb44cc77",
+    "src/lib/format.ts": "37985e48f63dc26a2a5cc7e1ef2c45f054a22ceec4d780bb92160f29d661c19c",
+    "src/components/FundDetail.tsx": "be6fe6062aef57f9d797045c9a701d8e6d69ab7c36ac30ec3d56d3fa51cd39c1",
+    "src/components/Comparison.tsx": "6d904cd54da4bdeff70b0cf4b59fff1b3768ccd52f4bbfdb9f96f0d9691f9631",
+    "src/components/SipSimulator.tsx": "0c400087948d41f0f4a87984f40cb29300b91a28d376ba0d7c3defa7edb9be83",
+    "src/components/PlanComparison.tsx": "8ce94ec5642e779f14efcac038dfda48bfc9c99981d25ac27c584f045e69c231",
+    "src/components/SelectedPeers.tsx": "42858dc6f24667c635af3818d6ca4b0f267bf63c62ca1b4992f6d355d7404623",
+    "src/components/ReturnCorrelation.tsx": "d98abea4e1a2d7ad9536248baf3494d15300ca90acaa239e83741601cd8644c0",
+    "tests/verified-nav-reviews.test.ts": "921dad130c348e1dd225711665210863374f5c8e18fdf48613763aebe95cf600",
+    "tests/absl-source-corrections.test.ts": "1d780b92c64138d7a73cf974fad991f3b81c6892be886a23a98d0b87a78b2605",
+    "tests/verified-nav-review-views.test.ts": "58bccc8088622e45075bdab520c59bc39f9fa0c39acec562413ed26d318576c3",
+    "tests/fixtures/boi-nav-review.ts": "1db3bd70d24f892d5a374fb1be4cb7d8df2a391526b789175bc593054e86cfba",
+    "tests/fixtures/absl-nav-review.ts": "e4dce284e247139fb7257ec49d408eb6aca4b1c56700287a1aa86d4a61a2aa7c"
+  },
+  "localLogInventory": {
+    "final-tests.log": {
+      "sha256": "ee16fc11ef304d9032c651cbbf0ec1983c570899dd64d5fc0142b13b884eb9bc",
+      "bytes": 165889,
+      "exitCode": 0
+    },
+    "final-typecheck.log": {
+      "sha256": "8366207267355d3e3d5bf3bf6e8c94c5f93f6078c34f08973fa2b38cdda6cc92",
+      "bytes": 15,
+      "exitCode": 0
+    },
+    "worker-build.log": {
+      "sha256": "654d84b618ab9e40851b457c6d15aca56ab243f01ba0cca70d3298fc874ea67b",
+      "bytes": 1766,
+      "exitCode": 0
+    },
+    "pages-build.log": {
+      "sha256": "c8dbe2223aa4af28299a30a214e8e89dcfe47fd3ac57f807a845c9017c4d1184",
+      "bytes": 785,
+      "exitCode": 0
+    },
+    "ui/nested-red.log": {
+      "sha256": "900d9adc90023b95dc1249fb877ad84db0f066954fab05ebb5c40eb95966e743",
+      "bytes": 6851,
+      "exitCode": 1
+    },
+    "ui/nested-green.log": {
+      "sha256": "8b56b5a56aa68f3ad5f882a6d7dad863ed77e452160609f23052b19fa62ba1d3",
+      "bytes": 1661,
+      "exitCode": 0
+    },
+    "ui/nested-regression.log": {
+      "sha256": "8827176bc3911d641dd11a25fc3e3c76cbfdd2257a3e7f792d877599f362a1c8",
+      "bytes": 4262,
+      "exitCode": 0
+    },
+    "ui/nested-typecheck.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "exitCode": 0
+    }
+  },
+  "releaseGates": "Exact-head GitHub CI, expected-head merge, Pages checkout, deployment and artifact/live verification are subsequent gates recorded in the PR. This pre-release record does not assert them.",
+  "sourceScopeLimits": [
+    "No raw archive values, warnings, checkpoint state or returns asset were rewritten.",
+    "No manual collector dispatch, auth retry, schedule/gate change, AMFI download or previous-host restart.",
+    "Four calculation reviews are distinct from the 122 existing unit adjustments.",
+    "104 Growth histories remain blocked; the complete source-cleanup task remains dependent on missing upstream or primary evidence."
+  ]
+}

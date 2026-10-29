@@ -1,0 +1,2241 @@
+{
+  "baselineCommit": "cac0463a0d9f71b22aa365ce1d1c6a9524de9e2b",
+  "checkpoint": 213,
+  "scope": "Read-only investigations. No archived source values, warnings, retry states or checkpoint were changed.",
+  "offlineInvalidWarningAudit": {
+    "generatedAt": "2026-10-29T03:59:45.929Z",
+    "purpose": "Offline root-cause and safe-resolution-path verification; demonstrations do not establish provider repair",
+    "sourceAuditBase": "b024a9b48f722a3d24f9592ec71ce6d79bbcbdf2",
+    "counts": {
+      "histories": 77,
+      "historicalRejectedCountSum": 732,
+      "savedObservations": 333034,
+      "savedInvalidRows": 0,
+      "hypotheticalCleanCompleteStillJumpBlocked": 6,
+      "hypotheticalCleanCompleteUnblocked": 71,
+      "assertions": 924,
+      "liveRequests": 0,
+      "productionMutations": 0
+    },
+    "records": [
+      {
+        "code": 100313,
+        "name": "LIC MF Flexi Cap Fund - Regular Plan - Growth",
+        "fundHouse": "LIC Mutual Fund",
+        "historicalRejectedCount": 2,
+        "observations": 5020,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "d06c1445077f16411c126dc99b6a7f383f59d9e2b2a8c4e53d3c2300c5be8fdf",
+        "coverageStart": "2006-04-03",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-21T20:43:11.703Z",
+        "archivedAt": "2026-10-27T01:29:20.366Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 100317,
+        "name": "LIC MF Gilt Fund - Regular Plan - Growth",
+        "fundHouse": "LIC Mutual Fund",
+        "historicalRejectedCount": 3,
+        "observations": 4964,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "8030d042334d8ec42f9a64c3bd187b3097cdc9571efcdd5d4a7235384a40ac74",
+        "coverageStart": "2006-04-03",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-21T20:43:13.082Z",
+        "archivedAt": "2026-10-27T01:29:23.280Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 100319,
+        "name": "LIC MF Gilt Fund - Growth",
+        "fundHouse": "LIC Mutual Fund",
+        "historicalRejectedCount": 3,
+        "observations": 4964,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "45f1f822cdc06bb3cdf8a760081237a7d3b6eb0bf763cc7e6e38292fcd79f364",
+        "coverageStart": "2006-04-03",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-21T20:43:13.751Z",
+        "archivedAt": "2026-10-27T01:29:23.693Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 100323,
+        "name": "LIC MF Aggressive Hybrid Fund - Regular Plan - Growth",
+        "fundHouse": "LIC Mutual Fund",
+        "historicalRejectedCount": 2,
+        "observations": 5019,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "489c038aaa0f3706923682a1bcdd1e04d74a8bdf5e64ca257e244d99cedbf748",
+        "coverageStart": "2006-04-03",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-21T20:43:14.214Z",
+        "archivedAt": "2026-10-27T01:29:24.105Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 100476,
+        "name": "Taurus Flexi Cap Fund - Regular Plan - Growth",
+        "fundHouse": "Taurus Mutual Fund",
+        "historicalRejectedCount": 3,
+        "observations": 5062,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "46aaac5bce650272810efe8a1da256059468bd5c98c5c3ec135a70cf26d6f3c3",
+        "coverageStart": "2006-04-03",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-21T20:43:28.893Z",
+        "archivedAt": "2026-10-27T01:46:57.465Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 100477,
+        "name": "Taurus Mid Cap Fund - Regular Plan - Growth",
+        "fundHouse": "Taurus Mutual Fund",
+        "historicalRejectedCount": 3,
+        "observations": 5062,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "9f1d7502da439bf70f9feb73aabd5934dbc3e1e53e8f70e41f8b63ee89fab17e",
+        "coverageStart": "2006-04-03",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-21T20:43:29.367Z",
+        "archivedAt": "2026-10-27T01:47:01.207Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 100480,
+        "name": "Taurus ELSS Tax Saver Fund - Regular Plan - Growth",
+        "fundHouse": "Taurus Mutual Fund",
+        "historicalRejectedCount": 3,
+        "observations": 5062,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "496531bc1b4902cad3f71210c51421db6081b48a3eb0031d8c4bfaea8429a6c5",
+        "coverageStart": "2006-04-03",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-21T20:43:29.496Z",
+        "archivedAt": "2026-10-27T01:46:59.890Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 100601,
+        "name": "Canara Robeco Conservative Hybrid Fund - Regular Plan - GROWTH OPTION",
+        "fundHouse": "Canara Robeco Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 4982,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "6a0954997377f6f19dc8ea29b4eaa5b5bf040463c25e5aea67f800c67fb5c914",
+        "coverageStart": "2006-04-12",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-21T20:56:15.595Z",
+        "archivedAt": "2026-10-27T01:47:06.857Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 100603,
+        "name": "Sundaram Medium Term Fund (Formerly Known as Sundaram Medium Duration Fund) - Regular Plan - GROWTH",
+        "fundHouse": "Sundaram Mutual Fund",
+        "historicalRejectedCount": 15,
+        "observations": 4969,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "3a3b490a955b926b82d7b80fc80b66bb25cdfedb1505dd87575d5b4151b84b38",
+        "coverageStart": "2006-04-03",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-21T20:56:16.284Z",
+        "archivedAt": "2026-10-27T01:47:06.308Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 100669,
+        "name": "UTI - Flexi Cap Fund. - Regular Plan - Growth",
+        "fundHouse": "UTI Mutual Fund",
+        "historicalRejectedCount": 2,
+        "observations": 5054,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "b31c2cd101aafefceae16f7c8396610fee3d7d31c621a8308da1e404d8d0f980",
+        "coverageStart": "2006-04-03",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-21T20:56:25.979Z",
+        "archivedAt": "2026-10-27T01:46:56.635Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 100784,
+        "name": "Sundaram Banking and PSU Debt Fund (Formerly Known as Sundaram Banking and PSU Fund) - Regular Plan - GROWTH",
+        "fundHouse": "Sundaram Mutual Fund",
+        "historicalRejectedCount": 9,
+        "observations": 4974,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "d685820b00aa73a62516991ac2ff492b47ef341c37b93a08857b5b94afe5ca84",
+        "coverageStart": "2006-04-03",
+        "coverageEnd": "2026-10-23",
+        "fetchedAt": "2026-10-21T20:56:33.238Z",
+        "archivedAt": "2026-10-25T14:14:38.411Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 100789,
+        "name": "Sundaram Corporate Bond Fund - Regular Plan - GROWTH",
+        "fundHouse": "Sundaram Mutual Fund",
+        "historicalRejectedCount": 15,
+        "observations": 4967,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "659389b9adcbe85f6a48daecf045f341c3a7aa63238311ef6a3d2793d896e84f",
+        "coverageStart": "2006-04-03",
+        "coverageEnd": "2026-10-23",
+        "fetchedAt": "2026-10-21T20:56:34.611Z",
+        "archivedAt": "2026-10-25T14:14:38.873Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 100795,
+        "name": "Sundaram Small Cap Fund - Regular Plan - GROWTH",
+        "fundHouse": "Sundaram Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 5062,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "93a5a6a0a71557233d21ad69d07f11f6c74ee52d43d361a1e591b0361d122737",
+        "coverageStart": "2006-04-03",
+        "coverageEnd": "2026-10-23",
+        "fetchedAt": "2026-10-21T20:56:36.165Z",
+        "archivedAt": "2026-10-25T14:14:39.469Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 100865,
+        "name": "LIC MF ELSS Tax Saver Fund - Regular Plan - Growth",
+        "fundHouse": "LIC Mutual Fund",
+        "historicalRejectedCount": 2,
+        "observations": 5019,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "b43e32730f4cb966e3b5f9ae95b0cb8c7bae4163d18af0b556ccb7d7fb1bd318",
+        "coverageStart": "2006-04-03",
+        "coverageEnd": "2026-10-23",
+        "fetchedAt": "2026-10-21T20:56:48.935Z",
+        "archivedAt": "2026-10-25T10:02:26.491Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 101042,
+        "name": "Tata Gilt Fund - Regular Plan - Growth Option",
+        "fundHouse": "Tata Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 4966,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "ce349e3e4f58c2fc1f453853422554344bd65a4b3f6f42b7f3eb7cfb9c61ccc5",
+        "coverageStart": "2006-04-03",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-21T21:32:44.667Z",
+        "archivedAt": "2026-10-27T01:47:09.644Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 101185,
+        "name": "LIC MF Liquid Fund - Regular Plan - Growth",
+        "fundHouse": "LIC Mutual Fund",
+        "historicalRejectedCount": 3,
+        "observations": 6222,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [
+          "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked."
+        ],
+        "parsedJumpWarnings": [
+          "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked."
+        ],
+        "fixtureSha256": "64a573d865402c9ba179f787c1167597a30958b3d3331ac15012d6f325de9d1b",
+        "coverageStart": "2006-04-03",
+        "coverageEnd": "2026-10-25",
+        "fetchedAt": "2026-10-21T21:32:57.057Z",
+        "archivedAt": "2026-10-25T10:18:10.905Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": true,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 101199,
+        "name": "LIC MF BSE Sensex Index Fund - Regular Plan - Growth",
+        "fundHouse": "LIC Mutual Fund",
+        "historicalRejectedCount": 2,
+        "observations": 5020,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "aee2027f7bbc919f96f35192601d3b6828f0b5632e6e7bb762623cab3778b4d8",
+        "coverageStart": "2006-04-03",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-21T21:32:58.819Z",
+        "archivedAt": "2026-10-27T02:05:06.150Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 101201,
+        "name": "LIC MF Nifty 50 Index Fund - Regular Plan - Growth",
+        "fundHouse": "LIC Mutual Fund",
+        "historicalRejectedCount": 3,
+        "observations": 5019,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "82a3a89c514d27ac14f15098c1e8d050131047becdf675c9960091e5397eb5fe",
+        "coverageStart": "2006-04-03",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-21T21:32:59.231Z",
+        "archivedAt": "2026-10-27T02:05:07.369Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 101206,
+        "name": "SBI OVERNIGHT FUND - Regular Plan - Growth",
+        "fundHouse": "SBI Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 7148,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [
+          "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked."
+        ],
+        "parsedJumpWarnings": [
+          "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked."
+        ],
+        "fixtureSha256": "0e922a79d38848b35b55eb7f0d267af50f51988199a782e87c4d09496c39ce70",
+        "coverageStart": "2006-04-01",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-21T21:32:59.894Z",
+        "archivedAt": "2026-10-27T02:05:01.374Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": true,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 101209,
+        "name": "Taurus Large Cap Fund - Regular Plan - Growth",
+        "fundHouse": "Taurus Mutual Fund",
+        "historicalRejectedCount": 3,
+        "observations": 5062,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "d577bc5271ed2d08c19f5b672e3320dfc5344708328613fcc297fc3edbdee1af",
+        "coverageStart": "2006-04-03",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-21T21:33:00.584Z",
+        "archivedAt": "2026-10-27T02:05:07.973Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 101271,
+        "name": "LIC MF Children's Fund - Regular Plan - Growth",
+        "fundHouse": "LIC Mutual Fund",
+        "historicalRejectedCount": 2,
+        "observations": 5007,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "3c729fac13eb1f0c0dace9f0fd6c2fc0ecc7ac028b57139049be75962253490c",
+        "coverageStart": "2006-04-03",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-21T21:33:06.093Z",
+        "archivedAt": "2026-10-27T02:05:12.880Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 101539,
+        "name": "Sundaram Mid Cap Fund - Regular Plan - GROWTH",
+        "fundHouse": "Sundaram Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 5063,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "42e3c6864fc4e3011d4cc8765f2528412fa1c3269158632dfcde49daa3de5f2e",
+        "coverageStart": "2006-04-03",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-21T23:03:10.544Z",
+        "archivedAt": "2026-10-27T02:05:09.071Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 101548,
+        "name": "Tata Short Term Fund - Regular Plan - Growth Option",
+        "fundHouse": "Tata Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 4966,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "501538389a5e3fd1912fc2722fa1bfdf4e8305375f8fde299dddf42df83a4e97",
+        "coverageStart": "2006-04-03",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-21T23:03:11.406Z",
+        "archivedAt": "2026-10-27T02:05:10.197Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 101853,
+        "name": "Sundaram Value Fund - Regular Plan - GROWTH",
+        "fundHouse": "Sundaram Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 5053,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "84d521b56a861bd94b857305e5a0a4463705598468a3d4d986d5250a41012189",
+        "coverageStart": "2006-04-03",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-21T23:03:51.807Z",
+        "archivedAt": "2026-10-27T02:24:10.291Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 101869,
+        "name": "LIC MF Conservative Hybrid Fund - Regular Plan - Growth",
+        "fundHouse": "LIC Mutual Fund",
+        "historicalRejectedCount": 3,
+        "observations": 4966,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "3317128529de82849a07a0e25fe1c38804fd90eb735a227d573a5afe7e8df9fa",
+        "coverageStart": "2006-04-03",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-21T23:03:55.005Z",
+        "archivedAt": "2026-10-27T02:24:12.709Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 101922,
+        "name": "Canara Robeco Flexi Cap Fund - Regular Plan - GROWTH OPTION",
+        "fundHouse": "Canara Robeco Mutual Fund",
+        "historicalRejectedCount": 2,
+        "observations": 5049,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "a8b6f586d2f6cccd3f606396da61dba35ba536b926c4b2470f501647ee58ffa1",
+        "coverageStart": "2006-04-03",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-21T23:04:00.487Z",
+        "archivedAt": "2026-10-27T02:24:12.068Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 102142,
+        "name": "Sundaram Consumption Fund (Formerly Known as Sundaram Rural and Consumption Fund) - Regular Plan - GROWTH",
+        "fundHouse": "Sundaram Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 5034,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "982fae465c8587b35fcbeba0aeab59fb63a09169a44c0353c36597d3211c7382",
+        "coverageStart": "2006-05-18",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-21T23:17:47.942Z",
+        "archivedAt": "2026-10-27T02:41:17.086Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 103159,
+        "name": "Tata Ultra Short to Short Term Fund - Regular Plan - Growth Option",
+        "fundHouse": "Tata Mutual Fund",
+        "historicalRejectedCount": 4,
+        "observations": 4969,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [
+          "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked."
+        ],
+        "parsedJumpWarnings": [
+          "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked."
+        ],
+        "fixtureSha256": "b8f8fc5893d6f1f4c842f02302c7dd9e7c7742519a73991f045f7da16bf7bc30",
+        "coverageStart": "2006-04-03",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-22T02:24:56.494Z",
+        "archivedAt": "2026-10-27T02:59:26.720Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": true,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 103390,
+        "name": "Canara Robeco Infrastructure Fund - Regular Plan - GROWTH OPTION",
+        "fundHouse": "Canara Robeco Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 5057,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "9b8823a8eae31aa261e5521ea809cd5dd25c1d420b6ee1c54113ec4c28ecdb57",
+        "coverageStart": "2006-04-03",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-22T02:25:27.718Z",
+        "archivedAt": "2026-10-27T03:18:03.045Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 104513,
+        "name": "Quant Large & Mid Cap Fund - Regular Plan - Growth Option",
+        "fundHouse": "quant Mutual Fund",
+        "historicalRejectedCount": 33,
+        "observations": 4877,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [
+          "Unresolved discontinuity: 2 single-observation move(s) exceed 40%; derived analytics are blocked."
+        ],
+        "parsedJumpWarnings": [
+          "Unresolved discontinuity: 2 single-observation move(s) exceed 40%; derived analytics are blocked."
+        ],
+        "fixtureSha256": "6db2fc81b242fe9947991019679540f461ca65f9694f662f39d31c040ffb9940",
+        "coverageStart": "2007-01-09",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-22T02:59:00.371Z",
+        "archivedAt": "2026-10-27T03:17:56.507Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": true,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 104683,
+        "name": "ICICI Prudential Arbitrage Fund - Regular Plan - Growth",
+        "fundHouse": "ICICI Prudential Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 4874,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "1a2c3b1a0b03a88d0b80c7c660415450f01b28b576c136a5d57ea0fb2959e9cd",
+        "coverageStart": "2007-01-01",
+        "coverageEnd": "2026-10-23",
+        "fetchedAt": "2026-10-22T03:14:48.836Z",
+        "archivedAt": "2026-10-25T17:37:35.485Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 104685,
+        "name": "ICICI Prudential Balanced Advantage Fund - Regular Plan - Growth",
+        "fundHouse": "ICICI Prudential Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 4874,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "02d055b216d8fade40a4f67647d17cb4851e77e4601596f91ef46c060f7e0c17",
+        "coverageStart": "2007-01-01",
+        "coverageEnd": "2026-10-23",
+        "fetchedAt": "2026-10-22T03:14:49.309Z",
+        "archivedAt": "2026-10-25T17:37:35.531Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 105001,
+        "name": "Sundaram Large and Midcap Fund - Regular Plan - GROWTH",
+        "fundHouse": "Sundaram Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 4821,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "a5977f5d74a09abfc7c0bf4cf4a88ed7052fd0d7ad3dfdd38b25a68cf3d5b9b5",
+        "coverageStart": "2007-03-05",
+        "coverageEnd": "2026-10-23",
+        "fetchedAt": "2026-10-22T03:15:51.864Z",
+        "archivedAt": "2026-10-25T17:37:38.097Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 105280,
+        "name": "SBI LIQUID FUND - Regular Plan - Growth",
+        "fundHouse": "SBI Mutual Fund",
+        "historicalRejectedCount": 65,
+        "observations": 6722,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [
+          "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked."
+        ],
+        "parsedJumpWarnings": [
+          "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked."
+        ],
+        "fixtureSha256": "8b3e7f693e78064c17de06fe9c550e2d82a96038852ad39151646fb087fa6b49",
+        "coverageStart": "2007-03-26",
+        "coverageEnd": "2026-10-25",
+        "fetchedAt": "2026-10-22T03:32:45.576Z",
+        "archivedAt": "2026-10-25T10:34:19.138Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": true,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 105823,
+        "name": "LIC MF Banking & PSU Debt Fund - Regular Plan - Growth",
+        "fundHouse": "LIC Mutual Fund",
+        "historicalRejectedCount": 3,
+        "observations": 4681,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "a95ae0fe44eaa817a49708e82c18f25c858a27af7ed823fb89e991e2f1be4772",
+        "coverageStart": "2007-05-31",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-22T03:49:59.494Z",
+        "archivedAt": "2026-10-27T03:54:42.607Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 105989,
+        "name": "DSP Small Cap Fund - Regular Plan - Growth",
+        "fundHouse": "DSP Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 4231,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "1254612724de0264412b555c2ba6d956c5afed388416eaf6728544a0412d7ff5",
+        "coverageStart": "2007-06-20",
+        "coverageEnd": "2026-10-23",
+        "fetchedAt": "2026-10-22T03:50:30.010Z",
+        "archivedAt": "2026-10-25T20:01:25.524Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 106231,
+        "name": "SBI SHORT TERM FUND - Regular Plan - Growth",
+        "fundHouse": "SBI Mutual Fund",
+        "historicalRejectedCount": 386,
+        "observations": 4272,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "d2f1945106280ae0b62a1f404f55f61e3afab4cea54e6f3a20c1f277447ddaef",
+        "coverageStart": "2007-08-02",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-22T04:06:32.673Z",
+        "archivedAt": "2026-10-27T03:55:28.295Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 106871,
+        "name": "LIC MF Large Cap Fund - Regular Plan - Growth",
+        "fundHouse": "LIC Mutual Fund",
+        "historicalRejectedCount": 2,
+        "observations": 4630,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "5dcfb9a6ffd12cc15ad6bd5bb08cda5cba008b8a1dc3ea8369af2bdc712dd3ef",
+        "coverageStart": "2007-10-31",
+        "coverageEnd": "2026-10-23",
+        "fetchedAt": "2026-10-22T04:24:04.400Z",
+        "archivedAt": "2026-10-25T10:34:24.456Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 107705,
+        "name": "Mirae Asset Ultra Short to Short Term Fund - Regular Plan - Growth",
+        "fundHouse": "Mirae Asset Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 3606,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "f3b15e7f2bbba4643a682cdf1e646354448d3715e4ee8207281de44f821500c6",
+        "coverageStart": "2008-03-06",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-22T04:41:59.430Z",
+        "archivedAt": "2026-10-27T04:13:02.982Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 107763,
+        "name": "LIC MF Infrastructure Fund - Regular Plan - Growth",
+        "fundHouse": "LIC Mutual Fund",
+        "historicalRejectedCount": 2,
+        "observations": 4540,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "81264b1ba0b6fff75102b69e6e2b4c10d79f4620143b3346767ee3bee858a666",
+        "coverageStart": "2008-03-26",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-22T04:57:27.402Z",
+        "archivedAt": "2026-10-27T04:13:06.028Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 108690,
+        "name": "BANDHAN LIQUID Fund - Regular Plan - Growth",
+        "fundHouse": "Bandhan Mutual Fund",
+        "historicalRejectedCount": 10,
+        "observations": 6011,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [
+          "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked."
+        ],
+        "parsedJumpWarnings": [
+          "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked."
+        ],
+        "fixtureSha256": "f0715720073eae84746f4c0607f0a24cbdab3a503a4d5c437a5b719013cf7fcb",
+        "coverageStart": "2008-06-10",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-22T05:15:23.346Z",
+        "archivedAt": "2026-10-27T04:31:44.962Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": true,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 109059,
+        "name": "Sundaram Financial Services Opportunities Fund - Regular Plan - GROWTH",
+        "fundHouse": "Sundaram Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 4515,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "124c40115d01e4a92cad336f4fb9cd27d01a763bab87a482d521e21019a31421",
+        "coverageStart": "2008-06-16",
+        "coverageEnd": "2026-10-23",
+        "fetchedAt": "2026-10-22T05:31:36.375Z",
+        "archivedAt": "2026-10-25T20:01:35.909Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 112214,
+        "name": "Axis Ultra Short to Short Term Fund - Regular Plan - Growth Option",
+        "fundHouse": "Axis Mutual Fund",
+        "historicalRejectedCount": 2,
+        "observations": 4122,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "48d288d31d0b18544a817566c00bc2f7a2d3491ae2f31d239193d575f5b4336f",
+        "coverageStart": "2009-10-12",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-22T08:43:26.647Z",
+        "archivedAt": "2026-10-27T06:01:12.149Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 112277,
+        "name": "Axis Large Cap Fund - Regular Plan - Growth Option",
+        "fundHouse": "Axis Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 4146,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "7d74ca29d8361d0539627ce26aa14b0fdbe06a4a90455f08dd073c6c842a206f",
+        "coverageStart": "2010-01-07",
+        "coverageEnd": "2026-10-23",
+        "fetchedAt": "2026-10-22T08:43:36.049Z",
+        "archivedAt": "2026-10-25T22:30:53.919Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 112323,
+        "name": "Axis ELSS- Tax Saver Fund - Regular Plan - Growth Option",
+        "fundHouse": "Axis Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 4151,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "da6e46f4001e6b305f1e69dda2dac48ab28731a912573459c0188a3f6d00e491",
+        "coverageStart": "2009-12-31",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-22T08:43:43.966Z",
+        "archivedAt": "2026-10-27T06:01:13.500Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 112354,
+        "name": "Axis Short Term Fund - Regular Plan - Growth Option",
+        "fundHouse": "Axis Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 4052,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "1a9dad6523296ae3c4f0e9649aca5132deeb56d620f54767169b58ae5828bd4b",
+        "coverageStart": "2010-01-25",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-22T08:43:50.006Z",
+        "archivedAt": "2026-10-27T06:01:17.473Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 112717,
+        "name": "Axis Ultra Short to Short Term Fund - Regular Plan - Growth Option",
+        "fundHouse": "Axis Mutual Fund",
+        "historicalRejectedCount": 3,
+        "observations": 4026,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "c64c47e454b1374d1cc9eef5cb5040f572f2486fa8743ccf541a0243a0e7f3d2",
+        "coverageStart": "2010-03-04",
+        "coverageEnd": "2026-10-23",
+        "fetchedAt": "2026-10-22T08:59:54.547Z",
+        "archivedAt": "2026-10-25T10:50:19.070Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 112721,
+        "name": "Axis Short Term Fund - Regular Plan - Growth Option",
+        "fundHouse": "Axis Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 4027,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "3be6d1affdf7ee79285b30d1ba77c4a9e43243016bcec5d1c010ac608bce4751",
+        "coverageStart": "2010-03-03",
+        "coverageEnd": "2026-10-23",
+        "fetchedAt": "2026-10-22T08:59:55.451Z",
+        "archivedAt": "2026-10-25T10:50:20.030Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 112868,
+        "name": "Sundaram Conservative Hybrid Fund (Formerly Known as Sundaram Debt Oriented Hybrid Fund) - Regular Plan - GROWTH",
+        "fundHouse": "Sundaram Mutual Fund",
+        "historicalRejectedCount": 4,
+        "observations": 4002,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "97f4da4b107969708afe1ab417e15c5d69bdafc29ef8c7b619d2a7c329d6dec9",
+        "coverageStart": "2010-04-05",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-22T09:00:15.121Z",
+        "archivedAt": "2026-10-27T06:01:19.265Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 112924,
+        "name": "Axis Conservative Hybrid Fund - Regular Plan - Growth Option",
+        "fundHouse": "Axis Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 3935,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "7914dc1cf4de75140a48c15a5f0577eba7342c155d15d3bf30c80cbde6c7ba3d",
+        "coverageStart": "2010-07-21",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-22T09:15:47.403Z",
+        "archivedAt": "2026-10-27T06:01:21.445Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 113064,
+        "name": "Axis Multi Asset Allocation Fund - Regular Plan - Growth Option",
+        "fundHouse": "Axis Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 3986,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "e8d61d38cf2bf696fbe439b19425ef84e6ddfa99919f4734b4e8ed96c01af6f0",
+        "coverageStart": "2010-08-27",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-22T09:16:08.051Z",
+        "archivedAt": "2026-10-27T06:17:52.330Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 114564,
+        "name": "Axis Midcap Fund - Regular Plan - Growth Option",
+        "fundHouse": "Axis Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 3862,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "f1a93554a58ab2a9dd9a83a1c3f34469904d4e68c4f4e97d7aa7d82aa3709226",
+        "coverageStart": "2011-02-24",
+        "coverageEnd": "2026-10-23",
+        "fetchedAt": "2026-10-22T09:49:37.064Z",
+        "archivedAt": "2026-10-26T00:42:26.527Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 115068,
+        "name": "Axis Dynamic Term Fund - Regular Plan - Growth Option",
+        "fundHouse": "Axis Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 3745,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "6e0b9d3893a1bf208852a2755d46d3b9dafb630b851afc887195e718ce13beb0",
+        "coverageStart": "2011-05-02",
+        "coverageEnd": "2026-10-23",
+        "fetchedAt": "2026-10-22T10:06:27.623Z",
+        "archivedAt": "2026-10-26T00:42:26.953Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 115897,
+        "name": "Axis Gold Fund - Regular Plan - Growth Option",
+        "fundHouse": "Axis Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 3698,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "1a65255430b8739dafd1743cb4db1e0ef20240821048e4f619e32264e867f14e",
+        "coverageStart": "2011-10-25",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-22T10:24:15.657Z",
+        "archivedAt": "2026-10-27T06:34:39.971Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 116471,
+        "name": "Axis Gilt Fund - Regular Plan - Growth Option",
+        "fundHouse": "Axis Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 3565,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "3404ee997b6f46f06307787e2f4155b047318281da9667e880f2badab93e8d75",
+        "coverageStart": "2012-01-27",
+        "coverageEnd": "2026-10-23",
+        "fetchedAt": "2026-10-22T17:27:40.182Z",
+        "archivedAt": "2026-10-26T00:42:29.901Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 116894,
+        "name": "Axis Medium Term Fund - Regular Plan - Growth Option",
+        "fundHouse": "Axis Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 3523,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "bf12e0e233e64346efb66cfec1ab6561db98651cf1dcedb47a48a48a20e129c5",
+        "coverageStart": "2012-04-03",
+        "coverageEnd": "2026-10-23",
+        "fetchedAt": "2026-10-22T17:28:57.936Z",
+        "archivedAt": "2026-10-26T00:42:30.740Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 117446,
+        "name": "Axis Banking and PSU Debt Fund - Regular Plan - Growth option",
+        "fundHouse": "Axis Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 3476,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "167e275a3977bc755772eada5acb88586ad3b92383843b2d2298b81e96922186",
+        "coverageStart": "2012-06-12",
+        "coverageEnd": "2026-10-23",
+        "fetchedAt": "2026-10-22T18:01:16.469Z",
+        "archivedAt": "2026-10-26T00:42:31.491Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 117560,
+        "name": "Axis Focused Fund - Regular Plan - Growth Option",
+        "fundHouse": "Axis Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 3527,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "1ef9d6c964dabcc10922f9ca86f99668e361f2618ade7f2e171f653903d04905",
+        "coverageStart": "2012-07-05",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-22T18:01:33.210Z",
+        "archivedAt": "2026-10-27T06:52:38.594Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 119566,
+        "name": "Sundaram Large and Midcap Fund - Direct Plan - GROWTH",
+        "fundHouse": "Sundaram Mutual Fund",
+        "historicalRejectedCount": 3,
+        "observations": 3394,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "6fa238d77fd5a837417c12a766ba566135614b051f6ff48af18df52a2f26bbbc",
+        "coverageStart": "2013-01-08",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-22T19:09:34.841Z",
+        "archivedAt": "2026-10-27T17:03:55.089Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 119602,
+        "name": "Sundaram Global Brand Theme-Equity Active FOF - Direct Plan - GROWTH",
+        "fundHouse": "Sundaram Mutual Fund",
+        "historicalRejectedCount": 3,
+        "observations": 3307,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "bd328eb6319946617a6a70c192ecbf5e55009c7f515d7572858d7bcc3178df17",
+        "coverageStart": "2013-01-08",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-22T19:09:42.880Z",
+        "archivedAt": "2026-10-27T17:03:56.353Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 119621,
+        "name": "Sundaram Corporate Bond Fund - Direct Plan - GROWTH",
+        "fundHouse": "Sundaram Mutual Fund",
+        "historicalRejectedCount": 83,
+        "observations": 3249,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "010d09a87db93459b512fadb713338a433de76e6df6d95bf5b1f80a1d37c6136",
+        "coverageStart": "2013-05-13",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-22T19:09:46.780Z",
+        "archivedAt": "2026-10-27T17:03:56.752Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 119625,
+        "name": "Sundaram Banking and PSU Debt Fund (Formerly Known as Sundaram Banking and PSU Fund) - Direct Plan - GROWTH",
+        "fundHouse": "Sundaram Mutual Fund",
+        "historicalRejectedCount": 4,
+        "observations": 3328,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "fedcee80f27da75693be2459071e7b43a4a3d143a2000600025c0f8e94381585",
+        "coverageStart": "2013-01-09",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-22T19:09:47.638Z",
+        "archivedAt": "2026-10-27T17:03:56.785Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 119635,
+        "name": "Sundaram Conservative Hybrid Fund (Formerly Known as Sundaram Debt Oriented Hybrid Fund) - Direct Plan - GROWTH",
+        "fundHouse": "Sundaram Mutual Fund",
+        "historicalRejectedCount": 3,
+        "observations": 3329,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "10bf78b31e564533344670a75afaf1e04cfdf1fcb1a5178f2c4303e4068284b8",
+        "coverageStart": "2013-01-08",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-22T19:09:49.827Z",
+        "archivedAt": "2026-10-27T17:03:57.612Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 120438,
+        "name": "Axis Banking and PSU Debt Fund - Direct Plan - Growth Option",
+        "fundHouse": "Axis Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 3342,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "73b4adb1cdecbde31d56a8e25d16b20b898ad1f0080d4248b8147f5b5ce29c4c",
+        "coverageStart": "2013-01-02",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-22T19:28:00.782Z",
+        "archivedAt": "2026-10-27T17:44:18.611Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 120447,
+        "name": "Axis Gilt Fund - Direct Plan - Growth Option",
+        "fundHouse": "Axis Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 3342,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "aa9fecfab6e9f1207d2b06053565804d3666162574bc06793d0474d4ad430221",
+        "coverageStart": "2013-01-02",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-22T19:28:02.852Z",
+        "archivedAt": "2026-10-27T17:44:30.833Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 120451,
+        "name": "Axis Dynamic Term Fund - Direct Plan - Growth Option",
+        "fundHouse": "Axis Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 3341,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "feae9af7bb9ef47fa7557103ef9e64778bc4116a2f07c53179a4409d2f1a4316",
+        "coverageStart": "2013-01-03",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-22T19:28:03.711Z",
+        "archivedAt": "2026-10-27T17:44:31.796Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 120465,
+        "name": "Axis Large Cap Fund - Direct Plan - Growth Option",
+        "fundHouse": "Axis Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 3407,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "82e450fce3e14dee6a14d0da6344c598fa0398fd842fca3d0555d8ab7c684529",
+        "coverageStart": "2013-01-02",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-22T19:28:06.559Z",
+        "archivedAt": "2026-10-27T17:44:32.608Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 120468,
+        "name": "Axis Focused Fund - Direct Plan - Growth Option",
+        "fundHouse": "Axis Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 3407,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "21d099752446889670b7af096310abce245acd7ff68566ffba97c9a61f831fbf",
+        "coverageStart": "2013-01-02",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-22T19:28:07.068Z",
+        "archivedAt": "2026-10-27T17:44:34.139Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 120473,
+        "name": "Axis Gold Fund - Direct Plan - Growth option",
+        "fundHouse": "Axis Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 3407,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "5b36fc32d61e2f55d2ff76b4a26aa1d025b3f48b548b545046ac2bd0cec0f3e0",
+        "coverageStart": "2013-01-02",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-22T19:28:08.224Z",
+        "archivedAt": "2026-10-27T17:44:35.568Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 120475,
+        "name": "Axis Medium Term Fund - Direct Plan - Growth Option",
+        "fundHouse": "Axis Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 3338,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "156379e3c1dcc14b50faa873db2f90b47138e5e2bef28f796d335af39e104a9a",
+        "coverageStart": "2013-01-08",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-22T19:28:08.651Z",
+        "archivedAt": "2026-10-27T17:44:35.953Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 120480,
+        "name": "Axis Conservative Hybrid Fund - Direct Plan - Growth Option",
+        "fundHouse": "Axis Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 3339,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "cb02ea18a2bab5b1d823bb46e321a19e32beceeee427cbfff463d1d9d1dc0d35",
+        "coverageStart": "2013-01-07",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-22T19:28:09.605Z",
+        "archivedAt": "2026-10-27T17:44:45.094Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 120503,
+        "name": "Axis ELSS- Tax Saver Fund - Direct Plan - Growth Option",
+        "fundHouse": "Axis Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 3407,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "35c31ceecaf44187055a60ff7ee87cc1fcce90cf9ebafc9bc8faf444c927f4a6",
+        "coverageStart": "2013-01-02",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-22T19:28:14.296Z",
+        "archivedAt": "2026-10-27T17:44:57.772Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 120505,
+        "name": "Axis Midcap Fund - Direct Plan - Growth Option",
+        "fundHouse": "Axis Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 3407,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "d5b0d583ed5e1026dcf44a1ad3f396c71a0d9d84116cb3be4f176f60fbd46c9c",
+        "coverageStart": "2013-01-02",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-22T19:28:14.729Z",
+        "archivedAt": "2026-10-27T17:45:00.162Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 120513,
+        "name": "Axis Ultra Short to Short Term Fund - Direct Plan - Growth Option",
+        "fundHouse": "Axis Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 3342,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "6858729ad7854138b366b699b8026fb525ee2bd9c62dfccc16dfd4e5db073207",
+        "coverageStart": "2013-01-02",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-22T19:43:45.168Z",
+        "archivedAt": "2026-10-27T17:43:50.943Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 120524,
+        "name": "Axis Multi Asset Allocation Fund - Direct Plan - Growth Option Option",
+        "fundHouse": "Axis Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 3406,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "6a2f0df8dca8025d649ac84f36e559a38c6c3dbd52dec30c89840d26bc21d8d1",
+        "coverageStart": "2013-01-02",
+        "coverageEnd": "2026-10-26",
+        "fetchedAt": "2026-10-22T19:43:48.372Z",
+        "archivedAt": "2026-10-27T17:43:56.735Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 148699,
+        "name": "Axis Greater China Equity Fund of Fund - Direct Plan - Growth Option",
+        "fundHouse": "Axis Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 1332,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "3d25f16e37ddf769db8b1fd5790d120665e4859fa2acd0c6cfcef7fbfb016160",
+        "coverageStart": "2021-02-16",
+        "coverageEnd": "2026-10-23",
+        "fetchedAt": "2026-10-23T18:47:00.086Z",
+        "archivedAt": "2026-10-26T17:38:20.596Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      },
+      {
+        "code": 148701,
+        "name": "Axis Greater China Equity Fund of Fund - Regular Plan - Growth Option",
+        "fundHouse": "Axis Mutual Fund",
+        "historicalRejectedCount": 1,
+        "observations": 1332,
+        "savedPayloadCurrentlyInvalid": 0,
+        "storedJumpWarnings": [],
+        "parsedJumpWarnings": [],
+        "fixtureSha256": "3781c0026030de3329340d8a33838ddba171130ada47a22877edecc7d20850d7",
+        "coverageStart": "2021-02-16",
+        "coverageEnd": "2026-10-23",
+        "fetchedAt": "2026-10-23T18:47:00.492Z",
+        "archivedAt": "2026-10-26T17:38:20.993Z",
+        "hypotheticalCompleteCleanWouldRemainBlocked": false,
+        "safeDisposition": "keep_blocked_pending_original_or_fresh_source_diagnostics"
+      }
+    ]
+  },
+  "freshSourceDiagnostics": {
+    "generatedAt": "2026-10-29T04:05:26.653Z",
+    "checkpoint": 213,
+    "results": [
+      {
+        "code": 100313,
+        "outcome": "no_usable_raw_capture",
+        "attempts": [
+          {
+            "startedAt": "2026-10-29T04:03:39.337163+00:00",
+            "completedAt": "2026-10-29T04:04:00.629561+00:00",
+            "status": 200,
+            "reason": "TimeoutError"
+          }
+        ],
+        "earlierDiagnosticAttempt": {
+          "startedAfter": "2026-10-29T04:03:01.839Z",
+          "status": 200,
+          "result": "response_consumed_but_local_EOF_capture_failed",
+          "reason": "AttributeError_response_fp_None_at_EOF",
+          "consumedAttemptBudget": 1
+        }
+      },
+      {
+        "code": 100603,
+        "outcome": "no_usable_raw_capture",
+        "attempts": [
+          {
+            "startedAt": "2026-10-29T04:04:00.979388+00:00",
+            "completedAt": "2026-10-29T04:04:12.997118+00:00",
+            "status": null,
+            "reason": "TimeoutError"
+          },
+          {
+            "startedAt": "2026-10-29T04:04:13.497373+00:00",
+            "completedAt": "2026-10-29T04:04:28.898190+00:00",
+            "status": 200,
+            "reason": "TimeoutError"
+          }
+        ]
+      },
+      {
+        "code": 112277,
+        "outcome": "confirmed_current_source_zero_nav",
+        "rawFile": "raw-112277.json",
+        "rawSha256": "00ff92ce8a088bf8e7b9e40737ceb86fcb13d8a0efa47985b47974e387aca0e3",
+        "rawBytes": 162024,
+        "baselineSha256": "7d74ca29d8361d0539627ce26aa14b0fdbe06a4a90455f08dd073c6c842a206f",
+        "meta": {
+          "fund_house": "Axis Mutual Fund",
+          "scheme_type": "Open Ended Schemes",
+          "scheme_category": "Equity Schemes - Large Cap Fund",
+          "scheme_code": 112277,
+          "scheme_name": "Axis Large Cap Fund - Regular Plan - Growth Option",
+          "isin_growth": "INF846K01164",
+          "isin_div_reinvestment": null
+        },
+        "sourceRows": 4150,
+        "usableRows": 4149,
+        "rejected": [
+          {
+            "index": 3343,
+            "row": {
+              "date": "07-04-2013",
+              "nav": "0.00000"
+            },
+            "reason": "nav_nonpositive",
+            "dateISO": "2013-04-07",
+            "previousContainsDate": false,
+            "sourceNeighbours": [
+              {
+                "date": "08-04-2013",
+                "nav": "11.95000"
+              },
+              {
+                "date": "07-04-2013",
+                "nav": "0.00000"
+              },
+              {
+                "date": "05-04-2013",
+                "nav": "11.95000"
+              }
+            ]
+          }
+        ],
+        "incomingWarnings": [
+          "Invalid NAV observations were excluded (1); derived analytics are blocked until the data is resolved."
+        ],
+        "baselineObservationCount": 4146,
+        "newSourceDates": [
+          {
+            "date": "2026-10-28",
+            "nav": "57.25000"
+          },
+          {
+            "date": "2026-10-27",
+            "nav": "57.22000"
+          },
+          {
+            "date": "2026-10-26",
+            "nav": "56.98000"
+          }
+        ],
+        "oldDatesAbsentFromSource": [],
+        "numericSourceCorrections": [],
+        "offlineMerge": {
+          "observations": 4149,
+          "coverageStart": "2010-01-07",
+          "coverageEnd": "2026-10-28",
+          "fetchedAt": "2026-10-22T08:43:36.049Z",
+          "warnings": [
+            "Invalid NAV observations were excluded (1); derived analytics are blocked until the data is resolved.",
+            "Existing valid observations and their successful fetch time were retained while source quality issues remain unresolved."
+          ],
+          "unresolved": true,
+          "sharedSavedValuesPreserved": true
+        },
+        "sourceAndBaselineInputsUnchanged": true,
+        "archiveMutations": 0,
+        "warningWaivers": 0
+      }
+    ],
+    "limits": [
+      "Read-only diagnostics; offline merge is not a persisted checkpoint.",
+      "Only one complete response captured: no current row-cause conclusion for the two timed-out histories.",
+      "Python socket timeout was12seconds; two trickling requests exceeded12secondswalltime(max21.29seconds). Use a subprocess hard deadline for any future equivalent transport."
+    ]
+  },
+  "requestOutcomes": {
+    "finishedAt": "2026-10-29T04:04:30.987867+00:00",
+    "outcomes": [
+      {
+        "code": 100313,
+        "admission": {
+          "checkedAt": "2026-10-29T04:03:39.326Z",
+          "code": 100313,
+          "sequence": 213,
+          "membership": {
+            "source": "mf-list",
+            "verifiedAt": "2026-10-27T16:59:52.790Z",
+            "listedSchemes": 37998,
+            "bulkNavSchemes": 25888,
+            "missingBulkNav": 12110
+          },
+          "entry": {
+            "schemeCode": 100313,
+            "schemeName": "LIC MF Flexi Cap Fund - Regular Plan - Growth",
+            "isinGrowth": "INF767K01071",
+            "isinDivReinvestment": null,
+            "latestDate": "2026-10-26",
+            "nav": "95.61830",
+            "current": true
+          },
+          "state": {
+            "code": 100313,
+            "status": "quality",
+            "attempts": 4,
+            "failures": 4,
+            "lastAttemptAt": "2026-10-27T01:29:19.882Z",
+            "nextAttemptAt": "2026-10-27T03:29:20.381Z",
+            "historyFetchedAt": "2026-10-21T20:43:11.703Z",
+            "coverageStart": "2006-04-03",
+            "coverageEnd": "2026-10-26",
+            "latestNav": "95.61830",
+            "observationCount": 5020,
+            "quality": true,
+            "warnings": [
+              "Invalid NAV observations were excluded (2); derived analytics are blocked until the data is resolved.",
+              "Existing valid observations and their successful fetch time were retained while source quality issues remain unresolved."
+            ],
+            "lastError": null
+          },
+          "scope": true,
+          "due": true,
+          "coolingDown": false
+        },
+        "attempts": [
+          {
+            "startedAt": "2026-10-29T04:03:39.337163+00:00",
+            "completedAt": "2026-10-29T04:04:00.629561+00:00",
+            "status": 200,
+            "reason": "TimeoutError"
+          }
+        ],
+        "earlierDiagnosticAttempt": {
+          "startedAfter": "2026-10-29T04:03:01.839Z",
+          "status": 200,
+          "result": "response_consumed_but_local_EOF_capture_failed",
+          "reason": "AttributeError_response_fp_None_at_EOF",
+          "consumedAttemptBudget": 1
+        }
+      },
+      {
+        "code": 100603,
+        "admission": {
+          "checkedAt": "2026-10-29T04:04:00.968Z",
+          "code": 100603,
+          "sequence": 213,
+          "membership": {
+            "source": "mf-list",
+            "verifiedAt": "2026-10-27T16:59:52.790Z",
+            "listedSchemes": 37998,
+            "bulkNavSchemes": 25888,
+            "missingBulkNav": 12110
+          },
+          "entry": {
+            "schemeCode": 100603,
+            "schemeName": "Sundaram Medium Term Fund (Formerly Known as Sundaram Medium Duration Fund) - Regular Plan - GROWTH",
+            "isinGrowth": "INF903J01FQ2",
+            "isinDivReinvestment": null,
+            "latestDate": "2026-10-26",
+            "nav": "70.99080",
+            "current": true
+          },
+          "state": {
+            "code": 100603,
+            "status": "quality",
+            "attempts": 4,
+            "failures": 4,
+            "lastAttemptAt": "2026-10-27T01:47:04.935Z",
+            "nextAttemptAt": "2026-10-27T03:47:06.322Z",
+            "historyFetchedAt": "2026-10-21T20:56:16.284Z",
+            "coverageStart": "2006-04-03",
+            "coverageEnd": "2026-10-26",
+            "latestNav": "70.99080",
+            "observationCount": 4969,
+            "quality": true,
+            "warnings": [
+              "Invalid NAV observations were excluded (15); derived analytics are blocked until the data is resolved.",
+              "Existing valid observations and their successful fetch time were retained while source quality issues remain unresolved."
+            ],
+            "lastError": null
+          },
+          "scope": true,
+          "due": true,
+          "coolingDown": false
+        },
+        "attempts": [
+          {
+            "startedAt": "2026-10-29T04:04:00.979388+00:00",
+            "completedAt": "2026-10-29T04:04:12.997118+00:00",
+            "status": null,
+            "reason": "TimeoutError"
+          },
+          {
+            "startedAt": "2026-10-29T04:04:13.497373+00:00",
+            "completedAt": "2026-10-29T04:04:28.898190+00:00",
+            "status": 200,
+            "reason": "TimeoutError"
+          }
+        ]
+      },
+      {
+        "code": 112277,
+        "admission": {
+          "checkedAt": "2026-10-29T04:04:29.370Z",
+          "code": 112277,
+          "sequence": 213,
+          "membership": {
+            "source": "mf-list",
+            "verifiedAt": "2026-10-27T16:59:52.790Z",
+            "listedSchemes": 37998,
+            "bulkNavSchemes": 25888,
+            "missingBulkNav": 12110
+          },
+          "entry": {
+            "schemeCode": 112277,
+            "schemeName": "Axis Large Cap Fund - Regular Plan - Growth Option",
+            "isinGrowth": "INF846K01164",
+            "isinDivReinvestment": null,
+            "latestDate": "2026-10-26",
+            "nav": "56.98000",
+            "current": true
+          },
+          "state": {
+            "code": 112277,
+            "status": "quality",
+            "attempts": 3,
+            "failures": 3,
+            "lastAttemptAt": "2026-10-25T22:30:53.652Z",
+            "nextAttemptAt": "2026-10-25T23:30:53.932Z",
+            "historyFetchedAt": "2026-10-22T08:43:36.049Z",
+            "coverageStart": "2010-01-07",
+            "coverageEnd": "2026-10-23",
+            "latestNav": "56.71000",
+            "observationCount": 4146,
+            "quality": true,
+            "warnings": [
+              "Invalid NAV observations were excluded (1); derived analytics are blocked until the data is resolved.",
+              "Existing valid observations and their successful fetch time were retained while source quality issues remain unresolved."
+            ],
+            "lastError": null
+          },
+          "scope": true,
+          "due": true,
+          "coolingDown": false
+        },
+        "attempts": [
+          {
+            "startedAt": "2026-10-29T04:04:29.400239+00:00",
+            "completedAt": "2026-10-29T04:04:30.987848+00:00",
+            "status": 200,
+            "headers": {
+              "date": "Thu, 29 Oct 2026 04:04:29 GMT",
+              "content-type": "application/json",
+              "content-length": "162024"
+            }
+          }
+        ],
+        "rawFile": "raw-112277.json",
+        "rawSha256": "00ff92ce8a088bf8e7b9e40737ceb86fcb13d8a0efa47985b47974e387aca0e3",
+        "rawBytes": 162024
+      }
+    ],
+    "archiveMutations": 0,
+    "collectorDispatches": 0
+  },
+  "preflight": {
+    "checkedAt": "2026-10-29T04:03:01.839Z",
+    "statuses": [
+      {
+        "status": "fulfilled",
+        "value": {
+          "status": "queued",
+          "total_count": 0,
+          "runs": []
+        }
+      },
+      {
+        "status": "fulfilled",
+        "value": {
+          "status": "in_progress",
+          "total_count": 0,
+          "runs": []
+        }
+      },
+      {
+        "status": "fulfilled",
+        "value": {
+          "status": "waiting",
+          "total_count": 0,
+          "runs": []
+        }
+      },
+      {
+        "status": "fulfilled",
+        "value": {
+          "status": "requested",
+          "total_count": 0,
+          "runs": []
+        }
+      },
+      {
+        "status": "fulfilled",
+        "value": {
+          "status": "pending",
+          "total_count": 0,
+          "runs": []
+        }
+      }
+    ],
+    "checkpoint": {
+      "version": 2,
+      "checkpoint": {
+        "id": 686785382,
+        "releaseTag": "fundscope-mfapi-v2-data-000005",
+        "name": "checkpoint-8c310d86a6b6d2b6d9dc9104fb03366b57de50a103df845714a4d05ac7df0fdb.json.gz",
+        "url": "https://github.com/Vasuki8/mutual-fund-dashboard/releases/download/fundscope-mfapi-v2-data-000005/checkpoint-8c310d86a6b6d2b6d9dc9104fb03366b57de50a103df845714a4d05ac7df0fdb.json.gz",
+        "sha256": "8c310d86a6b6d2b6d9dc9104fb03366b57de50a103df845714a4d05ac7df0fdb",
+        "bytes": 978077,
+        "expandedBytes": 13938272
+      }
+    }
+  },
+  "postflight": {
+    "checkedAt": "2026-10-29T04:05:33.383Z",
+    "statuses": [
+      {
+        "status": "fulfilled",
+        "value": {
+          "status": "queued",
+          "total_count": 0,
+          "runs": []
+        }
+      },
+      {
+        "status": "fulfilled",
+        "value": {
+          "status": "in_progress",
+          "total_count": 0,
+          "runs": []
+        }
+      },
+      {
+        "status": "fulfilled",
+        "value": {
+          "status": "waiting",
+          "total_count": 0,
+          "runs": []
+        }
+      },
+      {
+        "status": "fulfilled",
+        "value": {
+          "status": "requested",
+          "total_count": 0,
+          "runs": []
+        }
+      },
+      {
+        "status": "fulfilled",
+        "value": {
+          "status": "pending",
+          "total_count": 0,
+          "runs": []
+        }
+      }
+    ],
+    "checkpoint": {
+      "version": 2,
+      "checkpoint": {
+        "id": 686785382,
+        "releaseTag": "fundscope-mfapi-v2-data-000005",
+        "name": "checkpoint-8c310d86a6b6d2b6d9dc9104fb03366b57de50a103df845714a4d05ac7df0fdb.json.gz",
+        "url": "https://github.com/Vasuki8/mutual-fund-dashboard/releases/download/fundscope-mfapi-v2-data-000005/checkpoint-8c310d86a6b6d2b6d9dc9104fb03366b57de50a103df845714a4d05ac7df0fdb.json.gz",
+        "sha256": "8c310d86a6b6d2b6d9dc9104fb03366b57de50a103df845714a4d05ac7df0fdb",
+        "bytes": 978077,
+        "expandedBytes": 13938272
+      }
+    }
+  },
+  "remainingUnitEventDiagnostics": [
+    {
+      "code": 100723,
+      "name": "UTI - Money Market Fund - Regular Plan - Discontinued Growth",
+      "isin": "INF789F01BF5",
+      "fixture": "evidence/bulk-completion-2026-10-29/fixtures/history-100723.json",
+      "sha256": "588275729af5d694877ee32237f4574a9e121038bafba30d25e5c8f14abf4904",
+      "matchesCommittedQueue": true,
+      "count": 6466,
+      "coverageStart": "2006-04-01",
+      "coverageEnd": "2026-10-23",
+      "duplicates": 0,
+      "invalid": 0,
+      "rawJumps": [
+        {
+          "oldDate": "2009-08-21",
+          "firstNewDate": "2009-08-22",
+          "oldNav": 25.1341,
+          "firstNewNav": 2513.7463,
+          "ratio": 100.01338022845457
+        }
+      ],
+      "diagnosticFactor": 100,
+      "diagnosticRemainingJumps": [],
+      "diagnosticOnly": true,
+      "authorizedAdjustment": false,
+      "disposition": "keep_blocked"
+    },
+    {
+      "code": 112077,
+      "name": "UTI - Money Market Fund - Regular Plan - Growth",
+      "isin": "INF789F01PX8",
+      "fixture": "evidence/bulk-completion-2026-10-29/fixtures/history-112077.json",
+      "sha256": "1dbf515d5d63b0d71800ab8787c36e7598d6b393d58131dfed8cb0cd4718d38f",
+      "matchesCommittedQueue": true,
+      "count": 5270,
+      "coverageStart": "2009-07-13",
+      "coverageEnd": "2026-10-26",
+      "duplicates": 0,
+      "invalid": 0,
+      "rawJumps": [
+        {
+          "oldDate": "2009-08-21",
+          "firstNewDate": "2009-08-22",
+          "oldNav": 10.0571,
+          "firstNewNav": 1005.8466,
+          "ratio": 100.01358244424337
+        }
+      ],
+      "diagnosticFactor": 100,
+      "diagnosticRemainingJumps": [],
+      "diagnosticOnly": true,
+      "authorizedAdjustment": false,
+      "disposition": "keep_blocked"
+    },
+    {
+      "code": 102532,
+      "name": "UTI Ultra Short Term Fund - Regular Plan - Growth",
+      "isin": "INF789F01570",
+      "fixture": "evidence/bulk-completion-2026-10-29/fixtures/history-102532.json",
+      "sha256": "41c3b822451453274c551a2a13b45cbe4a43ece46be646b17cb467600aaa9e1b",
+      "matchesCommittedQueue": true,
+      "count": 5198,
+      "coverageStart": "2006-04-01",
+      "coverageEnd": "2026-10-26",
+      "duplicates": 0,
+      "invalid": 0,
+      "rawJumps": [
+        {
+          "oldDate": "2006-04-12",
+          "firstNewDate": "2006-04-13",
+          "oldNav": 11.4524,
+          "firstNewNav": 1145.4361,
+          "ratio": 100.01712304844398
+        }
+      ],
+      "diagnosticFactor": 100,
+      "diagnosticRemainingJumps": [],
+      "diagnosticOnly": true,
+      "authorizedAdjustment": false,
+      "disposition": "keep_blocked"
+    },
+    {
+      "code": 102540,
+      "name": "UTI Ultra Short to Short Term Fund - Regular Plan - Discontinued Growth",
+      "isin": "INF789F01331",
+      "fixture": "evidence/bulk-completion-2026-10-29/fixtures/history-102540.json",
+      "sha256": "0a68525e407230fed4f18027e3c78a512898fd42a4e9d126b80a17f228826271",
+      "matchesCommittedQueue": true,
+      "count": 4977,
+      "coverageStart": "2006-04-03",
+      "coverageEnd": "2026-10-26",
+      "duplicates": 0,
+      "invalid": 0,
+      "rawJumps": [
+        {
+          "oldDate": "2007-04-13",
+          "firstNewDate": "2007-04-16",
+          "oldNav": 19.0512,
+          "firstNewNav": 1906.3235,
+          "ratio": 100.06317187368774
+        }
+      ],
+      "diagnosticFactor": 100,
+      "diagnosticRemainingJumps": [],
+      "diagnosticOnly": true,
+      "authorizedAdjustment": false,
+      "disposition": "keep_blocked"
+    },
+    {
+      "code": 102009,
+      "name": "UTI - Liquid Fund - Regular Plan - Discontinued Growth",
+      "isin": "INF789F1AF44",
+      "fixture": "evidence/bulk-completion-2026-10-29/fixtures/history-102009.json",
+      "sha256": "f7e11e9f7dc6bfd62a0d8f6824ae57d15470f63a8b65fe90872b5b8482c29365",
+      "matchesCommittedQueue": true,
+      "count": 7021,
+      "coverageStart": "2006-04-01",
+      "coverageEnd": "2026-10-26",
+      "duplicates": 0,
+      "invalid": 0,
+      "rawJumps": [
+        {
+          "oldDate": "2026-06-19",
+          "firstNewDate": "2026-06-20",
+          "oldNav": 4123.1608,
+          "firstNewNav": 412.3858,
+          "ratio": 0.1000169093575007
+        }
+      ],
+      "diagnosticFactor": 0.1,
+      "diagnosticRemainingJumps": [],
+      "diagnosticOnly": true,
+      "authorizedAdjustment": false,
+      "disposition": "keep_blocked"
+    },
+    {
+      "code": 101619,
+      "name": "ICICI Prudential Ultra Short to Short Term Fund - Regular Plan - Growth",
+      "isin": "INF109K01746",
+      "fixture": "evidence/bulk-completion-2026-10-29/fixtures/history-101619.json",
+      "sha256": "8a7f099b0534c06d600d9bb8db9e612bc50d7c0cb8a6af0fdc7cf2e41b44518e",
+      "matchesCommittedQueue": true,
+      "count": 4966,
+      "coverageStart": "2006-04-02",
+      "coverageEnd": "2026-10-23",
+      "duplicates": 0,
+      "invalid": 0,
+      "rawJumps": [
+        {
+          "oldDate": "2009-10-30",
+          "firstNewDate": "2009-11-03",
+          "oldNav": 16.8006,
+          "firstNewNav": 168.0902,
+          "ratio": 10.0050117257717
+        }
+      ],
+      "diagnosticFactor": 10,
+      "diagnosticRemainingJumps": [],
+      "diagnosticOnly": true,
+      "authorizedAdjustment": false,
+      "disposition": "keep_blocked"
+    },
+    {
+      "code": 101802,
+      "name": "ICICI Prudential Floating Interest Rates Fund - Regular Plan - Growth",
+      "isin": "INF109K01AX1",
+      "fixture": "evidence/bulk-completion-2026-10-29/fixtures/history-101802.json",
+      "sha256": "3e711454c2e1a65049dd67c665906ee14681fca94e3869da4877ccc36a577734",
+      "matchesCommittedQueue": true,
+      "count": 5032,
+      "coverageStart": "2006-04-02",
+      "coverageEnd": "2026-10-26",
+      "duplicates": 0,
+      "invalid": 0,
+      "rawJumps": [
+        {
+          "oldDate": "2009-10-30",
+          "firstNewDate": "2009-11-03",
+          "oldNav": 13.3813,
+          "firstNewNav": 133.8798,
+          "ratio": 10.004992041132027
+        }
+      ],
+      "diagnosticFactor": 10,
+      "diagnosticRemainingJumps": [],
+      "diagnosticOnly": true,
+      "authorizedAdjustment": false,
+      "disposition": "keep_blocked"
+    },
+    {
+      "code": 103340,
+      "name": "ICICI Prudential Liquid Fund - - Regular Plan - Growth",
+      "isin": "INF109K01VQ1",
+      "fixture": "evidence/bulk-completion-2026-10-29/fixtures/history-103340.json",
+      "sha256": "79c1e06def15f6118bb5c1ea34e5d526ad770caf8abaae55b74706b143df65c8",
+      "matchesCommittedQueue": true,
+      "count": 6420,
+      "coverageStart": "2006-04-02",
+      "coverageEnd": "2026-10-26",
+      "duplicates": 0,
+      "invalid": 0,
+      "rawJumps": [
+        {
+          "oldDate": "2009-10-30",
+          "firstNewDate": "2009-11-02",
+          "oldNav": 13.3741,
+          "firstNewNav": 133.7893,
+          "ratio": 10.003611457967265
+        }
+      ],
+      "diagnosticFactor": 10,
+      "diagnosticRemainingJumps": [],
+      "diagnosticOnly": true,
+      "authorizedAdjustment": false,
+      "disposition": "keep_blocked"
+    },
+    {
+      "code": 103633,
+      "name": "ICICI Prudential Money Market Fund - Cash Option - Regular Plan - Growth",
+      "isin": "INF109K01TX1",
+      "fixture": "evidence/bulk-completion-2026-10-29/fixtures/history-103633.json",
+      "sha256": "554ea6a839643f848876e3c8bb496db2fe940b5da9b391dca6adc75716125c24",
+      "matchesCommittedQueue": true,
+      "count": 5738,
+      "coverageStart": "2006-04-02",
+      "coverageEnd": "2026-10-26",
+      "duplicates": 0,
+      "invalid": 0,
+      "rawJumps": [
+        {
+          "oldDate": "2009-10-30",
+          "firstNewDate": "2009-11-02",
+          "oldNav": 12.7125,
+          "firstNewNav": 127.1571,
+          "ratio": 10.002525073746313
+        }
+      ],
+      "diagnosticFactor": 10,
+      "diagnosticRemainingJumps": [],
+      "diagnosticOnly": true,
+      "authorizedAdjustment": false,
+      "disposition": "keep_blocked"
+    },
+    {
+      "code": 147600,
+      "name": "PGIM India Overnight Fund - Regular Plan - Regular Growth",
+      "isin": "INF663L01T43",
+      "fixture": "evidence/bulk-completion-2026-10-29/fixtures/history-147600.json",
+      "sha256": "2abe65b108b5edc188426d756bfe59a244ffeb9f539022d8fcaffb0bfa7cfd07",
+      "matchesCommittedQueue": true,
+      "count": 2339,
+      "coverageStart": "2019-08-28",
+      "coverageEnd": "2026-10-25",
+      "duplicates": 0,
+      "invalid": 0,
+      "rawJumps": [
+        {
+          "oldDate": "2019-09-06",
+          "firstNewDate": "2019-09-07",
+          "oldNav": 10.0156,
+          "firstNewNav": 1001.7023,
+          "ratio": 100.0142078357762
+        }
+      ],
+      "diagnosticFactor": 100,
+      "diagnosticRemainingJumps": [],
+      "diagnosticOnly": true,
+      "authorizedAdjustment": false,
+      "disposition": "keep_blocked"
+    },
+    {
+      "code": 147606,
+      "name": "PGIM India Overnight Fund - Direct Plan - Direct Growth",
+      "isin": "INF663L01T01",
+      "fixture": "evidence/bulk-completion-2026-10-29/fixtures/history-147606.json",
+      "sha256": "1b970552bf35e99d68d69b83241c05a15ca5966b47da93efa5a07d117094bf50",
+      "matchesCommittedQueue": true,
+      "count": 2339,
+      "coverageStart": "2019-08-28",
+      "coverageEnd": "2026-10-25",
+      "duplicates": 0,
+      "invalid": 0,
+      "rawJumps": [
+        {
+          "oldDate": "2019-09-06",
+          "firstNewDate": "2019-09-07",
+          "oldNav": 10.016,
+          "firstNewNav": 1001.7447,
+          "ratio": 100.01444688498403
+        }
+      ],
+      "diagnosticFactor": 100,
+      "diagnosticRemainingJumps": [],
+      "diagnosticOnly": true,
+      "authorizedAdjustment": false,
+      "disposition": "keep_blocked"
+    },
+    {
+      "code": 147836,
+      "name": "JM Overnight Fund - Regular Plan - Growth Option",
+      "isin": "INF192K01LX4",
+      "fixture": "evidence/bulk-completion-2026-10-29/fixtures/history-147836.json",
+      "sha256": "cbac5087beaae43672d412e0cba7ecf13c3468ed2ee546c957456ea97487447c",
+      "matchesCommittedQueue": true,
+      "count": 2133,
+      "coverageStart": "2019-12-04",
+      "coverageEnd": "2026-10-25",
+      "duplicates": 0,
+      "invalid": 0,
+      "rawJumps": [
+        {
+          "oldDate": "2019-12-12",
+          "firstNewDate": "2019-12-13",
+          "oldNav": 10.0126,
+          "firstNewNav": 1001.3835,
+          "ratio": 100.01233445858217
+        }
+      ],
+      "diagnosticFactor": 100,
+      "diagnosticRemainingJumps": [],
+      "diagnosticOnly": true,
+      "authorizedAdjustment": false,
+      "disposition": "keep_blocked"
+    },
+    {
+      "code": 147837,
+      "name": "JM Overnight Fund - Direct Plan - Growth Option",
+      "isin": "INF192K01MB8",
+      "fixture": "evidence/bulk-completion-2026-10-29/fixtures/history-147837.json",
+      "sha256": "db7a3f503aa3f283ab6a1297ad61a730b2623b999036ac2069dc3c03ac5e7423",
+      "matchesCommittedQueue": true,
+      "count": 2133,
+      "coverageStart": "2019-12-04",
+      "coverageEnd": "2026-10-25",
+      "duplicates": 0,
+      "invalid": 0,
+      "rawJumps": [
+        {
+          "oldDate": "2019-12-12",
+          "firstNewDate": "2019-12-13",
+          "oldNav": 10.0127,
+          "firstNewNav": 1001.3989,
+          "ratio": 100.0128736504639
+        }
+      ],
+      "diagnosticFactor": 100,
+      "diagnosticRemainingJumps": [],
+      "diagnosticOnly": true,
+      "authorizedAdjustment": false,
+      "disposition": "keep_blocked"
+    },
+    {
+      "code": 101408,
+      "name": "BARODA BNP PARIBAS LIQUID FUND - Growth Option",
+      "isin": "INF955L01575",
+      "fixture": "evidence/bulk-completion-2026-10-29/fixtures/history-101408.json",
+      "sha256": "0cc89693446a667f2a9c936e4a1c59b65931b5f0924883ca64186e90ff2f4866",
+      "matchesCommittedQueue": true,
+      "count": 6316,
+      "coverageStart": "2006-04-01",
+      "coverageEnd": "2026-10-25",
+      "duplicates": 0,
+      "invalid": 0,
+      "rawJumps": [
+        {
+          "oldDate": "2011-02-04",
+          "firstNewDate": "2011-02-06",
+          "oldNav": 16.8129,
+          "firstNewNav": 1681.9899,
+          "ratio": 100.04162874935318
+        }
+      ],
+      "diagnosticFactor": 100,
+      "diagnosticRemainingJumps": [],
+      "diagnosticOnly": true,
+      "authorizedAdjustment": false,
+      "disposition": "keep_blocked"
+    },
+    {
+      "code": 111704,
+      "name": "BARODA BNP PARIBAS LIQUID FUND - Regular Plan - Growth Option",
+      "isin": "INF955L01484",
+      "fixture": "evidence/bulk-completion-2026-10-29/fixtures/history-111704.json",
+      "sha256": "0f91aac50cca9ac6b3e5694394188ef9cf9d7b8a1683b8f94e53a50b9f66f88f",
+      "matchesCommittedQueue": true,
+      "count": 5288,
+      "coverageStart": "2009-02-08",
+      "coverageEnd": "2026-10-26",
+      "duplicates": 0,
+      "invalid": 0,
+      "rawJumps": [
+        {
+          "oldDate": "2011-02-04",
+          "firstNewDate": "2011-02-06",
+          "oldNav": 11.0928,
+          "firstNewNav": 1109.7397,
+          "ratio": 100.04144129525459
+        }
+      ],
+      "diagnosticFactor": 100,
+      "diagnosticRemainingJumps": [],
+      "diagnosticOnly": true,
+      "authorizedAdjustment": false,
+      "disposition": "keep_blocked"
+    }
+  ],
+  "newPrimaryUnitEventEvidence": [
+    {
+      "url": "https://online.pgimindiamf.com/navlinks/Downloads/Docs/PGIMIndia_FullFinancialsAR20.pdf",
+      "error": "HTTP Error 503: Service Unavailable"
+    },
+    {
+      "file": "jm-ssd-current.pdf",
+      "url": "https://www.jmfinancialmf.com/CMS/downloads/Scheme%20related%20documents/Scheme%20Summary%20Document%20%28SSD%29/SSD%20-JM%20Overnight%20Fund.pdf",
+      "error": "HTTP Error 406: Not Acceptable"
+    },
+    {
+      "file": "jm-nav.html",
+      "url": "https://www.jmfinancialmf.com/NAVs-and-IDCW/LatestNAV",
+      "error": "HTTP Error 406: Not Acceptable"
+    },
+    {
+      "file": "jm-nse-ssd-2026.pdf",
+      "url": "https://nsearchives.nseindia.com/trading_security/mf/pdf/JM_18032026140719_JMFinancialMutualFund.pdf",
+      "status": 200,
+      "bytes": 1009794,
+      "sha256": "4b04b1a50cd68b1b7e9548d9cd8bbd1f403a21ad4a3b65f9d7cec2784205d2f0"
+    },
+    {
+      "url": "https://www.barodabnpparibasmf.in/baroda-archivedownloads/notice-cum-addenda",
+      "error": "HTTP Error 503: Service Unavailable"
+    },
+    {
+      "url": "https://www.barodabnpparibasmf.in/baroda-archivedownload/financial-annual-reports",
+      "error": "HTTP Error 503: Service Unavailable"
+    },
+    {
+      "url": "https://www.barodabnpparibasmf.in/baroda-archivedownload/",
+      "error": "HTTP Error 503: Service Unavailable"
+    }
+  ],
+  "unitEventResearch": "# Remaining unit events: finalization research, 29 October 2026\n\nNo additional unit adjustment is supported by this pass. All 15 researched histories remain blocked. This is a bounded evidence result, not proof that the missing original notices do not exist.\n\nThe prior continuation event and UTI dossiers, committed continuation queue, and source-quality dossier were read first. Previously completed PR73 actions were not repeated. Production code, source archives, source history and original warnings were not changed. No MFAPI source calls, AMFI downloads, collector, browser login or source mutations were performed.\n\n## New primary evidence\n\nThe issuer's NSE-hosted March 2026 consolidated SSD establishes both exact JM identities on physical PDF page 5, printed page 1, fields 28 and 29. The page was rendered and visually inspected.\n\nURL: https://nsearchives.nseindia.com/trading_security/mf/pdf/JM_18032026140719_JMFinancialMutualFund.pdf\n\nOriginal file: `jm-nse-ssd-2026.pdf`, 1,009,794 bytes. SHA256: `4b04b1a50cd68b1b7e9548d9cd8bbd1f403a21ad4a3b65f9d7cec2784205d2f0`.\n\nField 29 excerpt: \u201cJM Overnight Fund (Regular) - Growth-147836,JM Overnight Fund - (Direct) - Growth-147837\u201d. Field 28 maps Regular Growth to INF192K01LX4 and Direct Growth to INF192K01MB8. Both are within the JM Overnight Fund table, not neighboring schemes. This independently strengthens identity beyond the old NCCL mapping. It does not contain historical conversion terms or reconcile the raw 13 December 2019 boundary with the original annual report's 14 December effective date.\n\n## New archive lead and access evidence\n\nThe primary Baroda-side historical notice index is https://www.barodabnpparibasmf.in/baroda-archivedownloads/notice-cum-addenda . Its publicly indexed page explicitly advertises years 2009\u20132022, including 2011. This is distinct from the BNP archive: using BNP 2011 reports would risk matching a different historical issuer lineage. Search-reader capture is preserved in `baroda-search-reader.json`. The page opens at 2022, and the year choices are not links exposed by the search reader. Ordinary direct TLS retrieval returned HTTP503, so this pass could not extract the 2011 filter endpoint or original February notice. A future successful direct read of this same public index should expose the site's normal year selector request; no guessed endpoint or bypass was attempted.\n\nThe Baroda-side scheme financial archive https://www.barodabnpparibasmf.in/baroda-archivedownload/financial-annual-reports advertises 2021, 2020 and 2004\u20132008, omitting 2011 in the returned selector. The similarly named `/archivedownload/financial-annual-reports` advertises 2011 but is BNP's historical lineage and is not automatically evidence for Baroda Pioneer.\n\nThe public PGIM 2019\u201320 audited annual report remains a concrete retrieval lead: https://online.pgimindiamf.com/navlinks/Downloads/Docs/PGIMIndia_FullFinancialsAR20.pdf . Search indexing confirms it is the scheme annual report and returns accounting-policy/performance excerpts; no indexed excerpt established a dated denomination conversion. Direct original download and search opening failed (HTTP503 / inaccessible). Thus no original-byte hash or event quote is asserted.\n\nPublic JM issuer SSD and NAV-page retrieval each returned HTTP406. The independently published NSE issuer SSD succeeded and is the identity evidence above. No access restriction was bypassed. Default sandbox sockets were unavailable; read-only network escalation enabled ordinary public downloads. TLS verification remained enabled.\n\n## Explicit unresolved dispositions\n\n| Codes | Evidence still missing or conflicting | Disposition |\n|---|---|---|\n| 100723,112077 | Original dated UTI Money Market conversion notice for August 2009; identities already improved in prior dossier | Keep blocked; shared 100x curve does not supply terms |\n| 102532 | Original dated UTI Floating Rate conversion notice for April 2006; 2010 SID current face value does not date conversion | Keep blocked |\n| 102540 | Original dated UTI Liquid/Treasury Advantage conversion notice for April 2007 and exact historical identity continuity | Keep blocked |\n| 102009 | Exact primary numeric-code/current-ISIN chain resolving prior NCCL BB4 versus issuer BC2 contradiction; legal and raw boundary dates also differ | Keep blocked; modern secondary listings are not a resolution |\n| 101619,101802,103340,103633 | Primary dated ICICI November 2009 conversion and complete exact affected-plan historical linkage | Keep blocked; annual investor holdings prove at most denomination within a period |\n| 147600,147606 | Primary dated PGIM September 2019 conversion; old/new denomination bracket is insufficient | Keep blocked; annual report inaccessible |\n| 147836,147837 | Reconciliation of annual effective 14 December versus raw first new NAV on 13 December 2019 | Keep blocked; new exact primary identity obtained only |\n| 101408,111704 | Original February 2011 Baroda Pioneer Liquid event and exact legacy/current option bridge | Keep blocked; correct historical notice archive found but original notice not retrieved |\n\n## Full-history implications\n\n`full-history-diagnostic.json` independently rechecks all 15 complete immutable fixtures: 71,636 observations. Every fixture SHA256 equals the committed continuation queue. Every history has exactly one >40% raw move, zero duplicate dates and zero nonpositive/nonfinite NAVs. Applying the hypothesized factor to every earlier observation would remove each numerical discontinuity, but every entry explicitly has `diagnosticOnly: true`, `authorizedAdjustment: false`, and `keep_blocked` disposition. Factors and precise boundaries are recorded as arithmetic diagnostics, never evidence of a corporate action. No current source freshness or active-scope revalidation is implied.\n\nSearch engine 1 was used for the primary financial evidence search and verification. Searches covered exact effective-date variants, old scheme names, face value/consolidation wording, historical annuals, current issuer SSDs, and issuer/regulator/exchange domains. Recent third-party pages labeling a 100:1 adjustment were treated solely as leads, not confirmation.\n",
+  "otherMultipleJumpResearch": "# Remaining multi-jump cases: bounded primary-source search\n\n## Invesco 116077 / 120531: keep blocked\n\nExact missing evidence is issuer/exchange-published 25 October 2019 NAV for the Gold ETF Fund of Fund Regular Growth (INF205K01FA4) and Direct Growth (INF205K01NJ9), respectively. Source values 0.18810 and 0.19160 produce a near-total loss and reversal; that pattern does not determine a replacement NAV.\n\nThe official fund page surfaced in search, but a direct fetch returned HTTP 403. The historical NAV link `/nav-and-dividends` also returned HTTP 403; the web search tool resolved it to the new official `/nav-idcw` page, whose direct fetch also returned HTTP 403. No access-control workaround or repeated request to a failed URL was used. Attempt records are saved as invesco-page-attempt.json, invesco-nav-attempt.json and additional-primary-attempts.json. The first attempt record was created before the exception was added, so its file contains the URL only; the tool response records the 403.\n\nAn indexed official fund page includes a normalized wealth series with 25 October 2019 value 21,012.01. It cannot safely establish either required NAV: its surrounding figures and the issuer's October 2019 factsheet correspond to the underlying Gold ETF series rather than the target FoF's saved adjacent NAVs. Do not rescale it into a replacement fund NAV or infer one plan from the other.\n\nPrimary lead URLs:\n\n- https://www.invescomutualfund.com/our-funds/fund-of-funds/invesco-india-gold-etf-fund-of-fund/rggp\n- https://www.invescomutualfund.com/our-funds/fund/fund-of-funds/invesco-india-gold-etf-fund-of-fund/rggp\n- https://invescomutualfund.com/nav-and-dividends (web resolver redirects to https://www.invescomutualfund.com/nav-idcw)\n- https://invescomutualfund.com/docs/default-source/default-document-library/factsheet---october-2019.pdf?sfvrsn=0 (month-end data is not the missing 25 October observation)\n\nTargeted searches of issuer and exchange domains did not yield an exact-date NAV report for these two options. No AMFI download, MFAPI fetch, mutation or correction was performed.\n\n## ICICI 102135: keep blocked\n\nExact missing evidence is issuer/exchange-published 2 January 2008 NAV for the exact current identity ICICI Prudential Aggressive Hybrid Active FOF - Regular Plan - Growth, ISIN INF109K01852, including a defensible historical scheme-name binding if the publication uses a former name. The saved value is 19.29330, between 1 January 37.10370 and 3 January 37.17640. Adjacent values cannot establish the correct January 2 NAV.\n\nOfficial NAV page https://www.icicipruamc.com/mutual-fund/nav-%26-dividend returned 200 and its observed public JavaScript bundle `/static/js/index.Br5Xr9Iq.js` returned 200. The bundle contains a download API template on apimf.icicipruamc.com: `/fs/v1/funds/download/:componentType`, with filters/sorts/component/fileType body, but this bounded investigation did not establish the exact component/filter contract and historical option identifier required for a safe precise request. No guessed API call, authentication change or credential access was made. Original page/script bytes and hashes are retained in icici-attempt.json and additional-primary-attempts.json.\n\nTargeted issuer/exchange searches did not identify the exact 2008 dated value. This is a concrete remaining evidence gap, not proof that the publication is unavailable or that the low source value is valid. Leave both source discontinuities and original value visible and blocked.\n\n## Supported additions from this pass\n\nThe ABSL pair is independently supported by exact dated issuer CSV data and separate option identity mapping; see absl-review.md and absl-correction-candidates.json. Four normalized primary proof records (BOI pair revalidated from preceding research, ABSL pair newly discovered here) are consolidated in four-supported-primary-proof.json. No production edits are included in this research directory.\n",
+  "noAmfiDownloads": true,
+  "archiveMutations": 0,
+  "collectorDispatches": 0,
+  "limits": [
+    "Historical rejected-row counts do not identify or recover the original rows.",
+    "A hypothetical clean offline merge is not a source refresh.",
+    "The one complete fresh response still contains a zero NAV; neither timed-out code has a proven original rejection cause.",
+    "Diagnostic Python socket timeouts did not enforce a12second wall-clock timeout on trickling bodies; maximum observed21.29seconds. Future diagnostics need a hard process deadline.",
+    "Prior browser sign-in was declined; no sign-in retry or manual collector dispatch was attempted in this pass."
+  ]
+}

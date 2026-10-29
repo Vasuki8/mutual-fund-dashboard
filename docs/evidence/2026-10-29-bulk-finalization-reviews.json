@@ -1,0 +1,565 @@
+{
+  "schemaVersion": 1,
+  "reviewDate": "2026-10-29",
+  "status": "Implemented with exact identity/date/value guards and separately reviewed full-history verification; deployment proof is recorded in the pull request.",
+  "preserveOriginalSourceAndWarnings": true,
+  "noAmfiDownloadsOrMfapiRequests": true,
+  "records": [
+    {
+      "schemeCode": 133867,
+      "schemeName": "BANK OF INDIA CREDIT RISK FUND - Regular Plan - Growth",
+      "fundHouse": "Bank of India Mutual Fund",
+      "isinGrowth": "INF761K01DH6",
+      "discovery": "Exact correction was primary-supported but not implemented in preceding batch; this review revalidated source hashes, original PDF columns, identity and entire saved history.",
+      "fixturePath": "evidence/bulk-completion-2026-10-29/fixtures/history-133867.json",
+      "fixtureSha256": "46731c936366ba6889b080ab196666ee608b70733e637864b6bdd4cf1e631f18",
+      "fixtureObservationCount": 2815,
+      "originalWarnings": [
+        "Unresolved discontinuity: 2 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "correction": {
+        "date": "2022-03-31",
+        "originalRawNav": "9.62960",
+        "primaryNav": "10.2756"
+      },
+      "primaryEvidence": [
+        {
+          "url": "https://www.boimf.in/docs/default-source/investorcorner/factsheets/factsheet-march-2022.pdf?sfvrsn=16b76643_6",
+          "method": "GET",
+          "originalSourcePath": "evidence/bulk-continuation-2026-10-29/source-quality/boi-factsheet-mar2022.pdf",
+          "bytes": 6061029,
+          "sha256": "2b3aeaafcca19c6c3cc48616728024b1a1bf4d8c665e59f51fbd7819a492b0c2",
+          "newDiscoveryThisReview": false,
+          "pdfPage": 14
+        },
+        {
+          "url": "https://www.boimf.in/docs/default-source/reports/financials/annual-report-2021-224ace7e8cb8f74e8f8d11443c4b271be0.pdf?sfvrsn=32295bd6_6",
+          "method": "GET",
+          "originalSourcePath": "evidence/bulk-continuation-2026-10-29/source-quality/boi-annual2022.pdf",
+          "bytes": 13664135,
+          "sha256": "781cff90ed0735ca46cc1b2c6c5cdb6edfaf703882bb47a3f8f2ccf4ee1dcabd",
+          "newDiscoveryThisReview": false,
+          "pdfPage": 87
+        },
+        {
+          "url": "https://www.boimf.in/AjaxService.asmx/GetNavPoints",
+          "method": "POST",
+          "originalSourcePath": "evidence/bulk-continuation-2026-10-29/source-quality/boi-nav-rg-20220330-0404.json",
+          "bytes": 299,
+          "sha256": "dff92785180e0186baeff3320a3c60b811e2038f436f543f7fbd9c8e36ffa849",
+          "newDiscoveryThisReview": false,
+          "query": {
+            "Category": "DEBT",
+            "Scheme": "cs",
+            "Plan": "rg",
+            "FromDate": "30/03/2022",
+            "ToDate": "04/04/2022",
+            "pagno": 0
+          }
+        }
+      ],
+      "identityEvidence": [
+        {
+          "url": "https://nsearchives.nseindia.com/trading_security/mf/pdf/Bank_06052026135108_BOI_Mutual_Fund.pdf",
+          "method": "GET",
+          "originalSourcePath": "evidence/bulk-continuation-2026-10-29/source-quality/boi-credit-scheme-summary-20260506.pdf",
+          "bytes": 1450619,
+          "sha256": "855a8e9b45b2da35166edf872fb3235f5a19d85733f9da93ad06929f6c853ea1",
+          "newDiscoveryThisReview": false,
+          "pdfPage": 31
+        },
+        {
+          "url": "https://www.boimf.in/AjaxService.asmx/GetSchemeType",
+          "method": "POST",
+          "originalSourcePath": "evidence/bulk-continuation-2026-10-29/source-quality/boi-debt-schemes.json",
+          "bytes": 793,
+          "sha256": "52ed61e9e42502b857d52cc8300044a59727580cfb74bd0f9f4a2f1a394875be",
+          "newDiscoveryThisReview": false,
+          "query": {
+            "FundSelected": "bbd4a6d7-d6c8-4dc1-acbe-0bcdf6a29eb8"
+          }
+        },
+        {
+          "url": "https://www.boimf.in/AjaxService.asmx/GetPlanType",
+          "method": "POST",
+          "originalSourcePath": "evidence/bulk-continuation-2026-10-29/source-quality/boi-credit-plans.json",
+          "bytes": 222,
+          "sha256": "fbeb1b7bed5b6f2eeaf885639267f635a0d8e3ca8eaf71f5c9925f2145697c01",
+          "newDiscoveryThisReview": false,
+          "query": {
+            "SchemeSelected": "d29f1fe5-97a7-4191-9704-99af81fdc035"
+          }
+        }
+      ],
+      "economicMovementEvidence": [
+        {
+          "url": "https://www.boimf.in/docs/default-source/reports/financials/annual-report-2019-20.pdf",
+          "method": "GET",
+          "originalSourcePath": "evidence/bulk-continuation-2026-10-29/source-quality/boi-annual2020.pdf",
+          "bytes": 17017234,
+          "sha256": "e235eab49355d784ed3bd006c6ddbe8f1e151aea1318c884da473874cb31dbbc",
+          "newDiscoveryThisReview": false,
+          "pdfPage": 155
+        },
+        {
+          "url": "https://www.boimf.in/docs/default-source/reports/financials/annual-report-2021-224ace7e8cb8f74e8f8d11443c4b271be0.pdf?sfvrsn=32295bd6_6",
+          "method": "GET",
+          "originalSourcePath": "evidence/bulk-continuation-2026-10-29/source-quality/boi-annual2022.pdf",
+          "bytes": 13664135,
+          "sha256": "781cff90ed0735ca46cc1b2c6c5cdb6edfaf703882bb47a3f8f2ccf4ee1dcabd",
+          "newDiscoveryThisReview": false,
+          "pdfPage": 24
+        },
+        {
+          "url": "https://www.boimf.in/AjaxService.asmx/GetNavPoints",
+          "method": "POST",
+          "originalSourcePath": "evidence/bulk-continuation-2026-10-29/source-quality/boi-nav-rg-20200423-24.json",
+          "bytes": 210,
+          "sha256": "ab4544c7f0a9122ed7d39d0a3a6edb3508c0daf9165ae0ef64457b5f460028ad",
+          "newDiscoveryThisReview": false,
+          "query": {
+            "Category": "DEBT",
+            "Scheme": "cs",
+            "Plan": "rg",
+            "FromDate": "23/04/2020",
+            "ToDate": "24/04/2020",
+            "pagno": 0
+          }
+        }
+      ],
+      "primaryNavWindows": [
+        {
+          "rows": [
+            {
+              "date": "2020-04-24",
+              "currentNav": "3.6542",
+              "previousNav": "7.3408"
+            },
+            {
+              "date": "2020-04-23",
+              "currentNav": "7.3408",
+              "previousNav": "7.3375"
+            }
+          ],
+          "source": {
+            "url": "https://www.boimf.in/AjaxService.asmx/GetNavPoints",
+            "method": "POST",
+            "query": {
+              "Category": "DEBT",
+              "Scheme": "cs",
+              "Plan": "rg",
+              "FromDate": "23/04/2020",
+              "ToDate": "24/04/2020",
+              "pagno": 0
+            },
+            "status": 200,
+            "bytes": 210,
+            "sha256": "ab4544c7f0a9122ed7d39d0a3a6edb3508c0daf9165ae0ef64457b5f460028ad"
+          }
+        },
+        {
+          "rows": [
+            {
+              "date": "2022-04-04",
+              "currentNav": "10.2777",
+              "previousNav": "10.2756"
+            },
+            {
+              "date": "2022-03-31",
+              "currentNav": "10.2756",
+              "previousNav": "4.6321"
+            },
+            {
+              "date": "2022-03-30",
+              "currentNav": "4.6321",
+              "previousNav": "4.6256"
+            }
+          ],
+          "source": {
+            "url": "https://www.boimf.in/AjaxService.asmx/GetNavPoints",
+            "method": "POST",
+            "query": {
+              "Category": "DEBT",
+              "Scheme": "cs",
+              "Plan": "rg",
+              "FromDate": "30/03/2022",
+              "ToDate": "04/04/2022",
+              "pagno": 0
+            },
+            "status": 200,
+            "bytes": 299,
+            "sha256": "dff92785180e0186baeff3320a3c60b811e2038f436f543f7fbd9c8e36ffa849"
+          }
+        }
+      ],
+      "economicAttributionLimit": "2020 credit markdown is explicitly dated; 2022 annual recovery attribution does not isolate the precise security contribution or recovery timestamp. Exact dated NAVs are independently issuer-confirmed.",
+      "correctedThresholdMoveCount": 2,
+      "unitFactor": null
+    },
+    {
+      "schemeCode": 133868,
+      "schemeName": "BANK OF INDIA CREDIT RISK FUND - Direct Plan - Growth",
+      "fundHouse": "Bank of India Mutual Fund",
+      "isinGrowth": "INF761K01DG8",
+      "discovery": "Exact correction was primary-supported but not implemented in preceding batch; this review revalidated source hashes, original PDF columns, identity and entire saved history.",
+      "fixturePath": "evidence/bulk-completion-2026-10-29/fixtures/history-133868.json",
+      "fixtureSha256": "7a21007f305bb0e5ac97684632b256da6ee80eaf49e8651b0172bead76ad4097",
+      "fixtureObservationCount": 2815,
+      "originalWarnings": [
+        "Unresolved discontinuity: 2 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "correction": {
+        "date": "2022-03-31",
+        "originalRawNav": "9.76670",
+        "primaryNav": "10.4219"
+      },
+      "primaryEvidence": [
+        {
+          "url": "https://www.boimf.in/docs/default-source/investorcorner/factsheets/factsheet-march-2022.pdf?sfvrsn=16b76643_6",
+          "method": "GET",
+          "originalSourcePath": "evidence/bulk-continuation-2026-10-29/source-quality/boi-factsheet-mar2022.pdf",
+          "bytes": 6061029,
+          "sha256": "2b3aeaafcca19c6c3cc48616728024b1a1bf4d8c665e59f51fbd7819a492b0c2",
+          "newDiscoveryThisReview": false,
+          "pdfPage": 14
+        },
+        {
+          "url": "https://www.boimf.in/docs/default-source/reports/financials/annual-report-2021-224ace7e8cb8f74e8f8d11443c4b271be0.pdf?sfvrsn=32295bd6_6",
+          "method": "GET",
+          "originalSourcePath": "evidence/bulk-continuation-2026-10-29/source-quality/boi-annual2022.pdf",
+          "bytes": 13664135,
+          "sha256": "781cff90ed0735ca46cc1b2c6c5cdb6edfaf703882bb47a3f8f2ccf4ee1dcabd",
+          "newDiscoveryThisReview": false,
+          "pdfPage": 87
+        },
+        {
+          "url": "https://www.boimf.in/AjaxService.asmx/GetNavPoints",
+          "method": "POST",
+          "originalSourcePath": "evidence/bulk-continuation-2026-10-29/source-quality/boi-nav-dg-20220330-0404.json",
+          "bytes": 297,
+          "sha256": "165fda30582b5f68193640c33bd3cc3a130a723f2f3dcfb8cb6796d3984db052",
+          "newDiscoveryThisReview": false,
+          "query": {
+            "Category": "DEBT",
+            "Scheme": "cs",
+            "Plan": "dg",
+            "FromDate": "30/03/2022",
+            "ToDate": "04/04/2022",
+            "pagno": 0
+          }
+        }
+      ],
+      "identityEvidence": [
+        {
+          "url": "https://nsearchives.nseindia.com/trading_security/mf/pdf/Bank_06052026135108_BOI_Mutual_Fund.pdf",
+          "method": "GET",
+          "originalSourcePath": "evidence/bulk-continuation-2026-10-29/source-quality/boi-credit-scheme-summary-20260506.pdf",
+          "bytes": 1450619,
+          "sha256": "855a8e9b45b2da35166edf872fb3235f5a19d85733f9da93ad06929f6c853ea1",
+          "newDiscoveryThisReview": false,
+          "pdfPage": 31
+        },
+        {
+          "url": "https://www.boimf.in/AjaxService.asmx/GetSchemeType",
+          "method": "POST",
+          "originalSourcePath": "evidence/bulk-continuation-2026-10-29/source-quality/boi-debt-schemes.json",
+          "bytes": 793,
+          "sha256": "52ed61e9e42502b857d52cc8300044a59727580cfb74bd0f9f4a2f1a394875be",
+          "newDiscoveryThisReview": false,
+          "query": {
+            "FundSelected": "bbd4a6d7-d6c8-4dc1-acbe-0bcdf6a29eb8"
+          }
+        },
+        {
+          "url": "https://www.boimf.in/AjaxService.asmx/GetPlanType",
+          "method": "POST",
+          "originalSourcePath": "evidence/bulk-continuation-2026-10-29/source-quality/boi-credit-plans.json",
+          "bytes": 222,
+          "sha256": "fbeb1b7bed5b6f2eeaf885639267f635a0d8e3ca8eaf71f5c9925f2145697c01",
+          "newDiscoveryThisReview": false,
+          "query": {
+            "SchemeSelected": "d29f1fe5-97a7-4191-9704-99af81fdc035"
+          }
+        }
+      ],
+      "economicMovementEvidence": [
+        {
+          "url": "https://www.boimf.in/docs/default-source/reports/financials/annual-report-2019-20.pdf",
+          "method": "GET",
+          "originalSourcePath": "evidence/bulk-continuation-2026-10-29/source-quality/boi-annual2020.pdf",
+          "bytes": 17017234,
+          "sha256": "e235eab49355d784ed3bd006c6ddbe8f1e151aea1318c884da473874cb31dbbc",
+          "newDiscoveryThisReview": false,
+          "pdfPage": 155
+        },
+        {
+          "url": "https://www.boimf.in/docs/default-source/reports/financials/annual-report-2021-224ace7e8cb8f74e8f8d11443c4b271be0.pdf?sfvrsn=32295bd6_6",
+          "method": "GET",
+          "originalSourcePath": "evidence/bulk-continuation-2026-10-29/source-quality/boi-annual2022.pdf",
+          "bytes": 13664135,
+          "sha256": "781cff90ed0735ca46cc1b2c6c5cdb6edfaf703882bb47a3f8f2ccf4ee1dcabd",
+          "newDiscoveryThisReview": false,
+          "pdfPage": 24
+        },
+        {
+          "url": "https://www.boimf.in/AjaxService.asmx/GetNavPoints",
+          "method": "POST",
+          "originalSourcePath": "evidence/bulk-continuation-2026-10-29/source-quality/boi-nav-dg-20200423-24.json",
+          "bytes": 210,
+          "sha256": "915e4af544b60c29dda2cf59f4c8350095c0c8fefd7a7e1129d4b007852fdaf2",
+          "newDiscoveryThisReview": false,
+          "query": {
+            "Category": "DEBT",
+            "Scheme": "cs",
+            "Plan": "dg",
+            "FromDate": "23/04/2020",
+            "ToDate": "24/04/2020",
+            "pagno": 0
+          }
+        }
+      ],
+      "primaryNavWindows": [
+        {
+          "rows": [
+            {
+              "date": "2020-04-24",
+              "currentNav": "3.6863",
+              "previousNav": "7.4051"
+            },
+            {
+              "date": "2020-04-23",
+              "currentNav": "7.4051",
+              "previousNav": "7.4017"
+            }
+          ],
+          "source": {
+            "url": "https://www.boimf.in/AjaxService.asmx/GetNavPoints",
+            "method": "POST",
+            "query": {
+              "Category": "DEBT",
+              "Scheme": "cs",
+              "Plan": "dg",
+              "FromDate": "23/04/2020",
+              "ToDate": "24/04/2020",
+              "pagno": 0
+            },
+            "status": 200,
+            "bytes": 210,
+            "sha256": "915e4af544b60c29dda2cf59f4c8350095c0c8fefd7a7e1129d4b007852fdaf2"
+          }
+        },
+        {
+          "rows": [
+            {
+              "date": "2022-04-04",
+              "currentNav": "10.4243",
+              "previousNav": "10.4219"
+            },
+            {
+              "date": "2022-03-31",
+              "currentNav": "10.4219",
+              "previousNav": "4.698"
+            },
+            {
+              "date": "2022-03-30",
+              "currentNav": "4.698",
+              "previousNav": "4.6913"
+            }
+          ],
+          "source": {
+            "url": "https://www.boimf.in/AjaxService.asmx/GetNavPoints",
+            "method": "POST",
+            "query": {
+              "Category": "DEBT",
+              "Scheme": "cs",
+              "Plan": "dg",
+              "FromDate": "30/03/2022",
+              "ToDate": "04/04/2022",
+              "pagno": 0
+            },
+            "status": 200,
+            "bytes": 297,
+            "sha256": "165fda30582b5f68193640c33bd3cc3a130a723f2f3dcfb8cb6796d3984db052"
+          }
+        }
+      ],
+      "economicAttributionLimit": "2020 credit markdown is explicitly dated; 2022 annual recovery attribution does not isolate the precise security contribution or recovery timestamp. Exact dated NAVs are independently issuer-confirmed.",
+      "correctedThresholdMoveCount": 2,
+      "unitFactor": null
+    },
+    {
+      "schemeCode": 106873,
+      "schemeName": "Aditya Birla Sun Life International Equity Fund - Regular Plan - GROWTH",
+      "fundHouse": "Aditya Birla Sun Life Mutual Fund",
+      "isinGrowth": "INF209K01520",
+      "discovery": "New successful GET CSV download route identified in original issuer JavaScript; distinct from preceding failed POST endpoint.",
+      "fixturePath": "evidence/bulk-completion-2026-10-29/fixtures/history-106873.json",
+      "fixtureSha256": "f6e50fd3e759e10ee99c1d14f8a9b57a4db641fb9c1d8552a4321c086ee414f4",
+      "fixtureObservationCount": 4656,
+      "originalWarnings": [
+        "Unresolved discontinuity: 2 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "correction": {
+        "date": "2019-04-10",
+        "originalRawNav": "68.28470",
+        "primaryNav": "20.9025"
+      },
+      "primaryEvidence": [
+        {
+          "url": "https://mutualfund.adityabirlacapital.com/api/sitecore/Shared/PostHistoricalNavandDividendFile",
+          "method": "GET",
+          "originalSourcePath": "evidence/bulk-finalization-2026-10-29/multiple-events/absl-history-download.response",
+          "bytes": 231,
+          "sha256": "db36edf1bcfa344ec722493932d441861a69ed90dbe3a11cd5459ab942b002fa",
+          "newDiscoveryThisReview": true,
+          "query": {
+            "SchemeName": "ABSL International EquityFund -Regular-Growth",
+            "Type": "N",
+            "SchemeCode": "297G",
+            "FromDate": "09-Apr-2019",
+            "ToDate": "11-Apr-2019"
+          }
+        }
+      ],
+      "identityEvidence": [
+        {
+          "url": "https://mutualfund.adityabirlacapital.com/postlogin/CustomApi/Shared/GetSchemeCategory?type=N",
+          "method": "GET",
+          "originalSourcePath": "evidence/bulk-continuation-2026-10-29/source-quality/absl-nav-schemes.json",
+          "bytes": 553239,
+          "sha256": "b97c93e1d72ba1704d4e62ea16437b265ca23be0f89fec43b0f3fcfd9b569fae",
+          "newDiscoveryThisReview": false
+        },
+        {
+          "url": "https://nsearchives.nseindia.com/trading_security/mf/pdf/Aditya_06042026165307_SchemeSummaryDocument.pdf",
+          "method": "GET",
+          "originalSourcePath": "evidence/bulk-completion-2026-10-29/other-growth/absl-issuer-ssd-2026-04.pdf",
+          "bytes": 5881565,
+          "sha256": "f7be45a4810528c384eddbbd3538c1e78839bcbd32e5c9b97c587da00015d26f",
+          "newDiscoveryThisReview": false,
+          "pdfPage": 37
+        }
+      ],
+      "issuerInternalCodeMapping": {
+        "CategoryType": "DEBT",
+        "InceptionDate": "31-Oct-2007",
+        "SchemeCode": "297G",
+        "SchemeName": "Aditya Birla Sun Life International Equity Fund -Growth-Regular Plan",
+        "ShortName": "ABSL International EquityFund -Regular-Growth"
+      },
+      "primaryNavWindow": [
+        {
+          "Scheme Name": "ABSL International EquityFund -Regular-Growth",
+          "NAV Date": "11-APR-2019",
+          "NAV Value": "20.8571"
+        },
+        {
+          "Scheme Name": "ABSL International EquityFund -Regular-Growth",
+          "NAV Date": "10-APR-2019",
+          "NAV Value": "20.9025"
+        },
+        {
+          "Scheme Name": "ABSL International EquityFund -Regular-Growth",
+          "NAV Date": "09-APR-2019",
+          "NAV Value": "21.0216"
+        }
+      ],
+      "independenceLimit": "One issuer historical NAV publication, queried for each option; issuer identity mapping and scheme summary independently bind identity, not a second numeric NAV confirmation.",
+      "correctedThresholdMoveCount": 0,
+      "unitFactor": null,
+      "originalIssuerCsv": {
+        "utf8": "Scheme Name,NAV Date,NAV Value\r\nABSL International EquityFund -Regular-Growth,11-APR-2019,20.8571\r\nABSL International EquityFund -Regular-Growth,10-APR-2019,20.9025\r\nABSL International EquityFund -Regular-Growth,09-APR-2019,21.0216",
+        "bytes": 231,
+        "sha256": "db36edf1bcfa344ec722493932d441861a69ed90dbe3a11cd5459ab942b002fa"
+      }
+    },
+    {
+      "schemeCode": 119517,
+      "schemeName": "Aditya Birla Sun Life International Equity Fund - Direct Plan - GROWTH",
+      "fundHouse": "Aditya Birla Sun Life Mutual Fund",
+      "isinGrowth": "INF209K01WS3",
+      "discovery": "New successful GET CSV download route identified in original issuer JavaScript; distinct from preceding failed POST endpoint.",
+      "fixturePath": "evidence/bulk-completion-2026-10-29/fixtures/history-119517.json",
+      "fixtureSha256": "124329108a722bfaddae8aa13c975f67dd59bc9a471c1bdfa5d062008fbe18ba",
+      "fixtureObservationCount": 3397,
+      "originalWarnings": [
+        "Unresolved discontinuity: 2 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "correction": {
+        "date": "2019-04-10",
+        "originalRawNav": "70.53340",
+        "primaryNav": "21.5909"
+      },
+      "primaryEvidence": [
+        {
+          "url": "https://mutualfund.adityabirlacapital.com/api/sitecore/Shared/PostHistoricalNavandDividendFile",
+          "method": "GET",
+          "originalSourcePath": "evidence/bulk-finalization-2026-10-29/multiple-events/absl-direct-history.csv",
+          "bytes": 228,
+          "sha256": "37636daafeb78dfb464451507314cb9c9716fc25eabc3ca128cb208832b32956",
+          "newDiscoveryThisReview": true,
+          "query": {
+            "SchemeName": "ABSL International Equity-Fund-Direct-Growth",
+            "Type": "N",
+            "SchemeCode": "297GZ",
+            "FromDate": "09-Apr-2019",
+            "ToDate": "11-Apr-2019"
+          }
+        }
+      ],
+      "identityEvidence": [
+        {
+          "url": "https://mutualfund.adityabirlacapital.com/postlogin/CustomApi/Shared/GetSchemeCategory?type=N",
+          "method": "GET",
+          "originalSourcePath": "evidence/bulk-continuation-2026-10-29/source-quality/absl-nav-schemes.json",
+          "bytes": 553239,
+          "sha256": "b97c93e1d72ba1704d4e62ea16437b265ca23be0f89fec43b0f3fcfd9b569fae",
+          "newDiscoveryThisReview": false
+        },
+        {
+          "url": "https://nsearchives.nseindia.com/trading_security/mf/pdf/Aditya_06042026165307_SchemeSummaryDocument.pdf",
+          "method": "GET",
+          "originalSourcePath": "evidence/bulk-completion-2026-10-29/other-growth/absl-issuer-ssd-2026-04.pdf",
+          "bytes": 5881565,
+          "sha256": "f7be45a4810528c384eddbbd3538c1e78839bcbd32e5c9b97c587da00015d26f",
+          "newDiscoveryThisReview": false,
+          "pdfPage": 37
+        }
+      ],
+      "issuerInternalCodeMapping": {
+        "CategoryType": "DEBT",
+        "InceptionDate": "25-Dec-2012",
+        "SchemeCode": "297GZ",
+        "SchemeName": "Aditya Birla Sun Life International Equity Fund -Growth-Direct Plan",
+        "ShortName": "ABSL International Equity-Fund-Direct-Growth"
+      },
+      "primaryNavWindow": [
+        {
+          "Scheme Name": "ABSL International Equity-Fund-Direct-Growth",
+          "NAV Date": "11-APR-2019",
+          "NAV Value": "21.5441"
+        },
+        {
+          "Scheme Name": "ABSL International Equity-Fund-Direct-Growth",
+          "NAV Date": "10-APR-2019",
+          "NAV Value": "21.5909"
+        },
+        {
+          "Scheme Name": "ABSL International Equity-Fund-Direct-Growth",
+          "NAV Date": "09-APR-2019",
+          "NAV Value": "21.7136"
+        }
+      ],
+      "independenceLimit": "One issuer historical NAV publication, queried for each option; issuer identity mapping and scheme summary independently bind identity, not a second numeric NAV confirmation.",
+      "correctedThresholdMoveCount": 0,
+      "unitFactor": null,
+      "originalIssuerCsv": {
+        "utf8": "Scheme Name,NAV Date,NAV Value\r\nABSL International Equity-Fund-Direct-Growth,11-APR-2019,21.5441\r\nABSL International Equity-Fund-Direct-Growth,10-APR-2019,21.5909\r\nABSL International Equity-Fund-Direct-Growth,09-APR-2019,21.7136",
+        "bytes": 228,
+        "sha256": "37636daafeb78dfb464451507314cb9c9716fc25eabc3ca128cb208832b32956"
+      }
+    }
+  ],
+  "scope": "Primary issuer/exchange research for the four selected calculation reviews. Separate MFAPI diagnostics are recorded in the source-diagnostics evidence file.",
+  "baselineCommit": "cac0463a0d9f71b22aa365ce1d1c6a9524de9e2b"
+}

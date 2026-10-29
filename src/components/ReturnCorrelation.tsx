@@ -1,18 +1,24 @@
+import type { VerifiedNavReview } from '../lib/verified-nav-reviews.ts';
 import { useMemo } from 'react';
 import { Download } from 'lucide-react';
 import type { AnalysisRange, FundData } from '../lib/types.ts';
 import { returnCorrelationMatrix } from '../lib/return-correlation.ts';
-import { downloadCsv, number, shortName } from '../lib/format.ts';
+import { downloadCsv, navReviewSummary, number, shortName } from '../lib/format.ts';
 
-interface Props { funds: FundData[]; range: AnalysisRange; requestedPeriod: string }
+interface Props { funds: FundData[]; range: AnalysisRange; requestedPeriod: string; navReviews?: VerifiedNavReview[] }
 
-export function ReturnCorrelation({ funds, range, requestedPeriod }: Props) {
+export function ReturnCorrelation({ funds, range, requestedPeriod, navReviews = [] }: Props) {
+  const reviewMetadata = navReviews.flatMap(review => [
+    ['NAV calculation basis', `Scheme ${review.schemeCode}: reviewed calculation NAV. ${navReviewSummary(review)}`],
+    ...review.events.map(event => ['Economic event evidence', `Scheme ${review.schemeCode}, ${event.date}: ${event.evidenceUrl}`]),
+  ]);
   const matrix = useMemo(() => returnCorrelationMatrix(funds, range), [funds, range]);
   const availablePairs = matrix.cells.reduce((count, row, i) =>
     count + row.filter((cell, j) => j > i && cell.correlation !== null).length, 0);
   const exportMatrix = () => {
     downloadCsv([
-      ['Source', 'mfapi.in; validated NAV history; locally computed monthly returns'],
+      ['Source', navReviews.length ? 'MFAPI NAV history; reviewed calculation NAV supported by issuer evidence below; locally computed monthly returns' : 'mfapi.in; validated NAV history; locally computed monthly returns'],
+      ...reviewMetadata,
       ['Selected period', requestedPeriod],
       ['Method', 'Pearson correlation of complete calendar-month NAV returns, pairwise common calendar months'],
       ['Missing values', 'Months absent from either scheme are excluded; no zeros or interpolation'],
@@ -53,6 +59,6 @@ export function ReturnCorrelation({ funds, range, requestedPeriod }: Props) {
       </table>
     </div>
     {availablePairs === 0 && <p className="panel-note" role="status">No pair has enough eligible complete monthly observations for a correlation estimate. Broaden the period or inspect the missing-history and NAV-quality warnings.</p>}
-    <p className="panel-note">Each cell uses that pair's own overlapping complete months. Pairwise first and last months, observation counts, and unavailable reasons are included in CSV; different pairs may have different samples. Source: MFAPI NAV. {matrix.staleCount > 0 ? String(matrix.staleCount) + ' fund(s) are marked stale. ' : ''}<strong>Return correlation is not portfolio holdings overlap.</strong> Holdings overlap needs separately verified holdings snapshots.</p>
+    <p className="panel-note">Each cell uses that pair's own overlapping complete months. Pairwise first and last months, observation counts, and unavailable reasons are included in CSV; different pairs may have different samples. Source: {navReviews.length ? 'MFAPI NAV history with reviewed calculation NAV supported by the disclosed issuer evidence' : 'MFAPI NAV'}. {matrix.staleCount > 0 ? String(matrix.staleCount) + ' fund(s) are marked stale. ' : ''}<strong>Return correlation is not portfolio holdings overlap.</strong> Holdings overlap needs separately verified holdings snapshots.</p>
   </section>;
 }

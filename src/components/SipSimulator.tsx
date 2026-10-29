@@ -2,15 +2,16 @@ import { useMemo, useState } from 'react';
 import { Download, Info } from 'lucide-react';
 import type { AnalysisRange, FundData } from '../lib/types.ts';
 import type { VerifiedUnitAdjustment } from '../lib/corporate-actions.ts';
+import type { VerifiedNavReview } from '../lib/verified-nav-reviews.ts';
 import { SIP_MAX_AMOUNT, SIP_MIN_AMOUNT, simulateSip } from '../lib/sip.ts';
-import { currency, dateLabel, downloadCsv, number, percent, qualityBlocked, shortName } from '../lib/format.ts';
+import { currency, dateLabel, downloadCsv, number, percent, qualityBlocked, shortName, navReviewSummary } from '../lib/format.ts';
 import { isGrowthScheme } from '../lib/analytics.ts';
 import { Chart } from './Chart.tsx';
 import { RangeNotice, RangePicker } from './AnalysisRangePicker.tsx';
 
-interface Props { fund: FundData; unitAdjustment?: VerifiedUnitAdjustment; unitAdjustments?: VerifiedUnitAdjustment[] }
+interface Props { fund: FundData; unitAdjustment?: VerifiedUnitAdjustment; unitAdjustments?: VerifiedUnitAdjustment[]; navReview?: VerifiedNavReview }
 
-export function SipSimulator({ fund, unitAdjustment, unitAdjustments }: Props) {
+export function SipSimulator({ fund, unitAdjustment, unitAdjustments, navReview }: Props) {
   const adjustments=unitAdjustments??(unitAdjustment?[unitAdjustment]:[]);
   const unitAdjusted=adjustments.length>0;
   const [range, setRange] = useState<AnalysisRange>('3Y');
@@ -31,7 +32,7 @@ export function SipSimulator({ fund, unitAdjustment, unitAdjustments }: Props) {
     const rows = [
       ...result.contributions.map(item => ({
         scheduled: item.scheduledDate, execution: item.navDate, nav: item.nav,
-        contribution: item.amount, units: item.units, status: unitAdjusted ? 'Valued using unit-adjusted NAV' : 'Valued using reported NAV',
+        contribution: item.amount, units: item.units, status: navReview ? 'Valued using reviewed calculation NAV' : unitAdjusted ? 'Valued using unit-adjusted NAV' : 'Valued using reported NAV',
       })),
       ...result.skippedDates.map(date => ({
         scheduled: date, execution: null, nav: null, contribution: null, units: null,
@@ -42,7 +43,8 @@ export function SipSimulator({ fund, unitAdjustment, unitAdjustments }: Props) {
       ['Fund', fund.meta.schemeName],
       ['Scheme code', fund.meta.schemeCode],
       ['NAV source', 'https://api.mfapi.in/mf/' + fund.meta.schemeCode],
-      ['NAV calculation basis', unitAdjusted ? adjustments.map(action=>`Source NAV through ${action.oldNavThrough} multiplied by ${action.factor}; new unit basis begins ${action.firstNewNavDate}; scheme ${action.schemeCode}; raw observations unchanged`).join(' | ')+(adjustments.length>1?'; factors apply cumulatively where periods overlap':'') : 'Source reported NAV'],
+      ['NAV calculation basis', navReview ? `Reviewed calculation NAV. ${navReviewSummary(navReview)}` : unitAdjusted ? adjustments.map(action=>`Source NAV through ${action.oldNavThrough} multiplied by ${action.factor}; new unit basis begins ${action.firstNewNavDate}; scheme ${action.schemeCode}; raw observations unchanged`).join(' | ')+(adjustments.length>1?'; factors apply cumulatively where periods overlap':'') : 'Source reported NAV'],
+      ...(navReview?.events.map(event=>['Economic event evidence',`${event.date}: ${event.evidenceUrl}`])??[]),
       ['Original NAV retrieval', fund.fetchedAt],
       ['Calculation', 'Hypothetical fixed monthly contribution; no real transactions'],
       ['Monthly anchor', 'Requested start day (clamped to month-end when needed)'],
@@ -62,7 +64,7 @@ export function SipSimulator({ fund, unitAdjustment, unitAdjustments }: Props) {
       ['Simple gain divided by contributions (decimal)', result.gainShare],
       ['Money-weighted XIRR (decimal, ACT/365)', result.annualizedXirr],
       ['Excluded from illustration', 'Taxes, transaction charges, exit loads, allotment rounding and distributions'],
-      ['Scheduled date', 'Actual NAV date', unitAdjusted ? 'Calculation NAV (INR/unit)' : 'Reported NAV (INR/unit)', 'Hypothetical contribution (INR)',
+      ['Scheduled date', 'Actual NAV date', navReview ? 'Reviewed calculation NAV (INR/unit)' : unitAdjusted ? 'Calculation NAV (INR/unit)' : 'Reported NAV (INR/unit)', 'Hypothetical contribution (INR)',
         'Fractional units', 'Status'],
       ...rows.map(item => [item.scheduled, item.execution, item.nav, item.contribution, item.units, item.status]),
     ], 'fundscope-' + fund.meta.schemeCode + '-historical-sip.csv');
@@ -76,6 +78,11 @@ export function SipSimulator({ fund, unitAdjustment, unitAdjustments }: Props) {
       aria-label="Export hypothetical SIP cash flows as CSV" disabled={!successful}>
       <Download size={14}/> CSV
     </button></div>
+    {navReview&&<div className="notice" role="status"><Info size={16}/><span>
+      This simulation uses reviewed calculation NAV. {navReviewSummary(navReview,false)}
+      <a href={navReview.correction.evidenceUrl} target="_blank" rel="noreferrer"> Read the verified NAV evidence.</a>
+      {navReview.events.map(event=><a key={event.date} href={event.evidenceUrl} target="_blank" rel="noreferrer"> Read the {dateLabel(event.date,true)} event evidence.</a>)}
+    </span></div>}
     <div className="sip-controls">
       <label className="sip-amount">Monthly contribution (INR)
         <span>₹<input type="number" min={SIP_MIN_AMOUNT} max={SIP_MAX_AMOUNT} step="100"
@@ -128,7 +135,7 @@ export function SipSimulator({ fund, unitAdjustment, unitAdjustments }: Props) {
         <span>Last NAV: <strong>{dateLabel(result.valuationDate,true)}</strong></span></div>
       <div className="table-scroll" role="region" aria-label="Recent hypothetical SIP cash flows" tabIndex={0}>
         <table className="simple-table">
-          <thead><tr><th>Scheduled</th><th>Observed NAV date</th><th className="numeric">{unitAdjusted?'Calculation NAV (INR)':'NAV (INR)'}</th>
+          <thead><tr><th>Scheduled</th><th>Observed NAV date</th><th className="numeric">{navReview?'Reviewed calculation NAV (INR)':unitAdjusted?'Calculation NAV (INR)':'NAV (INR)'}</th>
             <th className="numeric">Contribution (INR)</th><th className="numeric">Units</th></tr></thead>
           <tbody>{result.contributions.slice(-12).reverse().map(item =>
             <tr key={item.scheduledDate}><td>{dateLabel(item.scheduledDate,true)}</td>
