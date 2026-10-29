@@ -532,15 +532,15 @@ for (const period of PERIOD_FIXTURES) {
 
 
 // Legacy plans share the current source name but have distinct code/ISIN pairs.
-// Their historical anchors match, but primary exact identity evidence is incomplete.
-for (const [selectedCode, deferredCode, deferredIsin] of [
+// The continuation registers the complete legacy pairs after independent evidence
+// review. Mixing one plan's code with the other plan's ISIN must still fail.
+for (const [selectedCode, legacyCode, legacyIsin] of [
   [105185, 105189, 'INF205K01UR7'],
   [112123, 112120, 'INF205K01SG4'],
 ] as const) {
-  test(`${selectedCode}: refuses the distinct same-name legacy code and ISIN`, () => {
+  test(`${selectedCode}: refuses mixed code and ISIN identities across same-name plans`, () => {
     const spec = FIXTURES.find(item => item.meta.schemeCode === selectedCode)!;
-    for (const change of [{ schemeCode: deferredCode }, { isinGrowth: deferredIsin },
-      { schemeCode: deferredCode, isinGrowth: deferredIsin }]) {
+    for (const change of [{ schemeCode: legacyCode }, { isinGrowth: legacyIsin }]) {
       const raw = fixture(spec); Object.assign(raw.meta, change);
       unchanged(raw, 'distinct legacy plan identity');
     }
