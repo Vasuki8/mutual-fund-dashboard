@@ -94,6 +94,22 @@ function actionForScheme(fund: FundData): ActionSpec | null {
     factor:100,maxFactorDeviation:0.1,
     evidenceUrl:`https://www.sbimf.com/docs/default-source/scheme-portfolios/default-library/unaudited-half-yearly-results-(as-on-march-31-2012).pdf?sfvrsn=24795812_0#page=${sbiJanuaryIdentity[4]}`,
   };
+  // Reliance's Sep-2012 half-year report, page 34 note 9, documents Treasury
+  // Plan face value Rs10 -> Rs1000 effective 5-Aug-2012. Exact Mar/Sep NAVs
+  // connect only these current Growth identities to its Retail/Institutional columns.
+  const nipponAugustIdentity = ([
+    [100837, 'nippon india liquid fund - regular plan - retail plan - growth option', 'INF204K01UL3', 'Retail'],
+    [100851, 'nippon india liquid fund - regular plan - growth option', 'INF204K01UN9', 'Institutional'],
+  ] as const).find(([code]) => code===fund.meta.schemeCode);
+  if (nipponAugustIdentity && fund.meta.schemeName.toLowerCase()===nipponAugustIdentity[1]
+    && fund.meta.isinGrowth===nipponAugustIdentity[2] && fund.meta.fundHouse==='Nippon India Mutual Fund') return {
+    schemeCode:fund.meta.schemeCode,
+    label:`verified 100-to-1 Reliance Liquid Fund Treasury ${nipponAugustIdentity[3]} Growth unit consolidation effective 5 August 2012`,
+    oldNavThrough:'2012-08-03',firstNewNavDate:'2012-08-05',
+    // Apply the documented factor and preserve the ordinary interest return.
+    factor:100,maxFactorDeviation:0.1,
+    evidenceUrl:'https://mf.nipponindiaim.com/InvestorServices/AnnualHalfYearlyReportsFY20122013/Half_Yearly_Portfolio_-_Financials_-_Oct-_2012_-_for_Website_upload.pdf#page=34',
+  };
   // HDFC's 14-Aug-2015 notice covers both Regular and Direct plans.
   // Checkpoints 207/208 independently verify these two Growth identities
   // and their exact 28-to-30 August source boundaries. No other plan is implied.
