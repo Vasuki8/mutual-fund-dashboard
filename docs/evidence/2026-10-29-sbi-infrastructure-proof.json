@@ -1,0 +1,32 @@
+{
+  "schemeCode": 106096,
+  "schemeName": "SBI INFRASTRUCTURE FUND - Regular Plan - Growth",
+  "isinGrowth": "INF200K01CT2",
+  "issuerPlan": "144G",
+  "issuerPage": "https://www.sbimf.com/mutual-fund-nav",
+  "request": {
+    "method": "POST",
+    "url": "https://www.sbimf.com/api/SchemeDetailsAPI/HistoricalNavData",
+    "parameters": {
+      "SchemeCode": "144G",
+      "DocType": "1",
+      "SchemePlanType": "",
+      "FromDate": "01-Apr-2009",
+      "ToDate": "15-Jul-2010"
+    }
+  },
+  "responseSha256": "318cd75ea8fa17285732e47959b6b7ad579240c62a5378e35b20e6b95688e440",
+  "pdfSha256": "7015ef071645e9ff81976fa3f82ed8f1847f4284aaab9f99c7f8e4708402a7ca",
+  "identitySource": "https://nsearchives.nseindia.com/web/sites/default/files/inline-files/SBI_13042022.zip",
+  "identityMember": "SBIMF/Open ended.zip -> Open ended/Open ended PDF/SBI Infrastructure Fund.pdf",
+  "identitySha256": "3cb2a924497c11f9fa122060253aa93c68c535da5707a2ab1fad679107187b7e",
+  "identityPage": 3,
+  "sourcePoints": 4435,
+  "issuerPoints": 310,
+  "unchangedOverlaps": 7,
+  "addedCalculationPoints": 303,
+  "calculationPoints": 4738,
+  "sourceGapDays": 463,
+  "remainingLargeMoves": 0,
+  "windowCanonicalSha256": "a02c6a3cc5a94bb1b3df443c9160ccfd90e9d6f66913a115be9450b33784fa91"
+}

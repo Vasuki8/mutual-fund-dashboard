@@ -4,7 +4,7 @@ import type { AnalysisRange, FundData } from '../lib/types.ts';
 import type { VerifiedUnitAdjustment } from '../lib/corporate-actions.ts';
 import type { VerifiedNavReview } from '../lib/verified-nav-reviews.ts';
 import { SIP_MAX_AMOUNT, SIP_MIN_AMOUNT, simulateSip } from '../lib/sip.ts';
-import { currency, dateLabel, downloadCsv, number, percent, qualityBlocked, shortName, navReviewSummary } from '../lib/format.ts';
+import { currency, dateLabel, downloadCsv, number, percent, qualityBlocked, shortName, navReviewSummary, navReviewEvidenceUrl } from '../lib/format.ts';
 import { isGrowthScheme } from '../lib/analytics.ts';
 import { Chart } from './Chart.tsx';
 import { RangeNotice, RangePicker } from './AnalysisRangePicker.tsx';
@@ -80,7 +80,7 @@ export function SipSimulator({ fund, unitAdjustment, unitAdjustments, navReview 
     </button></div>
     {navReview&&<div className="notice" role="status"><Info size={16}/><span>
       This simulation uses reviewed calculation NAV. {navReviewSummary(navReview,false)}
-      <a href={navReview.correction.evidenceUrl} target="_blank" rel="noreferrer"> Read the verified NAV evidence.</a>
+      <a href={navReviewEvidenceUrl(navReview)} target="_blank" rel="noreferrer"> Read the verified NAV evidence.</a>
       {navReview.events.map(event=><a key={event.date} href={event.evidenceUrl} target="_blank" rel="noreferrer"> Read the {dateLabel(event.date,true)} event evidence.</a>)}
     </span></div>}
     <div className="sip-controls">
@@ -128,7 +128,7 @@ export function SipSimulator({ fund, unitAdjustment, unitAdjustments, navReview 
         ]} unit="currency" height={290}
           title={shortName(fund.meta.schemeName) + ' historical SIP illustration'}
           subtitle={dateLabel(result.actualStart,true) + ' – ' + dateLabel(result.valuationDate,true)
-            + ' · ' + result.navObservations + ' reported NAV observations · MFAPI · INR'}/>
+            + ' · ' + result.navObservations + ' reported NAV observations · ' + (navReview?'Reviewed NAV (MFAPI and issuer records)':'MFAPI') + ' · INR'}/>
       </div>}
       <div className="sip-summary"><span>Hypothetical units: <strong>{number(result.units,6)}</strong></span>
         <span>First purchase: <strong>{dateLabel(result.contributions[0]?.navDate,true)}</strong></span>
