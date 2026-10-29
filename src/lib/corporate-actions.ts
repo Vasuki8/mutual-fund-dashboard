@@ -181,7 +181,8 @@ function actionForScheme(fund: FundData): ActionSpec | null {
   };
   // The issuer's May-2013 factsheet documents Rs10 -> Rs1000 at close
   // on 18-Apr. Exact plan NAV anchors, code/ISIN bindings and rename
-  // notices support these ten identities; legacy 105189/112120 are deferred.
+  // notices support these ten identities. Legacy 105189/112120 are separately
+  // registered below with primary CDSL identities and issuer NAV anchors.
   const invescoAprilDebtIdentity = ([
     [105185, 'invesco india short term fund - regular plan - growth', 'INF205K01UN6', 'Short Term Growth'],
     [106177, 'invesco india corporate bond fund - regular plan - growth', 'INF205K01RM4', 'Active Income Growth'],
@@ -337,7 +338,8 @@ function actionForScheme(fund: FundData): ActionSpec | null {
 }
 
 /** Exact primary-evidence registrations from the completed checkpoint-213 pass.
- * See docs/BULK_DISCREPANCY_COMPLETION_2026-10-29.md and its per-code ledger.
+ * See docs/BULK_DISCREPANCY_COMPLETION_2026-10-29.md and
+ * docs/BULK_DISCREPANCY_CONTINUATION_2026-10-29.md with their per-code ledgers.
  * These are calculation-copy actions, never a licence to rewrite source NAVs.
  * Unit terms, identity chains and observed dates are independently verified.
  */
@@ -758,6 +760,58 @@ const completedBulkIdentities: {
         oldNavThrough: "2011-09-29", firstNewNavDate: "2011-10-02",
         factor: 100, maxFactorDeviation: 0.1,
         evidenceUrl: "https://www.unionmf.com/docs/default-source/downloads/scheme-disclosures/factsheets/october-2012.pdf?sfvrsn=f69eb488_3#page=5" },
+    ] },
+  // Continuation evidence: docs/BULK_DISCREPANCY_CONTINUATION_2026-10-29.md.
+  // CDSL distinguishes the legacy Invesco plans; dated issuer NAVs bind each series.
+  // MOM30IETF is an allotment-price correction with additional units, not a face-value split.
+  { schemeCode: 100814, schemeName: "uti - overnight fund - regular plan - growth",
+    fundHouse: "UTI Mutual Fund", isinGrowth: "INF789F01604", actions: [
+      { label: "verified 100-to-1 UTI Overnight Fund unit consolidation effective 3 May 2018",
+        oldNavThrough: "2018-05-02", firstNewNavDate: "2018-05-03",
+        factor: 100, maxFactorDeviation: 0.5,
+        evidenceUrl: "https://doc.utimf.com/v1/AUTH_5b9dd00b-8132-4a21-a800-711111810cee/UTIContainer/09-18-19%20-%20%20Change%20in%20face%20value%20of%20units20180502-115257.pdf#page=1" },
+    ] },
+  { schemeCode: 104728, schemeName: "invesco india ultra short to short term fund - regular plan - growth",
+    fundHouse: "Invesco Mutual Fund", isinGrowth: "INF205K01HT0", actions: [
+      { label: "verified 100-to-1 Invesco legacy Regular Plan - Growth unit consolidation effective 25 February 2011",
+        oldNavThrough: "2011-02-25", firstNewNavDate: "2011-02-28",
+        factor: 100, maxFactorDeviation: 0.5,
+        evidenceUrl: "https://invescomutualfund.com/docs/default-source/default-document-library/annual-report-fy-2016-2017.pdf?sfvrsn=0#page=92" },
+    ] },
+  { schemeCode: 105189, schemeName: "invesco india short term fund - regular plan - growth",
+    fundHouse: "Invesco Mutual Fund", isinGrowth: "INF205K01UR7", actions: [
+      { label: "verified 100-to-1 Invesco legacy Plan B - Growth unit consolidation effective 18 April 2013",
+        oldNavThrough: "2013-04-18", firstNewNavDate: "2013-04-22",
+        factor: 100, maxFactorDeviation: 0.5,
+        evidenceUrl: "https://invescomutualfund.com/docs/default-source/default-document-library/annual-report-fy-2016-2017.pdf?sfvrsn=0#page=92" },
+    ] },
+  { schemeCode: 106212, schemeName: "sbi ultra short to short term fund - regular plan - growth",
+    fundHouse: "SBI Mutual Fund", isinGrowth: "INF200K01MO2", actions: [
+      { label: "verified 100-to-1 SBI Short Horizon Debt Fund Ultra Short Term scheme-wide unit consolidation effective 13 January 2012",
+        oldNavThrough: "2012-01-12", firstNewNavDate: "2012-01-13",
+        factor: 100, maxFactorDeviation: 0.1,
+        evidenceUrl: "https://www.sbimf.com/docs/default-source/scheme-portfolios/default-library/unaudited-half-yearly-results-%28as-on-march-31-2012%29.pdf?sfvrsn=24795812_0#page=9" },
+    ] },
+  { schemeCode: 112120, schemeName: "invesco india money market fund - regular plan - growth",
+    fundHouse: "Invesco Mutual Fund", isinGrowth: "INF205K01SG4", actions: [
+      { label: "verified 100-to-1 Invesco legacy Regular Plan - Growth unit consolidation effective 18 April 2013",
+        oldNavThrough: "2013-04-18", firstNewNavDate: "2013-04-22",
+        factor: 100, maxFactorDeviation: 0.5,
+        evidenceUrl: "https://invescomutualfund.com/docs/default-source/default-document-library/annual-report-fy-2016-2017.pdf?sfvrsn=0#page=100" },
+    ] },
+  { schemeCode: 120785, schemeName: "uti - overnight fund - direct plan - growth",
+    fundHouse: "UTI Mutual Fund", isinGrowth: "INF789FB1S71", actions: [
+      { label: "verified 100-to-1 UTI Overnight Fund unit consolidation effective 3 May 2018",
+        oldNavThrough: "2018-05-02", firstNewNavDate: "2018-05-03",
+        factor: 100, maxFactorDeviation: 0.5,
+        evidenceUrl: "https://doc.utimf.com/v1/AUTH_5b9dd00b-8132-4a21-a800-711111810cee/UTIContainer/09-18-19%20-%20%20Change%20in%20face%20value%20of%20units20180502-115257.pdf#page=1" },
+    ] },
+  { schemeCode: 150455, schemeName: "icici prudential nifty 200 momentum 30 etf",
+    fundHouse: "ICICI Prudential Mutual Fund", isinGrowth: "INF109KC17C7", actions: [
+      { label: "verified 9-for-1 additional ICICI Prudential Nifty 200 Momentum 30 ETF unit allotment correcting the original allotment price (ex-date 12 August 2022)",
+        oldNavThrough: "2022-08-10", firstNewNavDate: "2022-08-12",
+        factor: 0.1, maxFactorDeviation: 0.005,
+        evidenceUrl: "https://archives.nseindia.com/content/circulars/CML53266.pdf#page=1" },
     ] },
 ];
 
