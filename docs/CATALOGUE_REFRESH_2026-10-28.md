@@ -45,4 +45,22 @@ These diagnostics are **logs only**. No checkpoint schema, stored source data, q
 
 ## Remaining work
 
+### Observed rejection and bounded follow-up — 29 October UTC
+
+The normal collector on diagnostic commit `27ed3d19e9639afc4a6ffb836d5e3d2db6b710ad`, [run 40791957086](https://github.com/Vasuki8/mutual-fund-dashboard/actions/runs/40791957086), identified the rejection at **00:07:54.793Z**: **membership_list / duplicate_scheme_code / 75,998 rows**. Bulk NAV validation had already passed. It saved and published checkpoint **213**; 96 eligible histories were attempted, with no new histories or verified reconciliation progress. Seven transport failures increased full-archive source errors to 661; refresh/reconciliation pending became 8,807. The cohort remained 8,524 under the actual 29 October UTC date. Continuation stopped for no_reconciliation_progress.
+
+The [read-only inspection, run 40792794792, job 123181855408](https://github.com/Vasuki8/mutual-fund-dashboard/actions/runs/40792794792/job/123181855408), then loaded verified checkpoint 213 and confirmed its retained catalogue timestamp **2026-10-27T16:59:52.790Z**, with no saved source cooldown. Three bounded metadata requests produced:
+
+| Request | HTTP / bytes | Observed result |
+| --- | --- | --- |
+| `/mf` | 200 / 11,519,401 | 75,998 rows: exactly two identical ordered passes over 37,999 identities; every code occurred twice. No invalid rows, conflicting validated identity fields or differing repeated raw records. |
+| `/mf?limit=1&offset=75998` | 200 / 173 | One row instead of an empty terminal result. |
+| `/mf?limit=1&offset=37999` | 200 / 177 | One row that did not match the previously observed row at that offset. |
+
+The respective response SHA-256 digests are `ad4bf1fce540dcc0121988c9d753094d1042e3ffc892ac75e2735fba395ca13e`, `9338c749a4604fd802baf85db218bb385a38503d0f7fc56095ba8f560a77dade` and `40d1c6e4ede5e72daac000185ba46aa7eecb960c3c509af3f06ff8539f002718`. The probe used the production identity validator, at most three GETs, no retries, 12-second/32 MiB request bounds, and the saved cooldown guard. It made **zero history requests and zero archive writes**.
+
+The 37,999 count describes distinct identities observed in one response; it is **not newly verified current membership**. Removing identical duplicates alone cannot establish a complete catalogue because the pagination checks also failed. No acceptance rule was relaxed. The evidence does not establish the provider's internal cause or prove that every earlier error shares it.
+
+The temporary probe was never merged into main. Its files were removed from its isolated branch in cleanup commit `30bb608445054dd33819f5453ae49c099bdb068a`, leaving the completed logs as evidence. No schedule or new collector remains. An independent review agreed that the prior validated catalogue must remain authoritative until a coherent list and terminal check succeed.
+
 Keep the prior verified catalogue and existing cooldown/retry rules. A future successful bounded source response is needed to distinguish an integration incompatibility from invalid or unavailable upstream metadata. Confirm a new catalogue timestamp in a saved checkpoint and its successful publication before reporting recovery. This incident does not authorize deleting histories, marking omitted schemes inactive or restarting the former hosted importer.
