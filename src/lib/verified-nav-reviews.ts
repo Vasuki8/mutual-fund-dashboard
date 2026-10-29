@@ -1,21 +1,25 @@
 import type { FundData, NavPoint } from './types.ts';
 import { SBI_INFRASTRUCTURE_HISTORY } from './verified-sbi-infrastructure-history.ts';
 
+type VerifiedNavCorrection = { date: string; sourceNav: number; verifiedNav: number; applied: boolean; evidenceUrl: string };
+
 export type VerifiedNavReview = {
   schemeCode: number;
   events: { previousDate: string; date: string; description: string; evidenceUrl: string }[];
 } & ({
-  correction: { date: string; sourceNav: number; verifiedNav: number; applied: boolean; evidenceUrl: string };
+  correction: VerifiedNavCorrection;
   restoration?: never;
 } | {
   correction?: never;
-  restoration: { fromDate: string; throughDate: string; addedObservations: number; evidenceUrl: string };
+  restoration: { fromDate: string; throughDate: string; addedObservations: number; evidenceUrl: string;
+    corrections?: VerifiedNavCorrection[] };
 });
 
 const BOI_2022_REPORT = 'https://www.boimf.in/docs/default-source/reports/financials/annual-report-2021-224ace7e8cb8f74e8f8d11443c4b271be0.pdf?sfvrsn=32295bd6_6';
 const BOI_2020_REPORT = 'https://www.boimf.in/docs/default-source/reports/financials/annual-report-2019-20.pdf';
 const TWO_MOVES = 'Unresolved discontinuity: 2 single-observation move(s) exceed 40%; derived analytics are blocked.';
 const ONE_MOVE = 'Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked.';
+const THREE_ZERO_ROWS = 'Invalid NAV observations were excluded (3); derived analytics are blocked until the data is resolved.';
 
 function validSeries(points: NavPoint[]): boolean {
   return points.length >= 5 && points.every((point,index)=>
@@ -45,19 +49,82 @@ export function navReviewEvidenceUrl(review: VerifiedNavReview): string {
   return review.restoration ? review.restoration.evidenceUrl : review.correction.evidenceUrl;
 }
 
+function correctionSummary(correction: VerifiedNavCorrection): string {
+  return correction.applied
+    ? `Calculation NAV on ${correction.date}: source ${correction.sourceNav} replaced by issuer-verified ${correction.verifiedNav}.`
+    : `Source NAV on ${correction.date} already matches issuer-verified ${correction.verifiedNav}; no NAV substitution was needed.`;
+}
+
 export function navReviewSummary(review: VerifiedNavReview, includeEvidence = true): string {
   if(review.restoration){
     const restored=review.restoration;
-    return `Added ${restored.addedObservations} issuer-verified NAV observations for calculations from ${restored.fromDate} through ${restored.throughDate}. Existing source NAV values are retained. Raw source observations and warnings remain unchanged.${includeEvidence?` Evidence: ${restored.evidenceUrl}`:''}`;
+    const existing=restored.corrections?.length
+      ? `${restored.corrections.map(correctionSummary).join(' ')} All other existing calculation NAVs are retained.`
+      : 'Existing source NAV values are retained.';
+    return `Added ${restored.addedObservations} issuer-verified NAV observations for calculations from ${restored.fromDate} through ${restored.throughDate}. ${existing} Raw source observations and warnings remain unchanged.${includeEvidence?` Evidence: ${restored.evidenceUrl}`:''}`;
   }
   const correction=review.correction;
-  const basis=correction.applied
-    ? `Calculation NAV on ${correction.date}: source ${correction.sourceNav} replaced by issuer-verified ${correction.verifiedNav}.`
-    : `Source NAV on ${correction.date} already matches issuer-verified ${correction.verifiedNav}; no NAV substitution was needed.`;
+  const basis=correctionSummary(correction);
   const events=review.events.length
     ? `Economic investment returns are retained: ${review.events.map(event=>`${event.date} ${event.description}`).join('; ')}.`
     : 'All other calculation NAVs are unchanged.';
   return `${basis} ${events} Raw source observations and warnings remain unchanged.${includeEvidence?` Evidence: ${correction.evidenceUrl}`:''}`;
+}
+
+/** Every rejected row must be identified before an issuer value can replace it. */
+function reviewedSundaramZeros(fund: FundData): {fund: FundData; review: VerifiedNavReview} | null {
+  const identity=([
+    {code:119566,name:'Sundaram Large and Midcap Fund - Direct Plan - GROWTH',isin:'INF903J01PR9',
+      category:'Equity Scheme - Large & Mid Cap Fund',restored:[15.3408,15.2991,15.3408],
+      anchors:[15.368,15.342,15.2675,15.1184,15.3124,15.3284,15.1999,15.2371,15.1646]},
+    {code:119635,name:'Sundaram Conservative Hybrid Fund (Formerly Known as Sundaram Debt Oriented Hybrid Fund) - Direct Plan - GROWTH',
+      isin:'INF903J01OP6',category:'Hybrid Scheme - Conservative Hybrid Fund',restored:[11.9501,12.0196,12.0196],
+      anchors:[11.9874,11.9973,12.0009,11.9399,12.0104,12.017,11.9493,11.9682,12.0074]},
+  ] as const).find(item=>item.code===fund.meta.schemeCode);
+  if(!identity || fund.source!=='mfapi.in' || fund.meta.schemeName!==identity.name
+    || fund.meta.fundHouse!=='Sundaram Mutual Fund' || fund.meta.isinGrowth!==identity.isin
+    || fund.meta.isinDivReinvestment!=null || fund.meta.schemeType!=='Open Ended Schemes'
+    || fund.meta.schemeCategory!==identity.category || !validSeries(fund.points))return null;
+  const quality=fund.warnings.filter(warning=>/^(?:Invalid NAV|Conflicting NAV|Unresolved discontinuity)\b/i.test(warning));
+  if((quality.length>0 && (quality.length!==1 || quality[0]!==THREE_ZERO_ROWS))
+    || largeMoveIndexes(fund.points).length!==0)return null;
+
+  const evidenceUrl='https://www.sundarammutual.com/nav-dividend-history';
+  const corrections:VerifiedNavCorrection[]=[];
+  if(identity.code===119635){
+    const dates=['2018-09-21','2018-09-24','2018-09-25','2018-09-26','2018-09-27','2018-09-28','2018-10-01'];
+    const navs=[19.4882,19.4019,19.3986,19.4293,19.4015,19.3779,19.3895];
+    const window=fund.points.filter(point=>point.date>=dates[0] && point.date<=dates.at(-1)!);
+    if(window.length!==dates.length || !window.every((point,index)=>point.date===dates[index]
+      && (point.nav===navs[index] || index===3 && point.nav===19.4292)))return null;
+    corrections.push({date:'2018-09-26',sourceNav:window[3].nav,verifiedNav:19.4292,
+      applied:window[3].nav!==19.4292,evidenceUrl});
+  }
+  // The September value has its own primary proof. A provider repair of the
+  // January zeros must not make this independent correction disappear.
+  if(quality.length===0){
+    if(fund.rejectedZeroNavDates!==undefined)return null;
+    const correction=corrections[0];
+    if(!correction?.applied)return null;
+    const points=fund.points.map(point=>({...point,nav:point.date===correction.date?correction.verifiedNav:point.nav}));
+    if(!validSeries(points) || largeMoveIndexes(points).length!==0)return null;
+    const review:VerifiedNavReview={schemeCode:identity.code,events:[],correction};
+    return {review,fund:{...fund,points,warnings:[...fund.warnings,navReviewSummary(review)]}};
+  }
+  const rejectedDates=['2013-01-03','2013-01-04','2013-01-07'];
+  if(!Array.isArray(fund.rejectedZeroNavDates) || fund.rejectedZeroNavDates.length!==3
+    || !rejectedDates.every((date,index)=>fund.rejectedZeroNavDates![index]===date))return null;
+  const anchorDates=['2013-01-08','2013-01-09','2013-01-10','2013-01-11','2013-01-14',
+    '2013-01-15','2013-01-16','2013-01-17','2013-01-18'];
+  if(!anchorDates.every((date,index)=>fund.points[index]?.date===date && fund.points[index]?.nav===identity.anchors[index]))return null;
+  const points=[...rejectedDates.map((date,index)=>({date,nav:identity.restored[index]})),
+    ...fund.points.map(point=>({...point,nav:corrections.find(correction=>correction.date===point.date)?.verifiedNav ?? point.nav}))];
+  if(!validSeries(points) || largeMoveIndexes(points).length!==0)return null;
+  const review:VerifiedNavReview={schemeCode:identity.code,events:[],restoration:{
+    fromDate:'2013-01-03',throughDate:'2013-01-07',addedObservations:3,evidenceUrl,
+    ...(corrections.length?{corrections}:{}),
+  }};
+  return {review,fund:{...fund,points,warnings:[...fund.warnings.filter(warning=>warning!==THREE_ZERO_ROWS),navReviewSummary(review)]}};
 }
 
 /** Restore one exact documented gap; never infer values or waive a large move. */
@@ -125,6 +192,8 @@ function reviewedAbslBasis(fund: FundData): {fund: FundData; review: VerifiedNav
  * fitted to the curve. Full evidence: docs/BULK_DISCREPANCY_FINALIZATION_2026-10-29.md.
  */
 export function reviewedNavBasis(fund: FundData): { fund: FundData; review: VerifiedNavReview } | null {
+  const sundaram=reviewedSundaramZeros(fund);
+  if(sundaram)return sundaram;
   const sbiHistory=reviewedSbiHistory(fund);
   if(sbiHistory)return sbiHistory;
   const absl=reviewedAbslBasis(fund);

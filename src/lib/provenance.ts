@@ -1,4 +1,5 @@
 import type { ArchiveProvenance } from './sync-types.ts';
+import { validateRejectedZeroNavDates } from './nav-quality-evidence.ts';
 
 /** Optional server provenance is validated on both network and backup boundaries. */
 export function validateArchiveProvenance(value: unknown): ArchiveProvenance | undefined {
@@ -18,7 +19,9 @@ export function validateArchiveProvenance(value: unknown): ArchiveProvenance | u
     || item.warnings.some(warning => typeof warning !== 'string' || warning.length > 1000)) {
     throw new Error('Invalid archive provenance.');
   }
+  const rejectedZeroNavDates = validateRejectedZeroNavDates(item.rejectedZeroNavDates, item.warnings as string[]);
   return { fetchedAt: item.fetchedAt, archivedAt: item.archivedAt, fromArchive: item.fromArchive,
     stale: item.stale, coverageStart: item.coverageStart, coverageEnd: item.coverageEnd,
-    observationCount: Number(item.observationCount), warnings: [...new Set(item.warnings as string[])] };
+    observationCount: Number(item.observationCount), warnings: [...new Set(item.warnings as string[])],
+    ...(rejectedZeroNavDates ? { rejectedZeroNavDates } : {}) };
 }

@@ -16,10 +16,14 @@ export interface FundData {
   meta: FundMeta;
   points: NavPoint[];
   fetchedAt: string;
+  /** Evidence-recency clock; legacy hydration may supply a conservative internal bound. */
+  sourceObservedAt?: string;
   source: 'mfapi.in';
   fromCache: boolean;
   stale: boolean;
   warnings: string[];
+  /** Complete dated-zero rejection evidence; absence leaves rejected rows unidentified. */
+  rejectedZeroNavDates?: string[];
   archive?: ArchiveProvenance;
 }
 export type Period = '1M' | '3M' | '6M' | '1Y' | '3Y' | '5Y' | 'MAX';

@@ -7,6 +7,7 @@ import { validateCategoryIndex, type CategoryLookup } from './fund-directory.ts'
 import { validateArchiveHealthSummary } from './archive-health.ts';
 import { validateReturnIndex, type FundReturnLookup } from './fund-sort.ts';
 import { filterCurrentlyReportingOpenEnded } from './current-official-schemes.ts';
+import { validateRejectedZeroNavDates } from './nav-quality-evidence.ts';
 
 const MAX_COMPRESSED = 32 * 1024 * 1024;
 const MAX_EXPANDED = 64 * 1024 * 1024;
@@ -173,9 +174,11 @@ function validateShard(value: unknown, bucket: string): HistoryDocument[] {
       }
     }
     const warnings = [...new Set([...messages(doc.warnings), ...normalized.warnings])];
+    const rejectedZeroNavDates = validateRejectedZeroNavDates(doc.rejectedZeroNavDates,
+      [...(doc.warnings as string[]), ...normalized.warnings], normalized.points.map(point => point.date));
     return { version: 1, schemeCode: doc.schemeCode, fetchedAt: doc.fetchedAt, archivedAt: doc.archivedAt,
       coverageStart: doc.coverageStart, coverageEnd: doc.coverageEnd, unresolved: doc.unresolved,
-      warnings, payload: payload as unknown as ProviderHistory };
+      warnings, ...(rejectedZeroNavDates ? { rejectedZeroNavDates } : {}), payload: payload as unknown as ProviderHistory };
   });
 }
 
@@ -325,7 +328,8 @@ export function createSharedArchiveClient(options: { baseUrl?: string; fetch?: t
     if (age >= HISTORY_TTL) warnings.push(`Using the shared history retrieved ${doc.fetchedAt}. Refresh this fund to check MFAPI now.`);
     return { ...structuredClone(doc.payload), _fundscope: { fetchedAt: doc.fetchedAt, archivedAt: doc.archivedAt,
       coverageStart: doc.coverageStart, coverageEnd: doc.coverageEnd, observationCount: doc.payload.data.length,
-      fromArchive: true, stale, warnings: [...new Set(warnings)] } };
+      fromArchive: true, stale, warnings: [...new Set(warnings)],
+      ...(doc.rejectedZeroNavDates ? { rejectedZeroNavDates: [...doc.rejectedZeroNavDates] } : {}) } };
   }
   async function search(query: string): Promise<Scheme[] | null> {
     const manifest = await loadManifest();

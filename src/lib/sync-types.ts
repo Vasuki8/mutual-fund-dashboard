@@ -33,6 +33,8 @@ export interface ArchiveProvenance {
   coverageEnd: string;
   observationCount: number;
   warnings: string[];
+  /** Complete original rejected zero-NAV dates, when the archive can establish them. */
+  rejectedZeroNavDates?: string[];
 }
 export interface SyncProgress {
   runId: string;

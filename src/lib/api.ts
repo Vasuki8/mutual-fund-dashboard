@@ -1,5 +1,6 @@
 import type { FundData, Scheme } from './types.ts';
 import { validateArchiveProvenance } from './provenance.ts';
+import { validateRejectedZeroNavDates } from './nav-quality-evidence.ts';
 import { getApiConnection, isStaticRuntime } from './runtime.ts';
 import { loadSharedFund, searchCurrentOpenEndedCatalogue } from './shared-archive.ts';
 import { getCachedFund, getCachedSearch, normalizeNavRecords, putCachedFund, putCachedSearch,
@@ -13,6 +14,7 @@ const SEARCH_TTL = 24 * 60 * 60 * 1_000;
 const REQUEST_TIMEOUT = 35_000;
 const MAX_RETRY_WAIT = 5_000;
 const pendingFunds = new Map<string, Promise<FundData>>();
+const pendingSourceFunds = new Map<string, Promise<FundData>>();
 const pendingSearches = new Map<string, Promise<Scheme[]>>();
 let activeRequests = 0;
 const waiting: Array<() => void> = [];
@@ -121,10 +123,19 @@ export function validateFundResponse(payload: unknown, code: number): FundData {
     || archive.coverageStart !== normalized.points[0].date || archive.coverageEnd !== normalized.points.at(-1)!.date)) {
     throw new Error('Archive provenance does not match its observation count or coverage.');
   }
+  if (archive?.rejectedZeroNavDates !== undefined
+    && normalized.warnings.some(warning => /^(Invalid NAV|Conflicting NAV)/.test(warning))) {
+    throw new Error('Archived rejection evidence cannot account for additional invalid NAV observations.');
+  }
+  const warnings = [...new Set([...normalized.warnings, ...(archive?.warnings ?? [])])];
+  const rejectedZeroNavDates = validateRejectedZeroNavDates(archive ? archive.rejectedZeroNavDates : normalized.rejectedZeroNavDates,
+    warnings, normalized.points.map(point => point.date));
+  const sourceObservedAt = archive?.archivedAt ?? new Date().toISOString();
   return { meta: { ...scheme, fundHouse: metadataString(meta.fund_house, 'fund house'),
     schemeType: metadataString(meta.scheme_type, 'scheme type'), schemeCategory: metadataString(meta.scheme_category, 'scheme category') },
-    points: normalized.points, fetchedAt: archive?.fetchedAt ?? new Date().toISOString(), source: 'mfapi.in', fromCache: false, stale: archive?.stale ?? false,
-    warnings: [...new Set([...normalized.warnings, ...(archive?.warnings ?? [])])], ...(archive ? { archive } : {}) };
+    points: normalized.points, fetchedAt: archive?.fetchedAt ?? sourceObservedAt, sourceObservedAt,
+    source: 'mfapi.in', fromCache: false, stale: archive?.stale ?? false,
+    warnings, ...(rejectedZeroNavDates ? { rejectedZeroNavDates } : {}), ...(archive ? { archive } : {}) };
 }
 
 function fresh(fetchedAt: string, ttl: number): boolean {
@@ -138,6 +149,28 @@ function decorate(fund: FundData, fromCache: boolean, stale: boolean, message?: 
   result.stale = stale || fund.stale;
   result.warnings = [...new Set([...result.warnings, ...(message ? [message] : []), ...(storageWarning() ? [storageWarning()!] : [])])];
   return result;
+}
+
+/** Share actual source fetch/validation, independently of archive and force policy. */
+async function requestSourceFund(code: number, generation: number): Promise<FundData> {
+  assertStorageGeneration(generation);
+  const key = `${generation}:${code}`;
+  let pending = pendingSourceFunds.get(key);
+  if (!pending) {
+    pending = (async () => {
+      const payload = await requestJson(`/mf/${code}`, generation);
+      assertStorageGeneration(generation);
+      return validateFundResponse(payload, code);
+    })();
+    pendingSourceFunds.set(key, pending);
+  }
+  try {
+    const fund = await pending;
+    assertStorageGeneration(generation);
+    return fund;
+  } finally {
+    if (pendingSourceFunds.get(key) === pending) pendingSourceFunds.delete(key);
+  }
 }
 
 async function refreshFund(code: number, cached: FundData | null, generation: number, force = false): Promise<FundData> {
@@ -158,7 +191,7 @@ async function refreshFund(code: number, cached: FundData | null, generation: nu
     }
   }
   try {
-    const fund = validateFundResponse(await requestJson(`/mf/${code}`, generation), code);
+    const fund = await requestSourceFund(code, generation);
     assertStorageGeneration(generation);
     const saved = await putCachedFund(fund, generation);
     assertStorageGeneration(generation);

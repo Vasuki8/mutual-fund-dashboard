@@ -11,6 +11,7 @@ import * as returnCorrelation from '../src/lib/return-correlation.ts';
 import { BOI_CASES, boiFixture } from './fixtures/boi-nav-review.ts';
 import { ABSL_CASES, abslFixture } from './fixtures/absl-nav-review.ts';
 import { sbiHistoryFixture } from './fixtures/sbi-history-review.ts';
+import { SUNDARAM_CODES, sundaramFixture } from './fixtures/sundaram-nav-review.ts';
 import * as chartData from '../src/lib/chart-data.ts';
 import type { FundData, NavPoint, Scheme } from '../src/lib/types.ts';
 
@@ -21,6 +22,37 @@ const pickerType = Symbol('RangePicker');
 const noticeType = Symbol('RangeNotice');
 const episodesType = Symbol('DrawdownEpisodes');
 const sipType = Symbol('SipSimulator');
+
+for(const code of SUNDARAM_CODES){
+  test(`${code} detail and SIP use verified restorations while raw NAV and export remain unchanged`,()=>{
+    const fund=sundaramFixture(code),original=structuredClone(fund);
+    const page=view('FundDetail',{fund,code});page.range('MAX');
+    assert.match(page.content(),/reviewed calculation NAV/i);
+    assert.match(page.content(),/Added 3 issuer-verified NAV observations/);
+    assert.ok(page.links().some(url=>String(url)==='https://www.sundarammutual.com/nav-dividend-history'));
+    assert.equal(page.chart()!.series[0].data[0].date,'2013-01-03');
+    if(code===119635){assert.match(page.content(),/2018-09-26/);assert.match(page.content(),/19\.4292/);}
+    page.click('NAV');assert.equal(page.chart()!.series[0].data[0].date,'2013-01-08');
+    const csv=page.export('Export selected NAV history as CSV');
+    assert.deepEqual(csv.rows.filter(row=>/^\d{4}-/.test(String(row[0]))),fund.points.map(p=>[p.date,p.nav]));
+    page.change({tab:'returns'});
+    const simulator=view('SipSimulator',page.find(node=>node.type===sipType)!.props);
+    simulator.range({start:'2013-01-03',end:'2013-01-18'});
+    const sipCsv=simulator.export('Export hypothetical SIP cash flows as CSV');
+    assert.equal(sipCsv.rows.find(row=>row[0]==='2013-01-03')?.[2],code===119566?15.3408:11.9501);
+    assert.match(String(sipCsv.rows.find(row=>row[0]==='NAV calculation basis')?.[1]),/Added 3 issuer-verified/);
+    assert.deepEqual(fund,original);page.unmount();simulator.unmount();
+  });
+}
+
+test('legacy Sundaram invalid-count-only history keeps paused views and disabled calculated exports',()=>{
+  const fund=sundaramFixture();delete fund.rejectedZeroNavDates;
+  const page=view('FundDetail',{fund,tab:'monthly'});
+  assert.match(page.content(),/Analytics are paused/);
+  assert.doesNotMatch(page.content(),/reviewed calculation NAV/i);
+  assert.equal(page.find(node=>node.props['aria-label']==='Export selected monthly returns as CSV')?.props.disabled,true);
+  page.unmount();
+});
 
 function nodes(value: unknown): Element[] {
   if (Array.isArray(value)) return value.flatMap(nodes);

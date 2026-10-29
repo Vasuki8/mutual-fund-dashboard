@@ -1,5 +1,6 @@
 import type { FundData, FundMeta, FundNote, NavPoint, ResearchSettings, Scheme } from './types.ts';
 import { validateArchiveProvenance } from './provenance.ts';
+import { validateRejectedZeroNavDates } from './nav-quality-evidence.ts';
 
 const DATABASE = 'fundscope-research-v1';
 const SETTINGS_KEY = 'fundscope:settings:v1';
@@ -111,19 +112,32 @@ function timestamp(value: unknown, label: string): string {
   return value;
 }
 
-export function normalizeNavRecords(raw: unknown, format: 'iso' | 'mfapi', strict = false): { points: NavPoint[]; warnings: string[] } {
+export function normalizeNavRecords(raw: unknown, format: 'iso' | 'mfapi', strict = false): {
+  points: NavPoint[]; warnings: string[]; rejectedZeroNavDates?: string[];
+} {
   if (!Array.isArray(raw) || raw.length === 0) throw new Error('Invalid NAV history: no observations are available.');
   if (raw.length > MAX_POINTS) throw new Error('NAV history exceeds the observation limit.');
   const values = new Map<string, Set<number>>();
   let invalid = 0;
   let duplicate = 0;
+  const rejectedZeros = new Set<string>();
+  let completeZeroEvidence = true;
   for (const item of raw) {
-    if (!item || typeof item !== 'object' || Array.isArray(item)) { invalid += 1; continue; }
+    if (!item || typeof item !== 'object' || Array.isArray(item)) {
+      invalid += 1; completeZeroEvidence = false; continue;
+    }
     const entry = item as JsonObject;
     const date = isoCalendarDate(entry.date, format);
     const numeric = typeof entry.nav === 'number' || (format === 'mfapi' && typeof entry.nav === 'string' && entry.nav.trim());
     const nav = numeric ? Number(entry.nav) : NaN;
-    if (!date || !Number.isFinite(nav) || nav <= 0) { invalid += 1; continue; }
+    if (!date || !Number.isFinite(nav) || nav <= 0) {
+      invalid += 1;
+      const zero = typeof entry.nav === 'number' ? entry.nav === 0 && !Object.is(entry.nav, -0)
+        : typeof entry.nav === 'string' && entry.nav.length <= 128 && /^0+(?:\.0+)?$/.test(entry.nav.trim());
+      if (date && zero && !rejectedZeros.has(date)) rejectedZeros.add(date);
+      else completeZeroEvidence = false;
+      continue;
+    }
     const existing = values.get(date);
     if (existing) { duplicate += 1; existing.add(nav); }
     else values.set(date, new Set([nav]));
@@ -142,7 +156,10 @@ export function normalizeNavRecords(raw: unknown, format: 'iso' | 'mfapi', stric
     if (ratio > 1.4 + 1e-12 || ratio < 0.6 - 1e-12) discontinuities += 1;
   }
   if (discontinuities) warnings.push(`Unresolved discontinuity: ${discontinuities} single-observation move(s) exceed 40%; derived analytics are blocked.`);
-  return { points, warnings };
+  const rejectedZeroNavDates = invalid > 0 && completeZeroEvidence && conflicts === 0
+    && ![...rejectedZeros].some(date => values.has(date))
+    ? validateRejectedZeroNavDates([...rejectedZeros].sort(), warnings, values.keys()) : undefined;
+  return { points, warnings, ...(rejectedZeroNavDates ? { rejectedZeroNavDates } : {}) };
 }
 
 function warningStrings(value: unknown): string[] {
@@ -162,16 +179,51 @@ export function validateCachedFund(value: unknown): FundData {
     || archive.coverageStart !== normalized.points[0].date || archive.coverageEnd !== normalized.points.at(-1)!.date)) {
     throw new Error('Archived history provenance does not match its observation count or coverage.');
   }
-  const warnings = warningStrings(item.warnings).filter(warning => !GENERATED_DISCONTINUITY_WARNING.test(warning));
-  return { meta: validateMeta(item.meta), points: normalized.points, fetchedAt: timestamp(item.fetchedAt, 'fetchedAt'),
+  const rawWarnings = warningStrings(item.warnings);
+  const rejectedZeroNavDates = validateRejectedZeroNavDates(item.rejectedZeroNavDates,
+    [...item.warnings as string[], ...normalized.warnings], normalized.points.map(point => point.date));
+  if (archive) validateRejectedZeroNavDates(archive.rejectedZeroNavDates, [...archive.warnings, ...normalized.warnings],
+    normalized.points.map(point => point.date));
+  if (rejectedZeroNavDates && archive?.rejectedZeroNavDates
+    && (rejectedZeroNavDates.length !== archive.rejectedZeroNavDates.length
+      || rejectedZeroNavDates.some((date, index) => date !== archive.rejectedZeroNavDates![index]))) {
+    throw new Error('Conflicting rejected-zero NAV evidence in cache and archive provenance.');
+  }
+  const warnings = rawWarnings.filter(warning => !GENERATED_DISCONTINUITY_WARNING.test(warning));
+  const fetchedAt = timestamp(item.fetchedAt, 'fetchedAt');
+  let sourceObservedAt = item.sourceObservedAt === undefined ? undefined : timestamp(item.sourceObservedAt, 'sourceObservedAt');
+  if (sourceObservedAt === undefined && [...warnings, ...normalized.warnings].some(warning =>
+    /^(?:Invalid NAV observations|Conflicting NAV values|Unresolved discontinuity)\b/i.test(warning))) {
+    // Old unresolved caches lost their latest response time; a retained archive
+    // may also predate a discarded newer response. Hydration supplies an internal
+    // upper bound, not a claimed source retrieval time. Persisting it prevents
+    // repeated older archive reads from renewing proof.
+    sourceObservedAt = new Date(Math.max(Date.now(), Date.parse(fetchedAt),
+      Date.parse(archive?.archivedAt ?? fetchedAt))).toISOString();
+  }
+  if (sourceObservedAt && (Date.parse(sourceObservedAt) < Date.parse(fetchedAt)
+    || (archive && Date.parse(sourceObservedAt) < Date.parse(archive.archivedAt)))) {
+    throw new Error('sourceObservedAt cannot precede known source observation times.');
+  }
+  return { meta: validateMeta(item.meta), points: normalized.points, fetchedAt,
     source: 'mfapi.in', fromCache: item.fromCache, stale: item.stale,
-    warnings: [...new Set([...warnings, ...normalized.warnings])], ...(archive ? { archive } : {}) };
+    warnings: [...new Set([...warnings, ...normalized.warnings])],
+    ...(sourceObservedAt ? { sourceObservedAt } : {}),
+    ...(rejectedZeroNavDates ? { rejectedZeroNavDates } : {}), ...(archive ? { archive } : {}) };
 }
 
 /** Merge source observations without allowing a shortened refresh to erase history. */
 export function mergeCachedFund(incoming: FundData, previous: FundData | null): FundData {
+  const rejectedZeroNavDates = validateRejectedZeroNavDates(incoming.rejectedZeroNavDates, incoming.warnings,
+    incoming.points.map(point => point.date));
   if (!previous) return incoming;
   if (incoming.meta.schemeCode !== previous.meta.schemeCode) throw new Error('Cannot merge different scheme identities.');
+  const observedAt = (fund: FundData): string => [fund.fetchedAt, fund.archive?.archivedAt, fund.sourceObservedAt]
+    .filter((value): value is string => typeof value === 'string' && Number.isFinite(Date.parse(value)))
+    .reduce((latest, value) => Date.parse(value) > Date.parse(latest) ? value : latest);
+  const incomingObservedAt = observedAt(incoming);
+  const previousObservedAt = observedAt(previous);
+  const observationNotOlder = Date.parse(incomingObservedAt) >= Date.parse(previousObservedAt);
   const older = incoming.points.at(-1)!.date < previous.points.at(-1)!.date;
   const late = Date.parse(incoming.fetchedAt) < Date.parse(previous.fetchedAt);
   const questionable = incoming.warnings.some(warning => /^(Invalid NAV|Conflicting NAV)/.test(warning));
@@ -180,8 +232,8 @@ export function mergeCachedFund(incoming: FundData, previous: FundData | null): 
   const first = preferPrevious ? incoming : previous;
   const pointsByDate = new Map([...first.points, ...preferred.points].map(point => [point.date, point]));
   const normalized = normalizeNavRecords([...pointsByDate.values()], 'iso', true);
-  const incomingDates = new Set(incoming.points.map(point => point.date));
-  const retained = previous.points.filter(point => !incomingDates.has(point.date)).length;
+  const incomingPoints = new Map(incoming.points.map(point => [point.date, point.nav]));
+  const retained = previous.points.filter(point => !incomingPoints.has(point.date)).length;
   const previousPoints = new Map(previous.points.map(point => [point.date, point.nav]));
   const corrections = preferPrevious ? 0 : incoming.points.filter(point => previousPoints.has(point.date)
     && previousPoints.get(point.date) !== point.nav).length;
@@ -202,6 +254,7 @@ export function mergeCachedFund(incoming: FundData, previous: FundData | null): 
   if (late) warnings.push('A later saved history took precedence over an earlier source retrieval.');
   if (questionable) warnings.push('Saved values were retained where the incoming response had unresolved data-quality issues.');
   const merged: FundData = { ...preferred, points: normalized.points,
+    sourceObservedAt: observationNotOlder ? incomingObservedAt : previousObservedAt,
     stale: preferred.stale || older || questionable,
     warnings: [...new Set([...warnings, ...normalized.warnings])] };
   // Archive provenance describes an exact published payload. Locally unioned or
@@ -209,6 +262,21 @@ export function mergeCachedFund(incoming: FundData, previous: FundData | null): 
   if (merged.archive && (preferred.points.length !== merged.points.length
     || preferred.points.some((point, index) => point.date !== merged.points[index]?.date || point.nav !== merged.points[index]?.nav))) {
     delete merged.archive;
+  }
+  // Proof belongs to a complete incoming response, never to the preferred clock
+  // or an old archive whose positive projection happens to match.
+  delete merged.rejectedZeroNavDates;
+  if (merged.archive?.rejectedZeroNavDates !== undefined) {
+    merged.archive = { ...merged.archive };
+    delete merged.archive.rejectedZeroNavDates;
+  }
+  if (rejectedZeroNavDates && !older && !late && observationNotOlder
+    && (['schemeCode', 'schemeName', 'fundHouse', 'schemeType', 'schemeCategory',
+      'isinGrowth', 'isinDivReinvestment'] as const).every(field => incoming.meta[field] === previous.meta[field])
+    && previous.points.every(point => incomingPoints.get(point.date) === point.nav)
+    && merged.points.length === incoming.points.length
+    && merged.points.every((point, index) => point.date === incoming.points[index].date && point.nav === incoming.points[index].nav)) {
+    merged.rejectedZeroNavDates = rejectedZeroNavDates;
   }
   return merged;
 }
