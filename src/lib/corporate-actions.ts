@@ -336,7 +336,432 @@ function actionForScheme(fund: FundData): ActionSpec | null {
   return null;
 }
 
-/** Only the exact independently verified Sensex identity can use two events. */
+/** Exact primary-evidence registrations from the completed checkpoint-213 pass.
+ * See docs/BULK_DISCREPANCY_COMPLETION_2026-10-29.md and its per-code ledger.
+ * These are calculation-copy actions, never a licence to rewrite source NAVs.
+ * Unit terms, identity chains and observed dates are independently verified.
+ */
+const completedBulkIdentities: {
+  schemeCode: number; schemeName: string; fundHouse: string; isinGrowth: string;
+  actions: Omit<ActionSpec, 'schemeCode'>[];
+}[] = [
+  { schemeCode: 145481, schemeName: "aditya birla sun life overnight fund - regular plan - growth",
+    fundHouse: "Aditya Birla Sun Life Mutual Fund", isinGrowth: "INF209KB1ZC3", actions: [
+      { label: "verified 100-to-1 ADITYA BIRLA SUN LIFE OVERNIGHT FUND - Regular Plan - GROWTH unit consolidation (effective date 4 November 2018)",
+        oldNavThrough: "2018-11-02", firstNewNavDate: "2018-11-04",
+        factor: 100, maxFactorDeviation: 0.1,
+        evidenceUrl: "https://bsmedia.business-standard.com/_media/bs/data/announcements/bse/02112018/6f0ab561-caf1-483a-9772-ec88472f67ba.pdf#page=3" },
+    ] },
+  { schemeCode: 145486, schemeName: "aditya birla sun life overnight fund - direct plan - growth",
+    fundHouse: "Aditya Birla Sun Life Mutual Fund", isinGrowth: "INF209KB1ZH2", actions: [
+      { label: "verified 100-to-1 ADITYA BIRLA SUN LIFE OVERNIGHT FUND - Direct Plan - GROWTH unit consolidation (effective date 4 November 2018)",
+        oldNavThrough: "2018-11-02", firstNewNavDate: "2018-11-04",
+        factor: 100, maxFactorDeviation: 0.1,
+        evidenceUrl: "https://bsmedia.business-standard.com/_media/bs/data/announcements/bse/02112018/6f0ab561-caf1-483a-9772-ec88472f67ba.pdf#page=3" },
+    ] },
+  { schemeCode: 141545, schemeName: "axis nifty 50 etf",
+    fundHouse: "Axis Mutual Fund", isinGrowth: "INF846K01W98", actions: [
+      { label: "verified 10-for-1 Axis Nifty 50 ETF unit split (record date 24 July 2020)",
+        oldNavThrough: "2020-07-24", firstNewNavDate: "2020-07-27",
+        factor: 0.1, maxFactorDeviation: 0.005,
+        evidenceUrl: "https://www.nseindia.com/api/corporates-corporateActions?index=mf&from_date=01-07-2020&to_date=31-07-2020" },
+    ] },
+  { schemeCode: 109353, schemeName: "canara robeco liquid fund - regular plan - growth option",
+    fundHouse: "Canara Robeco Mutual Fund", isinGrowth: "INF760K01CW9", actions: [
+      { label: "verified 100-to-1 Canara Robeco Liquid Fund - Regular Plan - GROWTH OPTION unit consolidation (effective date 20 August 2011)",
+        oldNavThrough: "2011-08-20", firstNewNavDate: "2011-08-21",
+        factor: 100, maxFactorDeviation: 0.1,
+        evidenceUrl: "https://www.canararobeco.com/wp-content/uploads/2025/02/canara-robeco-liquid-fund-f-y-2012-13.pdf#page=21" },
+    ] },
+  { schemeCode: 109371, schemeName: "canara robeco ultra short term fund - regular plan - growth option",
+    fundHouse: "Canara Robeco Mutual Fund", isinGrowth: "INF760K01DC9", actions: [
+      { label: "verified 100-to-1 Canara Robeco Ultra Short Term Fund - Regular Plan - GROWTH OPTION unit consolidation (effective date 20 August 2011)",
+        oldNavThrough: "2011-08-19", firstNewNavDate: "2011-08-22",
+        factor: 100, maxFactorDeviation: 0.1,
+        evidenceUrl: "https://www.canararobeco.com/wp-content/uploads/2025/02/canara-robeco-treasury-advantage-f-y-2012-13.pdf#page=22" },
+    ] },
+  { schemeCode: 149403, schemeName: "dsp nifty midcap 150 quality 50 etf",
+    fundHouse: "DSP Mutual Fund", isinGrowth: "INF740KA1ZF3", actions: [
+      { label: "verified 10-for-1 DSP Nifty Midcap 150 Quality 50 ETF unit split (record date 3 July 2026)",
+        oldNavThrough: "2026-07-02", firstNewNavDate: "2026-07-03",
+        factor: 0.1, maxFactorDeviation: 0.005,
+        evidenceUrl: "https://nsearchives.nseindia.com/content/circulars/CML74912.pdf#page=1" },
+    ] },
+  { schemeCode: 150523, schemeName: "dsp silver etf",
+    fundHouse: "DSP Mutual Fund", isinGrowth: "INF740KA1ZQ0", actions: [
+      { label: "verified 10-for-1 DSP Silver ETF unit split (record date 28 August 2026)",
+        oldNavThrough: "2026-08-27", firstNewNavDate: "2026-08-28",
+        factor: 0.1, maxFactorDeviation: 0.005,
+        evidenceUrl: "https://nsearchives.nseindia.com/content/circulars/CML75868.pdf#page=1" },
+    ] },
+  { schemeCode: 151737, schemeName: "dsp gold etf",
+    fundHouse: "DSP Mutual Fund", isinGrowth: "INF740KA1ZP2", actions: [
+      { label: "verified 10-for-1 DSP Gold ETF unit split (record date 28 August 2026)",
+        oldNavThrough: "2026-08-27", firstNewNavDate: "2026-08-28",
+        factor: 0.1, maxFactorDeviation: 0.005,
+        evidenceUrl: "https://nsearchives.nseindia.com/content/circulars/CML75868.pdf#page=1" },
+    ] },
+  { schemeCode: 152306, schemeName: "dsp nifty healthcare etf",
+    fundHouse: "DSP Mutual Fund", isinGrowth: "INF740KA1ZG1", actions: [
+      { label: "verified 10-for-1 DSP Nifty Healthcare ETF unit split (record date 3 July 2026)",
+        oldNavThrough: "2026-07-02", firstNewNavDate: "2026-07-03",
+        factor: 0.1, maxFactorDeviation: 0.005,
+        evidenceUrl: "https://nsearchives.nseindia.com/content/circulars/CML74912.pdf#page=1" },
+    ] },
+  { schemeCode: 152957, schemeName: "groww gold etf",
+    fundHouse: "Groww Mutual Fund", isinGrowth: "INF666M01OE7", actions: [
+      { label: "verified 10-for-1 Groww Gold ETF unit split (record date 6 February 2026)",
+        oldNavThrough: "2026-02-05", firstNewNavDate: "2026-02-06",
+        factor: 0.1, maxFactorDeviation: 0.005,
+        evidenceUrl: "https://nsearchives.nseindia.com/content/circulars/CML72617.pdf#page=1" },
+    ] },
+  { schemeCode: 153524, schemeName: "groww silver etf",
+    fundHouse: "Groww Mutual Fund", isinGrowth: "INF666M01OF4", actions: [
+      { label: "verified 10-for-1 Groww Silver ETF unit split (record date 6 February 2026)",
+        oldNavThrough: "2026-02-05", firstNewNavDate: "2026-02-06",
+        factor: 0.1, maxFactorDeviation: 0.005,
+        evidenceUrl: "https://nsearchives.nseindia.com/content/circulars/CML72617.pdf#page=1" },
+    ] },
+  { schemeCode: 139455, schemeName: "icici prudential nifty50 value 20 etf",
+    fundHouse: "ICICI Prudential Mutual Fund", isinGrowth: "INF109KC11V0", actions: [
+      { label: "verified 10-for-1 ICICI Prudential Nifty50 Value 20 ETF unit split (record date 1 March 2024)",
+        oldNavThrough: "2024-03-01", firstNewNavDate: "2024-03-04",
+        factor: 0.1, maxFactorDeviation: 0.005,
+        evidenceUrl: "https://nsearchives.nseindia.com/content/circulars/CML60740.pdf#page=1" },
+    ] },
+  { schemeCode: 139519, schemeName: "icici prudential bse midcap select etf",
+    fundHouse: "ICICI Prudential Mutual Fund", isinGrowth: "INF109KC10W0", actions: [
+      { label: "verified 10-for-1 ICICI Prudential BSE Midcap Select ETF unit split (record date 10 May 2024)",
+        oldNavThrough: "2024-05-10", firstNewNavDate: "2024-05-13",
+        factor: 0.1, maxFactorDeviation: 0.005,
+        evidenceUrl: "https://nsearchives.nseindia.com/content/circulars/CML61766.pdf#page=1" },
+    ] },
+  { schemeCode: 141596, schemeName: "icici prudential nifty 100 low volatility 30 etf",
+    fundHouse: "ICICI Prudential Mutual Fund", isinGrowth: "INF109KC19U5", actions: [
+      { label: "verified 10-for-1 ICICI Prudential Nifty 100 Low Volatility 30 ETF unit split (record date 1 March 2024)",
+        oldNavThrough: "2024-03-01", firstNewNavDate: "2024-03-04",
+        factor: 0.1, maxFactorDeviation: 0.005,
+        evidenceUrl: "https://nsearchives.nseindia.com/content/circulars/CML60740.pdf#page=1" },
+    ] },
+  { schemeCode: 143247, schemeName: "icici prudential bse 500 etf",
+    fundHouse: "ICICI Prudential Mutual Fund", isinGrowth: "INF109KC1V59", actions: [
+      { label: "verified 10-for-1 ICICI Prudential BSE 500 ETF unit split (record date 29 October 2021)",
+        oldNavThrough: "2021-10-29", firstNewNavDate: "2021-11-01",
+        factor: 0.1, maxFactorDeviation: 0.005,
+        evidenceUrl: "https://www.nseindia.com/api/corporates-corporateActions?index=mf&symbol=BSE500IETF&from_date=01-10-2021&to_date=30-11-2021" },
+    ] },
+  { schemeCode: 144587, schemeName: "icici prudential nifty next 50 etf",
+    fundHouse: "ICICI Prudential Mutual Fund", isinGrowth: "INF109KC1NS5", actions: [
+      { label: "verified 10-for-1 ICICI Prudential Nifty Next 50 ETF unit split effective at close on 16 November 2018",
+        oldNavThrough: "2018-11-16", firstNewNavDate: "2018-11-19",
+        factor: 0.1, maxFactorDeviation: 0.005,
+        evidenceUrl: "https://www.icicipruamc.com/blob/emailmedia/mutualfund/Passive%20Factsheet%20PDF%202.pdf#page=10" },
+    ] },
+  { schemeCode: 147483, schemeName: "icici prudential nifty bank etf",
+    fundHouse: "ICICI Prudential Mutual Fund", isinGrowth: "INF109KC15I8", actions: [
+      { label: "verified 10-for-1 ICICI Prudential Nifty Bank ETF unit split (exchange ex-date 1 September 2022)",
+        oldNavThrough: "2022-09-02", firstNewNavDate: "2022-09-05",
+        factor: 0.1, maxFactorDeviation: 0.005,
+        evidenceUrl: "https://nsearchives.nseindia.com/content/circulars/CML53404.pdf#page=1" },
+    ] },
+  { schemeCode: 147530, schemeName: "icici prudential nifty private bank etf",
+    fundHouse: "ICICI Prudential Mutual Fund", isinGrowth: "INF109KC18U7", actions: [
+      { label: "verified 10-for-1 ICICI Prudential Nifty Private Bank ETF unit split (record date 1 March 2024)",
+        oldNavThrough: "2024-03-01", firstNewNavDate: "2024-03-04",
+        factor: 0.1, maxFactorDeviation: 0.005,
+        evidenceUrl: "https://nsearchives.nseindia.com/content/circulars/CML60740.pdf#page=1" },
+    ] },
+  { schemeCode: 147921, schemeName: "icici prudential nifty midcap 150 etf",
+    fundHouse: "ICICI Prudential Mutual Fund", isinGrowth: "INF109KC11W8", actions: [
+      { label: "verified 10-for-1 ICICI Prudential Nifty Midcap 150 ETF unit split (record date 10 May 2024)",
+        oldNavThrough: "2024-05-10", firstNewNavDate: "2024-05-13",
+        factor: 0.1, maxFactorDeviation: 0.005,
+        evidenceUrl: "https://nsearchives.nseindia.com/content/circulars/CML61766.pdf#page=1" },
+    ] },
+  { schemeCode: 148456, schemeName: "icici prudential nifty alpha low- volatility 30 etf",
+    fundHouse: "ICICI Prudential Mutual Fund", isinGrowth: "INF109KC17V7", actions: [
+      { label: "verified 10-for-1 ICICI Prudential Nifty Alpha Low- Volatility 30 ETF unit split (record date 10 May 2024)",
+        oldNavThrough: "2024-05-10", firstNewNavDate: "2024-05-13",
+        factor: 0.1, maxFactorDeviation: 0.005,
+        evidenceUrl: "https://nsearchives.nseindia.com/content/circulars/CML61766.pdf#page=1" },
+    ] },
+  { schemeCode: 148466, schemeName: "icici prudential nifty it etf",
+    fundHouse: "ICICI Prudential Mutual Fund", isinGrowth: "INF109KC16I6", actions: [
+      { label: "verified 10-for-1 ICICI Prudential Nifty IT ETF unit split (record date 2 September 2022)",
+        oldNavThrough: "2022-09-02", firstNewNavDate: "2022-09-05",
+        factor: 0.1, maxFactorDeviation: 0.005,
+        evidenceUrl: "https://nsearchives.nseindia.com/content/circulars/CML53404.pdf#page=1" },
+    ] },
+  { schemeCode: 149072, schemeName: "icici prudential nifty fmcg etf",
+    fundHouse: "ICICI Prudential Mutual Fund", isinGrowth: "INF109KC19V3", actions: [
+      { label: "verified 10-for-1 ICICI Prudential Nifty FMCG ETF unit split (record date 10 May 2024)",
+        oldNavThrough: "2024-05-10", firstNewNavDate: "2024-05-13",
+        factor: 0.1, maxFactorDeviation: 0.005,
+        evidenceUrl: "https://nsearchives.nseindia.com/content/circulars/CML61766.pdf#page=1" },
+    ] },
+  { schemeCode: 149463, schemeName: "icici prudential nifty auto etf",
+    fundHouse: "ICICI Prudential Mutual Fund", isinGrowth: "INF109KC10V2", actions: [
+      { label: "verified 10-for-1 ICICI Prudential Nifty Auto ETF unit split (record date 1 March 2024)",
+        oldNavThrough: "2024-03-01", firstNewNavDate: "2024-03-04",
+        factor: 0.1, maxFactorDeviation: 0.005,
+        evidenceUrl: "https://nsearchives.nseindia.com/content/circulars/CML60740.pdf#page=1" },
+    ] },
+  { schemeCode: 151907, schemeName: "icici prudential nifty 200 quality 30 etf",
+    fundHouse: "ICICI Prudential Mutual Fund", isinGrowth: "INF109KC18V5", actions: [
+      { label: "verified 10-for-1 ICICI Prudential Nifty 200 Quality 30 ETF unit split (record date 10 May 2024)",
+        oldNavThrough: "2024-05-10", firstNewNavDate: "2024-05-13",
+        factor: 0.1, maxFactorDeviation: 0.005,
+        evidenceUrl: "https://nsearchives.nseindia.com/content/circulars/CML61766.pdf#page=1" },
+    ] },
+  { schemeCode: 104486, schemeName: "invesco india liquid fund - regular plan - growth",
+    fundHouse: "Invesco Mutual Fund", isinGrowth: "INF205K01HM5", actions: [
+      { label: "verified 100-to-1 Religare Invesco Liquid Super Institutional Growth unit consolidation effective at close on 25 February 2011",
+        oldNavThrough: "2011-02-25", firstNewNavDate: "2011-02-27",
+        factor: 100, maxFactorDeviation: 0.1,
+        evidenceUrl: "https://invescomutualfund.com/docs/default-source/default-document-library/annual-report-fy-2016-2017.pdf?sfvrsn=0#page=92" },
+    ] },
+  { schemeCode: 104488, schemeName: "invesco india liquid fund - regular plan - growth",
+    fundHouse: "Invesco Mutual Fund", isinGrowth: "INF205K01HG7", actions: [
+      { label: "verified 100-to-1 Religare Invesco Liquid Regular Growth unit consolidation effective at close on 25 February 2011",
+        oldNavThrough: "2011-02-25", firstNewNavDate: "2011-02-27",
+        factor: 100, maxFactorDeviation: 0.1,
+        evidenceUrl: "https://invescomutualfund.com/docs/default-source/default-document-library/annual-report-fy-2016-2017.pdf?sfvrsn=0#page=92" },
+    ] },
+  { schemeCode: 104726, schemeName: "invesco india ultra short to short term fund - regular plan - growth",
+    fundHouse: "Invesco Mutual Fund", isinGrowth: "INF205K01HY0", actions: [
+      { label: "verified 100-to-1 Religare Invesco Ultra Short Term Institutional Growth unit consolidation effective at close on 25 February 2011",
+        oldNavThrough: "2011-02-25", firstNewNavDate: "2011-02-28",
+        factor: 100, maxFactorDeviation: 0.1,
+        evidenceUrl: "https://invescomutualfund.com/docs/default-source/default-document-library/annual-report-fy-2016-2017.pdf?sfvrsn=0#page=92" },
+    ] },
+  { schemeCode: 112368, schemeName: "invesco india gold exchange traded fund - regular plan - growth",
+    fundHouse: "Invesco Mutual Fund", isinGrowth: "INF205KA1BP1", actions: [
+      { label: "verified 100-for-1 Invesco India Gold Exchange Traded Fund - Regular Plan - Growth unit split (record date 30 April 2026)",
+        oldNavThrough: "2026-04-29", firstNewNavDate: "2026-04-30",
+        factor: 0.01, maxFactorDeviation: 0.0005,
+        evidenceUrl: "https://nsearchives.nseindia.com/content/circulars/CML73909.pdf#page=1" },
+    ] },
+  { schemeCode: 115284, schemeName: "invesco india nifty 50 exchange traded fund - regular plan - growth",
+    fundHouse: "Invesco Mutual Fund", isinGrowth: "INF205KA1CC7", actions: [
+      { label: "verified 10-for-1 Invesco India Nifty 50 Exchange Traded Fund - Regular Plan - Growth unit split (record date 31 July 2026)",
+        oldNavThrough: "2026-07-30", firstNewNavDate: "2026-07-31",
+        factor: 0.1, maxFactorDeviation: 0.005,
+        evidenceUrl: "https://nsearchives.nseindia.com/content/circulars/CML75432.pdf#page=1" },
+    ] },
+  { schemeCode: 100835, schemeName: "kotak liquid fund - regular plan - growth",
+    fundHouse: "Kotak Mahindra Mutual Fund", isinGrowth: "INF174K01NI9", actions: [
+      { label: "verified 100-to-1 Kotak Liquid Fund - Regular Plan - Growth unit consolidation (effective date 18 January 2013)",
+        oldNavThrough: "2013-01-18", firstNewNavDate: "2013-01-20",
+        factor: 100, maxFactorDeviation: 0.1,
+        evidenceUrl: "https://vatseelabs-s3.kotakmf.com/FormsDownloads_BKP_05_April_2024/Addendums/KLiquid,-KFST---14-January-2013/14-01-13.pdf#page=1" },
+    ] },
+  { schemeCode: 101893, schemeName: "kotak money market fund - regular plan - (growth)",
+    fundHouse: "Kotak Mahindra Mutual Fund", isinGrowth: "INF174K01NA6", actions: [
+      { label: "verified 100-to-1 Kotak Money Market Fund - Regular Plan - (Growth) unit consolidation (effective date 18 January 2013)",
+        oldNavThrough: "2013-01-18", firstNewNavDate: "2013-01-20",
+        factor: 100, maxFactorDeviation: 0.1,
+        evidenceUrl: "https://vatseelabs-s3.kotakmf.com/FormsDownloads_BKP_05_April_2024/Addendums/KLiquid,-KFST---14-January-2013/14-01-13.pdf#page=1" },
+    ] },
+  { schemeCode: 106193, schemeName: "kotak gold etf",
+    fundHouse: "Kotak Mahindra Mutual Fund", isinGrowth: "INF174KA1HJ8", actions: [
+      { label: "verified 10-for-1 KOTAK GOLD ETF unit split (record date 15 April 2015)",
+        oldNavThrough: "2015-04-13", firstNewNavDate: "2015-04-15",
+        factor: 0.1, maxFactorDeviation: 0.005,
+        evidenceUrl: "https://www.msei.in/SX-Content/Circulars/2015/April/Circular-2894.pdf#page=1" },
+      { label: "verified 10-for-1 KOTAK GOLD ETF unit split (record date 23 July 2021)",
+        oldNavThrough: "2021-07-22", firstNewNavDate: "2021-07-23",
+        factor: 0.1, maxFactorDeviation: 0.005,
+        evidenceUrl: "https://archives.nseindia.com/content/circulars/CMPT48962.pdf#page=1" },
+    ] },
+  { schemeCode: 106929, schemeName: "kotak nifty psu bank etf",
+    fundHouse: "Kotak Mahindra Mutual Fund", isinGrowth: "INF174KA1A86", actions: [
+      { label: "verified 10-for-1 Kotak Nifty PSU Bank ETF unit split (effective date 10 July 2026)",
+        oldNavThrough: "2026-07-09", firstNewNavDate: "2026-07-10",
+        factor: 0.1, maxFactorDeviation: 0.005,
+        evidenceUrl: "https://vatseelabs-s3.kotakmf.com/FormsDownloads/Addendums/Notice-cum-addendum---Change-in-Face-Value-&-Creation-Unit-size-of-Kotak-Nifty-PSU-Bank-ETF-June-23,-2026/NoticecumaddendumChangeinFaceValueCreationUnitsize.pdf#page=1" },
+    ] },
+  { schemeCode: 109010, schemeName: "kotak bse sensex etf",
+    fundHouse: "Kotak Mahindra Mutual Fund", isinGrowth: "INF174KA1JD7", actions: [
+      { label: "verified 10-for-1 Kotak BSE Sensex ETF unit split (effective date 22 July 2022)",
+        oldNavThrough: "2022-07-21", firstNewNavDate: "2022-07-22",
+        factor: 0.1, maxFactorDeviation: 0.005,
+        evidenceUrl: "https://vatseelabs-s3.kotakmf.com/FormsDownloads/Addendums/Addendum-Sensex-ETF-July-7,-2022/NoticecumaddendumChangeinFaceValueandCreationUnitsizeofKotakSandPBSESensexETF.pdf#page=1" },
+    ] },
+  { schemeCode: 112351, schemeName: "kotak nifty 50 etf",
+    fundHouse: "Kotak Mahindra Mutual Fund", isinGrowth: "INF174K014P6", actions: [
+      { label: "verified 10-for-1 Kotak Nifty 50 ETF unit split (effective date 28 July 2017)",
+        oldNavThrough: "2017-07-27", firstNewNavDate: "2017-07-28",
+        factor: 0.1, maxFactorDeviation: 0.005,
+        evidenceUrl: "https://vatseelabs-s3.kotakmf.com/FormsDownloads/Addendums/Kotak-Nifty-ETF---13-July-2017/13July2017.pdf#page=1" },
+    ] },
+  { schemeCode: 119746, schemeName: "kotak money market fund - direct plan - (growth)",
+    fundHouse: "Kotak Mahindra Mutual Fund", isinGrowth: "INF174K01MW2", actions: [
+      { label: "verified 100-to-1 Kotak Money Market Fund - Direct Plan - (Growth) unit consolidation (effective date 18 January 2013)",
+        oldNavThrough: "2013-01-18", firstNewNavDate: "2013-01-20",
+        factor: 100, maxFactorDeviation: 0.1,
+        evidenceUrl: "https://vatseelabs-s3.kotakmf.com/FormsDownloads_BKP_05_April_2024/Addendums/KLiquid,-KFST---14-January-2013/14-01-13.pdf#page=1" },
+    ] },
+  { schemeCode: 119766, schemeName: "kotak liquid fund - direct plan - growth",
+    fundHouse: "Kotak Mahindra Mutual Fund", isinGrowth: "INF174K01NE8", actions: [
+      { label: "verified 100-to-1 Kotak Liquid Fund - Direct Plan - Growth unit consolidation (effective date 18 January 2013)",
+        oldNavThrough: "2013-01-18", firstNewNavDate: "2013-01-20",
+        factor: 100, maxFactorDeviation: 0.1,
+        evidenceUrl: "https://vatseelabs-s3.kotakmf.com/FormsDownloads_BKP_05_April_2024/Addendums/KLiquid,-KFST---14-January-2013/14-01-13.pdf#page=1" },
+    ] },
+  { schemeCode: 133122, schemeName: "kotak nifty bank etf",
+    fundHouse: "Kotak Mahindra Mutual Fund", isinGrowth: "INF174KA1ZB7", actions: [
+      { label: "verified 10-for-1 Kotak Nifty Bank ETF unit split (effective date 27 February 2026)",
+        oldNavThrough: "2026-02-26", firstNewNavDate: "2026-02-27",
+        factor: 0.1, maxFactorDeviation: 0.005,
+        evidenceUrl: "https://vatseelabs-s3.kotakmf.com/FormsDownloads/Addendums/Notice-Cum-Addendum---Change-in-Face-value-of-Units-and-Creation-unit-size-in-certain-scheme(s)-of-Kotak-Mahindra-Mutual-Fund-Feb-17,-2026/February172026ChangeinFacevalueofUnitsandCreationunitsizeincertainschemesofKotakMahindraMutualFund.pdf#page=1" },
+    ] },
+  { schemeCode: 135744, schemeName: "kotak nifty 50 value 20 etf",
+    fundHouse: "Kotak Mahindra Mutual Fund", isinGrowth: "INF174KA1ZE1", actions: [
+      { label: "verified 10-for-1 Kotak Nifty 50 Value 20 ETF unit split (effective date 27 February 2026)",
+        oldNavThrough: "2026-02-26", firstNewNavDate: "2026-02-27",
+        factor: 0.1, maxFactorDeviation: 0.005,
+        evidenceUrl: "https://vatseelabs-s3.kotakmf.com/FormsDownloads/Addendums/Notice-Cum-Addendum---Change-in-Face-value-of-Units-and-Creation-unit-size-in-certain-scheme(s)-of-Kotak-Mahindra-Mutual-Fund-Feb-17,-2026/February172026ChangeinFacevalueofUnitsandCreationunitsizeincertainschemesofKotakMahindraMutualFund.pdf#page=1" },
+    ] },
+  { schemeCode: 149757, schemeName: "kotak nifty midcap 50 etf",
+    fundHouse: "Kotak Mahindra Mutual Fund", isinGrowth: "INF174KA1ZC5", actions: [
+      { label: "verified 10-for-1 Kotak Nifty Midcap 50 ETF unit split (effective date 27 February 2026)",
+        oldNavThrough: "2026-02-26", firstNewNavDate: "2026-02-27",
+        factor: 0.1, maxFactorDeviation: 0.005,
+        evidenceUrl: "https://vatseelabs-s3.kotakmf.com/FormsDownloads/Addendums/Notice-Cum-Addendum---Change-in-Face-value-of-Units-and-Creation-unit-size-in-certain-scheme(s)-of-Kotak-Mahindra-Mutual-Fund-Feb-17,-2026/February172026ChangeinFacevalueofUnitsandCreationunitsizeincertainschemesofKotakMahindraMutualFund.pdf#page=1" },
+    ] },
+  { schemeCode: 150492, schemeName: "kotak nifty india consumption etf",
+    fundHouse: "Kotak Mahindra Mutual Fund", isinGrowth: "INF174KA1ZF8", actions: [
+      { label: "verified 10-for-1 Kotak Nifty India Consumption ETF unit split (effective date 27 February 2026)",
+        oldNavThrough: "2026-02-26", firstNewNavDate: "2026-02-27",
+        factor: 0.1, maxFactorDeviation: 0.005,
+        evidenceUrl: "https://vatseelabs-s3.kotakmf.com/FormsDownloads/Addendums/Notice-Cum-Addendum---Change-in-Face-value-of-Units-and-Creation-unit-size-in-certain-scheme(s)-of-Kotak-Mahindra-Mutual-Fund-Feb-17,-2026/February172026ChangeinFacevalueofUnitsandCreationunitsizeincertainschemesofKotakMahindraMutualFund.pdf#page=1" },
+    ] },
+  { schemeCode: 150948, schemeName: "kotak silver etf",
+    fundHouse: "Kotak Mahindra Mutual Fund", isinGrowth: "INF174KA1ZD3", actions: [
+      { label: "verified 10-for-1 Kotak Silver ETF unit split (effective date 27 February 2026)",
+        oldNavThrough: "2026-02-26", firstNewNavDate: "2026-02-27",
+        factor: 0.1, maxFactorDeviation: 0.005,
+        evidenceUrl: "https://vatseelabs-s3.kotakmf.com/FormsDownloads/Addendums/Notice-Cum-Addendum---Change-in-Face-value-of-Units-and-Creation-unit-size-in-certain-scheme(s)-of-Kotak-Mahindra-Mutual-Fund-Feb-17,-2026/February172026ChangeinFacevalueofUnitsandCreationunitsizeincertainschemesofKotakMahindraMutualFund.pdf#page=1" },
+    ] },
+  { schemeCode: 120249, schemeName: "lic mf liquid fund - direct plan - growth",
+    fundHouse: "LIC Mutual Fund", isinGrowth: "INF767K01DN1", actions: [
+      { label: "verified 100-to-1 LIC MF Liquid Fund - Direct Plan - Growth unit consolidation (effective date 21 January 2013)",
+        oldNavThrough: "2013-01-20", firstNewNavDate: "2013-01-21",
+        factor: 100, maxFactorDeviation: 0.1,
+        evidenceUrl: "https://www.licmf.com/assets/pdf/statuary_disclosure/LIC%20-%20Balance%20Sheet%20-%2010%20May%202013.pdf#page=4" },
+    ] },
+  { schemeCode: 151961, schemeName: "lic mf gold exchange traded fund",
+    fundHouse: "LIC Mutual Fund", isinGrowth: "INF767K01SM1", actions: [
+      { label: "verified 100-for-1 LIC MF Gold Exchange Traded Fund unit split (record date 6 March 2026)",
+        oldNavThrough: "2026-03-05", firstNewNavDate: "2026-03-06",
+        factor: 0.01, maxFactorDeviation: 0.0005,
+        evidenceUrl: "https://nsearchives.nseindia.com/content/circulars/CML73115.pdf#page=1" },
+    ] },
+  { schemeCode: 114984, schemeName: "motilal oswal nasdaq 100 etf",
+    fundHouse: "Motilal Oswal Mutual Fund", isinGrowth: "INF247L01AP3", actions: [
+      { label: "verified 10-for-1 Motilal Oswal Nasdaq 100 ETF unit split (record date 18 June 2021)",
+        oldNavThrough: "2021-06-18", firstNewNavDate: "2021-06-21",
+        factor: 0.1, maxFactorDeviation: 0.005,
+        evidenceUrl: "https://www.msei.in/SX-Content/Circulars/2021/June/Circular-10553.pdf#page=1" },
+    ] },
+  { schemeCode: 149801, schemeName: "motilal oswal nifty 200 momentum 30 etf",
+    fundHouse: "Motilal Oswal Mutual Fund", isinGrowth: "INF247L01BK2", actions: [
+      { label: "verified 5-for-1 Motilal Oswal Nifty 200 Momentum 30 ETF unit split (record date 12 August 2022)",
+        oldNavThrough: "2022-08-12", firstNewNavDate: "2022-08-16",
+        factor: 0.2, maxFactorDeviation: 0.01,
+        evidenceUrl: "https://archives.nseindia.com/content/circulars/CML53260.pdf#page=1" },
+    ] },
+  { schemeCode: 149921, schemeName: "motilal oswal bse low volatility etf",
+    fundHouse: "Motilal Oswal Mutual Fund", isinGrowth: "INF247L01BL0", actions: [
+      { label: "verified 5-for-1 Motilal Oswal BSE Low Volatility ETF unit split (record date 12 August 2022)",
+        oldNavThrough: "2022-08-12", firstNewNavDate: "2022-08-16",
+        factor: 0.2, maxFactorDeviation: 0.01,
+        evidenceUrl: "https://archives.nseindia.com/content/circulars/CML53260.pdf#page=1" },
+    ] },
+  { schemeCode: 112636, schemeName: "navi liquid fund - regular plan - growth option",
+    fundHouse: "Navi Mutual Fund", isinGrowth: "INF959L01GL9", actions: [
+      { label: "verified 100-to-1 Navi Liquid Fund unit consolidation effective 21 September 2014",
+        oldNavThrough: "2014-09-19", firstNewNavDate: "2014-09-21",
+        factor: 100, maxFactorDeviation: 0.1,
+        evidenceUrl: "https://navi-amc-docs.s3.ap-south-1.amazonaws.com/Factsheet/Factsheets/2021-22/Factsheet_November%202021.pdf#page=13" },
+      { label: "verified 100-for-1 Navi Liquid Fund unit split with NAV implementation postponed to 27 November 2022",
+        oldNavThrough: "2022-11-25", firstNewNavDate: "2022-11-27",
+        factor: 0.01, maxFactorDeviation: 1e-05,
+        evidenceUrl: "https://nsearchives.nseindia.com/corporate/TRITURBINE_20112022113809_TTL_NEWS_20_11_2022.pdf#page=2" },
+    ] },
+  { schemeCode: 103048, schemeName: "nippon india money market fund - regular plan - growth option",
+    fundHouse: "Nippon India Mutual Fund", isinGrowth: "INF204K01VA4", actions: [
+      { label: "verified 100-to-1 Reliance Liquidity Fund Growth unit consolidation effective 5 August 2012",
+        oldNavThrough: "2012-08-03", firstNewNavDate: "2012-08-05",
+        factor: 100, maxFactorDeviation: 0.1,
+        evidenceUrl: "https://mf.nipponindiaim.com/InvestorServices/AnnualHalfYearlyReportsFY20122013/Half_Yearly_Portfolio_-_Financials_-_Oct-_2012_-_for_Website_upload.pdf#page=34" },
+    ] },
+  { schemeCode: 107693, schemeName: "quantum gold etf",
+    fundHouse: "Quantum Mutual Fund", isinGrowth: "INF082J01408", actions: [
+      { label: "verified 50-for-1 Quantum Gold ETF unit split (record date 17 December 2021)",
+        oldNavThrough: "2021-12-17", firstNewNavDate: "2021-12-20",
+        factor: 0.02, maxFactorDeviation: 0.001,
+        evidenceUrl: "https://www.nseindia.com/api/corporates-corporateActions?index=mf&from_date=01-12-2021&to_date=31-12-2021" },
+    ] },
+  { schemeCode: 108479, schemeName: "quantum nifty 50 etf",
+    fundHouse: "Quantum Mutual Fund", isinGrowth: "INF082J01499", actions: [
+      { label: "verified 10-for-1 Quantum Nifty 50 ETF unit split (record date 13 February 2026)",
+        oldNavThrough: "2026-02-13", firstNewNavDate: "2026-02-16",
+        factor: 0.1, maxFactorDeviation: 0.005,
+        evidenceUrl: "https://nsearchives.nseindia.com/content/circulars/CML72718.pdf#page=1" },
+    ] },
+  { schemeCode: 106217, schemeName: "sbi ultra short to short term fund - regular plan - growth",
+    fundHouse: "SBI Mutual Fund", isinGrowth: "INF200K01MG8", actions: [
+      { label: "verified 100-to-1 SBI Short Horizon Debt Fund Ultra Short Term Institutional Growth unit consolidation effective 13 January 2012",
+        oldNavThrough: "2012-01-12", firstNewNavDate: "2012-01-13",
+        factor: 100, maxFactorDeviation: 0.1,
+        evidenceUrl: "https://www.sbimf.com/docs/default-source/scheme-portfolios/default-library/unaudited-half-yearly-results-%28as-on-march-31-2012%29.pdf?sfvrsn=24795812_0#page=23" },
+    ] },
+  { schemeCode: 111954, schemeName: "sbi gold etf - regular plan - growth",
+    fundHouse: "SBI Mutual Fund", isinGrowth: "INF200KA16D8", actions: [
+      { label: "verified 100-for-1 SBI Gold ETF - Regular Plan - Growth unit split (record date 7 January 2022)",
+        oldNavThrough: "2022-01-07", firstNewNavDate: "2022-01-10",
+        factor: 0.01, maxFactorDeviation: 0.0005,
+        evidenceUrl: "https://www.msei.in/SX-Content/Circulars/2022/January/Circular-11335.pdf#page=1" },
+    ] },
+  { schemeCode: 102672, schemeName: "tata liquid fund - regular plan - growth option",
+    fundHouse: "Tata Mutual Fund", isinGrowth: "INF277K01YD8", actions: [
+      { label: "verified 100-to-1 Tata Liquid Fund - Regular Plan - Growth Option unit consolidation (effective date 1 February 2014)",
+        oldNavThrough: "2014-01-31", firstNewNavDate: "2014-02-02",
+        factor: 100, maxFactorDeviation: 0.1,
+        evidenceUrl: "https://www.tatamutualfund.com/system/files/2023-08/half_yearly_portfolios_march_2014.pdf#page=4" },
+    ] },
+  { schemeCode: 119861, schemeName: "tata liquid fund - direct plan - growth option",
+    fundHouse: "Tata Mutual Fund", isinGrowth: "INF277K01YE6", actions: [
+      { label: "verified 100-to-1 Tata Liquid Fund - Direct Plan - Growth Option unit consolidation (effective date 1 February 2014)",
+        oldNavThrough: "2014-01-31", firstNewNavDate: "2014-02-02",
+        factor: 100, maxFactorDeviation: 0.1,
+        evidenceUrl: "https://www.tatamutualfund.com/system/files/2023-08/half_yearly_portfolios_march_2014.pdf#page=4" },
+    ] },
+  { schemeCode: 100664, schemeName: "uti large & mid cap fund - regular plan - growth",
+    fundHouse: "UTI Mutual Fund", isinGrowth: "INF789F01869", actions: [
+      { label: "verified 1-for-1 UTI Top 100 Fund Growth bonus unit allotment (record date 4 June 2009)",
+        oldNavThrough: "2009-06-04", firstNewNavDate: "2009-06-05",
+        factor: 0.5, maxFactorDeviation: 0.025,
+        evidenceUrl: "https://www.business-standard.com/article/press-releases/uti-top-100-fund-declares-1-1-bonus-109060100093_1.html" },
+    ] },
+  { schemeCode: 135320, schemeName: "uti nifty 50 etf - direct plan",
+    fundHouse: "UTI Mutual Fund", isinGrowth: "INF789F1AZC0", actions: [
+      { label: "verified 10-for-1 UTI Nifty 50 ETF - Direct Plan unit split (effective date 25 September 2023)",
+        oldNavThrough: "2023-09-25", firstNewNavDate: "2023-09-26",
+        factor: 0.1, maxFactorDeviation: 0.005,
+        evidenceUrl: "https://nsearchives.nseindia.com/content/circulars/CML58523.pdf#page=1" },
+    ] },
+  { schemeCode: 115398, schemeName: "union liquid fund - regular plan - growth option",
+    fundHouse: "Union Mutual Fund", isinGrowth: "INF582M01013", actions: [
+      { label: "verified 100-to-1 Union Liquid Fund - Regular Plan - Growth Option unit consolidation (effective date 2 October 2011)",
+        oldNavThrough: "2011-09-29", firstNewNavDate: "2011-10-02",
+        factor: 100, maxFactorDeviation: 0.1,
+        evidenceUrl: "https://www.unionmf.com/docs/default-source/downloads/scheme-disclosures/factsheets/october-2012.pdf?sfvrsn=f69eb488_3#page=5" },
+    ] },
+];
+
+/** Multiple events require an exact identity and a complete independently verified chain. */
 function actionsForScheme(fund: FundData): ActionSpec[] {
   if (fund.meta.schemeCode===135854
     && fund.meta.schemeName.toLowerCase()==='hdfc bse sensex etf - growth option'
@@ -350,6 +775,11 @@ function actionsForScheme(fund: FundData): ActionSpec[] {
       oldNavThrough:'2024-02-02',firstNewNavDate:'2024-02-05',factor:0.1,maxFactorDeviation:0.005,
       evidenceUrl:'https://nsearchives.nseindia.com/content/circulars/CML60421.pdf'},
   ];
+  const bulk = completedBulkIdentities.find(identity => identity.schemeCode === fund.meta.schemeCode);
+  if (bulk && fund.meta.schemeName.toLowerCase() === bulk.schemeName
+    && fund.meta.fundHouse === bulk.fundHouse && fund.meta.isinGrowth === bulk.isinGrowth) {
+    return bulk.actions.map(action => ({ schemeCode: bulk.schemeCode, ...action }));
+  }
   const single=actionForScheme(fund);
   return single?[single]:[];
 }
@@ -394,8 +824,8 @@ function adjustedForKnownActions(raw: NavPoint[], actions: ActionSpec[]): NavPoi
     const observedFactor=after.nav/before.nav;
     if (Math.abs(observedFactor-action.factor)>action.maxFactorDeviation) return null;
   }
-  // Each subsequent split applies to every earlier observation. For Sensex
-  // this yields 0.01 before the first event, 0.1 between events, then 1.
+  // Every later unit action applies to all earlier observations. Keep each
+  // event boundary even when a consolidation and a later split have product 1.
   const adjusted=raw.map(p=>({...p,nav:actions.reduce((nav,action)=>
     p.date<action.firstNewNavDate?nav*action.factor:nav,p.nav)}));
   if (!validSeries(adjusted)) return null;
