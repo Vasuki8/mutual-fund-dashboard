@@ -1,23 +1,30 @@
+import type { VerifiedNavReview } from '../lib/verified-nav-reviews.ts';
 import { useMemo } from 'react';
 import { Download } from 'lucide-react';
 import type { AnalysisRange, FundData, Scheme } from '../lib/types.ts';
 import { selectedPeerSummary } from '../lib/selected-peers.ts';
-import { asScheme, dateLabel, downloadCsv, number, percent, shortName } from '../lib/format.ts';
+import { asScheme, dateLabel, downloadCsv, navReviewSummary, number, percent, shortName } from '../lib/format.ts';
 
 interface Props {
   funds: FundData[];
   range: AnalysisRange;
   requestedPeriod: string;
+  navReviews?: VerifiedNavReview[];
   openFund: (scheme: Scheme) => void;
 }
 
-export function SelectedPeers({ funds, range, requestedPeriod, openFund }: Props) {
+export function SelectedPeers({ funds, range, requestedPeriod, openFund, navReviews = [] }: Props) {
+  const reviewMetadata = navReviews.flatMap(review => [
+    ['NAV calculation basis', `Scheme ${review.schemeCode}: reviewed calculation NAV. ${navReviewSummary(review)}`],
+    ...review.events.map(event => ['Economic event evidence', `Scheme ${review.schemeCode}, ${event.date}: ${event.evidenceUrl}`]),
+  ]);
   const summary = useMemo(() => selectedPeerSummary(funds, range), [funds, range]);
   const byCode = useMemo(() => new Map(funds.map(fund => [fund.meta.schemeCode, fund])), [funds]);
   const exportPeers = () => {
     if (!summary.available) return;
     downloadCsv([
-      ['Source', 'mfapi.in NAV history; user-selected schemes'],
+      ['Source', navReviews.length ? 'MFAPI NAV history; reviewed calculation NAV supported by issuer evidence below; user-selected schemes' : 'mfapi.in NAV history; user-selected schemes'],
+      ...reviewMetadata,
       ['Universe', 'Only selected funds; not a category-wide sample or official ranking'],
       ['Selected period', requestedPeriod],
       ['Actual common NAV dates', String(summary.start) + ' to ' + String(summary.end)],

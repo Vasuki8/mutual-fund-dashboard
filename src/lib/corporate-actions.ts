@@ -1,4 +1,6 @@
 import type { FundData, NavPoint } from './types.ts';
+import { reviewedNavBasis } from './verified-nav-reviews.ts';
+import type { VerifiedNavReview } from './verified-nav-reviews.ts';
 
 /**
  * A documented 10:1 ICICI Prudential Overnight Fund unit consolidation.
@@ -53,6 +55,8 @@ export interface FinancialNavBasis {
   adjustment?: VerifiedUnitAdjustment;
   /** Multiple events are exposed separately; never collapse their date boundaries. */
   adjustments?: VerifiedUnitAdjustment[];
+  /** A separately verified source correction/economic event, never a unit factor. */
+  review?: VerifiedNavReview;
 }
 
 type ActionSpec = VerifiedUnitAdjustment & { maxFactorDeviation: number };
@@ -891,6 +895,8 @@ function adjustedForKnownActions(raw: NavPoint[], actions: ActionSpec[]): NavPoi
 
 /** Never clears independent quality evidence or partially explains a history. */
 export function financialNavBasis(fund: FundData): FinancialNavBasis {
+  const reviewed=reviewedNavBasis(fund);
+  if(reviewed)return {...reviewed,adjusted:false};
   const unchanged: FinancialNavBasis={fund,adjusted:false};
   const actions=actionsForScheme(fund);
   if (!actions.length) return unchanged;
