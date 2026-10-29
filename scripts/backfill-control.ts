@@ -4,8 +4,9 @@ import { setTimeout as sleep } from 'node:timers/promises';
 import { isDeepStrictEqual } from 'node:util';
 import { pathToFileURL } from 'node:url';
 import { createGitHubStore, readLimited, type ArchiveStore } from './archive-store.ts';
-import type { ArchiveCheckpoint, ArchiveAssetRef } from './archive-model.ts';
-import type { TrancheResult } from './github-history-v2.ts';
+import { calculateCounts, type ArchiveCheckpoint, type ArchiveAssetRef, type ArchiveSnapshot } from './archive-model.ts';
+import { hasVerifiedReconciliationProgress, type TrancheResult } from './github-history-v2.ts';
+import { isActiveRepairCandidate } from './active-repair-scope.ts';
 
 const REPOSITORY = 'Vasuki8/mutual-fund-dashboard';
 const WORKFLOW = '.github/workflows/github-history.yml';
@@ -187,6 +188,36 @@ function trancheResult(raw: unknown): TrancheResult {
     && (value.changed && Number(value.attempted) > 0 || value.reconciliationAdvanced === false), 'backfill_result_invalid');
   return value as unknown as TrancheResult;
 }
+function activeRepairCounts(result: TrancheResult, snapshot: ArchiveSnapshot, now: number): ArchiveCheckpoint['counts'] | null {
+  if (result.activeRepairProgress === undefined) return null;
+  const progress = object(result.activeRepairProgress);
+  requireValue(progress.asOf === snapshot.checkpoint.updatedAt && instant(progress.asOf) <= now,
+    'backfill_repair_progress_time_invalid');
+  const asOf = instant(progress.asOf);
+  const eligible = { ...snapshot.catalogue,
+    entries: snapshot.catalogue.entries.filter(entry => isActiveRepairCandidate(entry, asOf)) };
+  const after = calculateCounts(eligible, snapshot.checkpoint.states, asOf);
+  requireValue(isDeepStrictEqual(progress.after, after), 'backfill_repair_progress_counts_mismatch');
+  const rawBefore = object(progress.before);
+  const keys = Object.keys(after) as (keyof typeof after)[];
+  requireValue(Object.keys(rawBefore).length === keys.length && keys.every(key => typeof after[key] === 'number'
+    ? Number.isSafeInteger(rawBefore[key]) && Number(rawBefore[key]) >= 0 && Number(rawBefore[key]) <= after.total
+    : typeof rawBefore[key] === 'boolean'), 'backfill_repair_progress_invalid');
+  const before = rawBefore as unknown as typeof after;
+  requireValue(before.total === after.total && before.attempted + before.pending === before.total
+    && before.saved <= before.attempted && before.clean + before.qualityIssues === before.saved
+    && before.sourceGaps <= before.attempted && before.refreshPending <= before.saved
+    && before.bulkPassComplete === (before.total > 0 && before.attempted === before.total)
+    && before.coverageComplete === (before.total > 0 && before.saved === before.total
+      && !before.pending && !before.qualityIssues && !before.sourceGaps && !before.refreshPending)
+    && after.attempted >= before.attempted && after.attempted - before.attempted <= result.firstAttempted
+    && after.saved >= before.saved && after.saved - before.saved <= result.historiesAdded
+    && keys.every(key => typeof after[key] !== 'number'
+      || Math.abs(Number(after[key]) - Number(before[key])) <= result.attempted)
+    && result.reconciliationAdvanced === (result.attempted > 0 && hasVerifiedReconciliationProgress(before, after)),
+  'backfill_repair_progress_invalid');
+  return after;
+}
 function published(raw: unknown, checkpoint: ArchiveCheckpoint): boolean {
   try {
     const value = object(raw); const shards = object(value.shards);
@@ -204,10 +235,12 @@ export async function continueBackfill(options: Options & { context: unknown; re
   const now = options.now ?? Date.now; const wait = options.sleep ?? sleep; const log = options.log ?? (() => {});
   if (!enabled(options.env)) return { dispatched: false, reason: 'disabled' };
   const context = continuationContext(options.context, options.env, now()); const result = trancheResult(options.result);
+  let repairCounts: ArchiveCheckpoint['counts'] | null = null;
   const finish = (reason: string, childRunId?: number): Continued => {
     const dispatched = reason === 'dispatched'; log({ phase: 'backfill_continue', ...context, reason, dispatched,
       sequence: result.sequence, counts: result.counts, firstAttempted: result.firstAttempted, historiesAdded: result.historiesAdded,
       reconciliationAdvanced: result.reconciliationAdvanced,
+      ...(repairCounts ? { activeRepairCounts: repairCounts } : {}),
       ...(childRunId ? { childRunId } : {}) });
     return { dispatched, reason, ...(childRunId ? { childRunId } : {}) };
   };
@@ -219,6 +252,7 @@ export async function continueBackfill(options: Options & { context: unknown; re
   requireValue(result.sequence === checkpoint.sequence && isDeepStrictEqual(result.counts, checkpoint.counts)
     && result.sourceRetryAt === checkpoint.sourceRetryAt && result.lastCatalogueError === checkpoint.lastCatalogueError
     && checkpoint.sequence === (context.startingSequence ?? 0) + (result.changed ? 1 : 0), 'backfill_checkpoint_mismatch');
+  repairCounts = activeRepairCounts(result, snapshot, now());
   const api = transport(options); let verified = false;
   for (let attempt = 0; attempt < 6; attempt++) {
     try {
@@ -236,9 +270,11 @@ export async function continueBackfill(options: Options & { context: unknown; re
   if (inputNumber(options.env.GITHUB_RUN_ATTEMPT) > 1) return finish('recovery_attempt');
   if (context.position >= MAX_RUNS) return finish('chain_limit');
   if (!result.changed || result.attempted === 0) return finish('no_source_progress');
-  if (checkpoint.counts.pending > 0) {
-    // Preserve the first-pass rule while any catalogue identity is unattempted.
-    if (result.firstAttempted === 0 || result.historiesAdded === 0) return finish('no_first_pass_progress');
+  if ((repairCounts ?? checkpoint.counts).pending > 0) {
+    // Excluded identities remain in full totals, not the verified active queue.
+    const firstAttempted = repairCounts ? repairCounts.attempted - result.activeRepairProgress!.before.attempted : result.firstAttempted;
+    const historiesAdded = repairCounts ? repairCounts.saved - result.activeRepairProgress!.before.saved : result.historiesAdded;
+    if (firstAttempted === 0 || historiesAdded === 0) return finish('no_first_pass_progress');
   } else {
     // With the first pass finished, continue ONLY after a verified decrease
     // in unresolved quality/source/refresh counts or an increase in clean

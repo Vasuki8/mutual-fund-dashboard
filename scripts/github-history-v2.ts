@@ -203,6 +203,12 @@ export interface TrancheResult {
   historiesAdded: number;
   /** Requires verified lower issue counts or more clean histories. */
   reconciliationAdvanced: boolean;
+  /** Active-only progress uses one committed catalogue and clock for both sides. */
+  activeRepairProgress?: {
+    asOf: string;
+    before: ArchiveCheckpoint['counts'];
+    after: ArchiveCheckpoint['counts'];
+  };
   deferred: number;
   counts: ArchiveCheckpoint['counts'] | null;
   lastCatalogueError: string | null;
@@ -371,9 +377,20 @@ export async function runTranche(options: TrancheOptions): Promise<TrancheResult
   await options.store.commitCheckpoint(checkpoint, previous?.checkpoint.sequence ?? null);
   const saved = await options.store.loadSnapshot();
   if (!saved || JSON.stringify(saved.checkpoint) !== JSON.stringify(checkpoint)) throw new Error('checkpoint_readback_invalid');
+  let activeRepairProgress: TrancheResult['activeRepairProgress'];
+  if (options.activeRepairOnly) {
+    const asOf = Date.parse(checkpoint.updatedAt);
+    const eligible = { ...catalogue, entries: catalogue.entries.filter(entry => isActiveRepairCandidate(entry, asOf)) };
+    const priorStates = Object.fromEntries(eligible.entries.map(entry =>
+      [entry.schemeCode, previous?.checkpoint.states[entry.schemeCode] ?? pendingState(entry.schemeCode)]));
+    activeRepairProgress = { asOf: checkpoint.updatedAt,
+      before: calculateCounts(eligible, priorStates, asOf), after: calculateCounts(eligible, saved.checkpoint.states, asOf) };
+  }
   return { changed: true, sequence: checkpoint.sequence, attempted, firstAttempted,
     historiesAdded: checkpoint.counts.saved - (previous?.checkpoint.counts.saved ?? 0),
-    reconciliationAdvanced: attempted > 0 && hasVerifiedReconciliationProgress(previous?.checkpoint.counts, checkpoint.counts),
+    reconciliationAdvanced: attempted > 0 && hasVerifiedReconciliationProgress(
+      activeRepairProgress?.before ?? previous?.checkpoint.counts, activeRepairProgress?.after ?? checkpoint.counts),
+    ...(activeRepairProgress ? { activeRepairProgress } : {}),
     deferred: selected.length - attempted,
     counts: checkpoint.counts, lastCatalogueError: catalogueError, sourceRetryAt };
 }
