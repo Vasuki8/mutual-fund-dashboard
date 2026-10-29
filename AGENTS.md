@@ -32,6 +32,8 @@ On 27 October 2026, the owner limited discrepancy work to **active funds that po
 
 ## Change workflow
 
+On 28 October 2026, the owner requested larger batches of discrepancy fixes instead of two at a time. Investigate related fund groups in parallel and combine supported fixes into a larger reviewed batch. Keep exact per-fund evidence and full-history verification; a batch target is not a reason to include an unverified adjustment.
+
 1. Work from current GitHub `main` on a focused branch.
 2. Validate the behavior affected by the change. Documentation-only edits need a diff and link review, not a new product test suite.
 3. Review changes before merging. Report what is implemented, what is verified, and what remains pending.
