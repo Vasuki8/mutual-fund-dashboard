@@ -2,6 +2,14 @@
 
 ## Latest verified repair batch — 30 October 2026
 
+[Verified Invesco and Nippon distribution unit registrations](DISTRIBUTION_UNIT_BATCH_2026-10-30.md) adds **41 exact identities**: 33 Invesco and eight Nippon options. Primary issuer/exchange evidence and independent full-series review cover **176,110 retained observations** at checkpoint **257**. Only calculation-copy NAVs before each documented unit event are rescaled. **Zero raw flags are cleared and zero options gain consumer return eligibility.** Six approved histories retain material coverage gaps; no missing observations or distribution cashflows are reconstructed.
+
+The complete screened cohort contains **89 histories and 362,985 observations**. The other **48 identities**, with **186,875 observations**, remain unregistered because of incomplete identity chains, missing event boundaries or additional unexplained moves. Exact inclusion/exclusion evidence and the pinned offline production replay are linked from the dated report. Publication and deployment are verified separately from implementation.
+
+The previous batch's collector successor passed ancestry validation, observed normal pacing, published **checkpoint 258**, and dispatched the next bounded continuation. In the same **8,542-scheme** active cohort, refresh/reconciliation pending fell **3,367 → 3,241**. Raw quality issues remained **603**; source gaps increased **79 → 80** after one transport failure. These are the verified checkpoint-258 snapshot, not live guarantees; the buckets overlap. This success does not establish the cause of the earlier unlogged `backfill_root_invalid` failure. No further collector change was needed.
+
+## Earlier review on the same date — checkpoint 256
+
 [Verified UTI distribution unit normalization](UTI_DISTRIBUTION_UNIT_REVIEW_2026-10-30.md) adds **14 exact UTI Liquid IDCW identities** to the existing calculation-only registry. Original issuer, exchange and depository documents establish the unit factor and identity chain. Production replay and independent review verify all **53,773 retained observations** at checkpoint **256**. The supported June unit event is resolved in each calculation copy; **zero raw archive flags are cleared and zero funds gain consumer return eligibility**. The four UTI candidates with incomplete identity evidence remain unregistered.
 
 Checkpoint 256 contains **8,542** eligible active schemes, all with saved histories; **603** retain raw quality flags and **3,550** need refresh or reconciliation. Those buckets overlap. During the collector tranche, pending work in the same final eligible cohort fell by **170**. These source-collection counts are separate from the calculation-only unit normalization.

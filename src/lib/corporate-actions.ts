@@ -212,6 +212,90 @@ function actionForScheme(fund: FundData): ActionSpec | null {
     factor: 0.1, maxFactorDeviation: 0.0001,
     evidenceUrl: 'https://nsearchives.nseindia.com/content/circulars/NMF74721.zip',
   };
+  // Exact distribution identities independently tied to issuer NAV tables,
+  // current code/ISIN bindings and rename notices. The October-2013 factsheet
+  // retrospectively confirms the February-2011 Rs10 -> Rs1000 action.
+  // See docs/DISTRIBUTION_UNIT_BATCH_2026-10-30.md for per-option evidence
+  // and preserved coverage gaps; this does not account for IDCW cashflows.
+  const invescoFebruaryDistributionIdentity = ([
+    [104484,"invesco india liquid fund - regular plan - daily idcw",null,"INF205K01HN3","2011-02-27"],
+    [104725,"invesco india ultra short to short term fund - regular plan - weekly idcw","INF205K01IB6","INF205K01IA8","2011-02-28"],
+    [105025,"invesco india ultra short to short term fund - regular plan - daily idcw",null,"INF205K01HZ7","2011-02-28"],
+  ] as const).find(([code]) => code === fund.meta.schemeCode);
+  if (invescoFebruaryDistributionIdentity && fund.meta.schemeName.toLowerCase() === invescoFebruaryDistributionIdentity[1]
+    && fund.meta.fundHouse === 'Invesco Mutual Fund' && fund.meta.isinGrowth === invescoFebruaryDistributionIdentity[2]
+    && fund.meta.isinDivReinvestment === invescoFebruaryDistributionIdentity[3]) return {
+    schemeCode: fund.meta.schemeCode,
+    label: `verified 100-to-1 ${fund.meta.schemeName} unit consolidation effective at close on 25 February 2011`,
+    oldNavThrough: '2011-02-25', firstNewNavDate: invescoFebruaryDistributionIdentity[4],
+    factor: 100, maxFactorDeviation: 0.1,
+    evidenceUrl: 'https://www.invescomutualfund.com/docs/default-source/Fact-Sheet/factsheet_october_2013.pdf?sfvrsn=2502afc2_0#page=5',
+  };
+  // The May-2013 issuer factsheet records the April action and option NAVs.
+  // Keep the existing April-event tolerance and the exact observed boundary.
+  const invescoAprilDistributionIdentity = ([
+    [105190,"invesco india short term fund - regular plan - weekly idcw",null,"INF205K01UV9"],
+    [105191,"invesco india short term fund - regular plan - monthly idcw","INF205K01UO4","INF205K01UP1"],
+    [106171,"invesco india corporate bond fund - regular plan - monthly idcw","INF205K01RN2","INF205K01RO0"],
+    [106172,"invesco india corporate bond fund - regular plan - quarterly idcw","INF205K01RP7","INF205K01RQ5"],
+    [106179,"invesco india corporate bond fund - regular plan - annual idcw","INF205K01QX3","INF205K01QY1"],
+    [107471,"invesco india gilt fund - regular plan - monthly idcw",null,"INF205K01SS9"],
+    [107472,"invesco india gilt fund - regular plan - quarterly idcw","INF205K01ST7","INF205K01SU5"],
+    [107476,"invesco india gilt fund - regular plan - annual idcw","INF205K01SJ8","INF205K01SK6"],
+    [112125,"invesco india money market fund - regular plan - monthly idcw","INF205K01SE9","INF205K01SF6"],
+    [114360,"invesco india ultra short term fund - regular plan - quarterly idcw","INF205K01TP3","INF205K01TQ1"],
+    [114361,"invesco india ultra short term fund - regular plan - annual idcw","INF205K01TD9","INF205K01TE7"],
+    [114362,"invesco india ultra short term fund - regular plan - monthly idcw","INF205K01TN8","INF205K01TO6"],
+    [115515,"invesco india money market fund - regular plan - daily idcw",null,"INF205K01RU7"],
+    [116110,"invesco india short term fund - regular plan - discretionary idcw","INF205K01UL0","INF205K01UM8"],
+    [117973,"invesco india short term fund - regular plan - daily idcw",null,"INF205K01UD7"],
+    [120496,"invesco india corporate bond fund - direct plan - monthly idcw","INF205K01RG6","INF205K01RH4"],
+    [120499,"invesco india corporate bond fund - direct plan - discretionary idcw","INF205K01RD3","INF205K01RE1"],
+    [120501,"invesco india corporate bond fund - direct plan - quarterly idcw","INF205K01RI2","INF205K01RJ0"],
+    [120506,"invesco india money market fund - direct plan - daily idcw",null,"INF205K01RV5"],
+    [120508,"invesco india money market fund - direct plan - discretionary idcw","INF205K01RW3","INF205K01RX1"],
+    [120509,"invesco india money market fund - direct plan - monthly idcw","INF205K01RZ6","INF205K01SA7"],
+    [120519,"invesco india gilt fund - direct plan - annual idcw","INF205K01SL4","INF205K01SM2"],
+    [120521,"invesco india gilt fund - direct plan - monthly idcw",null,"INF205K01SO8"],
+    [120522,"invesco india gilt fund - direct plan - quarterly idcw","INF205K01SP5","INF205K01SQ3"],
+    [120542,"invesco india ultra short term fund - direct plan - monthly idcw","INF205K01TI8","INF205K01TJ6"],
+    [120543,"invesco india ultra short term fund - direct plan - annual idcw","INF205K01TF4","INF205K01TG2"],
+    [120544,"invesco india ultra short term fund - direct plan - quarterly idcw","INF205K01TK4","INF205K01TL2"],
+    [120559,"invesco india short term fund - direct plan - daily idcw",null,"INF205K01UE5"],
+    [120562,"invesco india short term fund - direct plan - weekly idcw",null,"INF205K01UK2"],
+    [120563,"invesco india short term fund - direct plan - discretionary idcw","INF205K01UF2","INF205K01UG0"],
+  ] as const).find(([code]) => code === fund.meta.schemeCode);
+  if (invescoAprilDistributionIdentity && fund.meta.schemeName.toLowerCase() === invescoAprilDistributionIdentity[1]
+    && fund.meta.fundHouse === 'Invesco Mutual Fund' && fund.meta.isinGrowth === invescoAprilDistributionIdentity[2]
+    && fund.meta.isinDivReinvestment === invescoAprilDistributionIdentity[3]) return {
+    schemeCode: fund.meta.schemeCode,
+    label: `verified 100-to-1 ${fund.meta.schemeName} unit consolidation effective at close on 18 April 2013`,
+    oldNavThrough: '2013-04-18', firstNewNavDate: '2013-04-22',
+    factor: 100, maxFactorDeviation: 0.5,
+    evidenceUrl: 'https://www.invescomutualfund.com/docs/default-source/Fact-Sheet/factsheet_may_2013.pdf?sfvrsn=0#page=5',
+  };
+  // Reliance's September-2012 report p34 separately binds the Treasury and
+  // Liquidity funds to Rs10 -> Rs1000 on 5-Aug. Current issuer/NCCL code and
+  // ISIN rows plus historical option NAVs identify only these eight options.
+  const nipponAugustDistributionIdentity = ([
+    [100838,"nippon india liquid fund - regular plan - retail plan - weekly idcw option",null,"INF204K01UK5"],
+    [100842,"nippon india liquid fund - regular plan - retail plan - daily idcw option",null,"INF204K01UJ7"],
+    [100843,"nippon india liquid fund - regular plan - retail plan - monthly idcw option","INF204K01UT6","INF204K01UU4"],
+    [100844,"nippon india liquid fund - regular plan - retail plan - quarterly idcw option","INF204K01UV2","INF204K01UW0"],
+    [100852,"nippon india liquid fund - regular plan - daily idcw option",null,"INF204K01UM1"],
+    [100853,"nippon india liquid fund - regular plan - weekly idcw option","INF204KC1FM8","INF204K01US8"],
+    [103050,"nippon india money market fund - regular plan - daily idcw option",null,"INF204K01UY6"],
+    [103051,"nippon india money market fund - regular plan - weekly idcw option",null,"INF204K01UZ3"],
+  ] as const).find(([code]) => code === fund.meta.schemeCode);
+  if (nipponAugustDistributionIdentity && fund.meta.schemeName.toLowerCase() === nipponAugustDistributionIdentity[1]
+    && fund.meta.fundHouse === 'Nippon India Mutual Fund' && fund.meta.isinGrowth === nipponAugustDistributionIdentity[2]
+    && fund.meta.isinDivReinvestment === nipponAugustDistributionIdentity[3]) return {
+    schemeCode: fund.meta.schemeCode,
+    label: `verified 100-to-1 ${fund.meta.schemeName} unit consolidation effective 5 August 2012`,
+    oldNavThrough: '2012-08-03', firstNewNavDate: '2012-08-05',
+    factor: 100, maxFactorDeviation: 0.1,
+    evidenceUrl: 'https://mf.nipponindiaim.com/InvestorServices/AnnualHalfYearlyReportsFY20122013/Half_Yearly_Portfolio_-_Financials_-_Oct-_2012_-_for_Website_upload.pdf#page=34',
+  };
   // The issuer's May-2013 factsheet documents Rs10 -> Rs1000 at close
   // on 18-Apr. Exact plan NAV anchors, code/ISIN bindings and rename
   // notices support these ten identities. Legacy 105189/112120 are separately
