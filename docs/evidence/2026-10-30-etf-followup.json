@@ -1,0 +1,688 @@
+{
+  "investigatedAt": "2026-10-30T19:20:21.066865+00:00",
+  "sourceCommit": "55ff6ad03be436189cd77dd9f627c5f756032d8b",
+  "archiveCheckpoint": 255,
+  "checkpointAt": "2026-10-30T16:27:23.820Z",
+  "sourceManifestSha256": "b95a30a2bdfc90f0f47d5f76f7364b41b025215cda6f00b70954891eebab6054",
+  "scopeReference": "Actual UTC30October2026, production isActiveRepairCandidate with exact official roster/current catalogue/positive latest NAV/date within30UTCdays. All54 tested production scope true.",
+  "counts": {
+    "activeNonGrowthNameEtfOrExchangeTradedCatalogueRows": 388,
+    "rawFlaggedNameCrossSet": 54,
+    "rawFlaggedTrueEtfs": 52,
+    "rawFlaggedIdcwFofs": 2,
+    "registeredEtfCalculationContinuityResolved": 48,
+    "trueEtfsStillNumericallyBlocked": 4,
+    "idcwFofsStillNumericallyBlocked": 2,
+    "all54ConsumerGrowthEligible": 0,
+    "observationsIn54FlaggedHistories": 121229
+  },
+  "methods": [
+    "Independently selected catalogue ETF/exchange traded names without literal Growth under strict active scope, read complete archived payloads.",
+    "Replayed production normalizeNavRecords, financialNavBasis, qualityBlocked, isGrowthScheme and isActiveRepairCandidate under Node24.22.1.",
+    "Preserved full raw archive and production source; wrote scratch investigation outputs only.",
+    "Reviewed AGENTS.md, current corporate-actions.ts, VERIFIED_UNIT_ACTIONS_BATCH_2026-10-29.md, BULK_DISCREPANCY_FINALIZATION_2026-10-29.md and retained source diagnostics.",
+    "Corrected warning completeness using authoritative full archive-document warning/rejection metadata for all six unresolved identities, cross-checked against cohort-rows.json; payload-only normalization is insufficient for retained source-quality evidence."
+  ],
+  "searchAccess": {
+    "newPrimaryEvidenceObtained": false,
+    "sourceRefs": [],
+    "attempts": [
+      {
+        "tool": "search_service_web_run",
+        "engine": "system2",
+        "queries": [
+          "site.axismf.com \"Gold ETF\" \"July 2020\" split",
+          "site.nseindia.com \"AXISGOLD\" \"2020\" \"Sub\"",
+          "site.icicipruamc.com \"Gold\" \"2018\" \"face value\""
+        ],
+        "outcome": "Immediate empty content isError:true; no pages or snippets returned."
+      },
+      {
+        "tool": "search_service_web_run",
+        "engine": "system1",
+        "queries": [
+          "site.axismf.com \"Gold ETF\" \"July 2020\"",
+          "\"AXISGOLD\" \"2020\" \"sub-division\""
+        ],
+        "outcome": "Immediate empty content isError:true; no pages or snippets returned."
+      }
+    ],
+    "subsequentRetries": 0,
+    "noAutomatedAmfiAccess": true,
+    "noProviderHistoryHarvesting": true
+  },
+  "policy": "Numerical continuity does not establish consumer total-return eligibility. All54 names remain false under unchanged literal-Growth gate; IDCW distribution records cannot be waived. No new adjustment constant is inferred from observed ratios.",
+  "sourceHashes": {
+    "scripts/active-repair-scope.ts": "1fb23e52bd92f1e7fff701307e9ebe165c7988fcd015ed97ce284dca2e9cc172",
+    "src/lib/corporate-actions.ts": "48c79e3b6bc58211effe5d801f468c3431d1705de056789d69d75b78bb44cc77",
+    "src/lib/analytics.ts": "98a93fb1002362cc705ee721b5db160574fc2aedef1ded0a0571d046dfacdebd",
+    "src/lib/storage.ts": "c5642d7c744fed709b1777e9f7b7e82387fc2f0d5ad61a795b467a2cfcb7dccd",
+    "src/lib/format.ts": "975122113ac307b08775a0202c52855269de249c47c4a90506de7f226992874e"
+  },
+  "unresolved": [
+    {
+      "code": 113076,
+      "name": "ICICI Prudential Gold ETF",
+      "isin": "INF109KC1NT3",
+      "observations": 2025,
+      "scope": true,
+      "adjusted": false,
+      "review": null,
+      "qualityBlocked": true,
+      "growth": false,
+      "warnings": [
+        "Unresolved discontinuity: 3 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "adjustments": null,
+      "category": "ETF",
+      "disposition": "Blocked: three unexplained observed moves including two long missing-observation intervals; no complete independently documented action/restoration chain.",
+      "requiredEvidence": [
+        "Exact historical NAV coverage or independently documented valid interval treatment for 2010-08-27 to 2012-08-10 and 2014-06-12 to 2018-07-03.",
+        "Dated exact-identity primary unit-action terms, historical identity chain and NAV-basis timing for each actual denomination event, including 2018-11-16 to 2018-11-19.",
+        "Evidence that calculations satisfy the existing distribution/total-return policy before any consumer eligibility change."
+      ],
+      "primaryLeads": [
+        {
+          "url": "https://www.icicipruamc.com/blob/emailmedia/mutualfund/Passive%20Factsheet%20PDF%202.pdf#page=10",
+          "status": "Existing registry evidence for different identity 144587 Nifty Next50, same2018 boundary; not independently read or treated as target Gold ETF proof in this pass."
+        },
+        {
+          "url": "https://www.icicipruamc.com/mutual-fund/nav-%26-dividend",
+          "status": "Prior source diagnostics establishes official NAV-page lead for separate identity102135; not an exact target historical observation."
+        }
+      ],
+      "latestDate": "2026-10-29",
+      "latestNav": "120.72960",
+      "isinDivReinvestment": null,
+      "rawDiscontinuities": [
+        {
+          "before": [
+            "2010-08-27",
+            1910.0778
+          ],
+          "after": [
+            "2012-08-10",
+            2933.1927
+          ],
+          "ratio": 1.5356404330755533,
+          "calendarDaysBetweenSavedObservations": 714
+        },
+        {
+          "before": [
+            "2014-06-12",
+            2580.7238
+          ],
+          "after": [
+            "2018-07-03",
+            277.6269
+          ],
+          "ratio": 0.10757714560543052,
+          "calendarDaysBetweenSavedObservations": 1482
+        },
+        {
+          "before": [
+            "2018-11-16",
+            282.212
+          ],
+          "after": [
+            "2018-11-19",
+            28.4152
+          ],
+          "ratio": 0.1006874264737148,
+          "calendarDaysBetweenSavedObservations": 3
+        }
+      ],
+      "observedRatiosAreDiagnosticOnly": true,
+      "newFixSupported": false,
+      "rawWarnings": [
+        "Unresolved discontinuity: 3 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "rejectedZeroNavDates": null,
+      "qualityGroup": "discontinuityOnly",
+      "coverageStart": "2010-08-26",
+      "coverageEnd": "2026-10-29",
+      "historyBehindCatalogue": false,
+      "remainingWarnings": [
+        "Unresolved discontinuity: 3 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "calculationBasis": "unchanged",
+      "rawDocumentSha256": "00ecb2ffa932abd5bf1adaa17073522df7168cbcebce325fd8dfb7ed0beb107b",
+      "rawFundSha256": "346135a99f999204ad59cffe1d37b32e3d1280f041598acc76f08146cae83c1f",
+      "shardPath": "archive/history-3533-07bf228dec676b3f63321a9ecbaf3017942ed0bf35d6f4e123bbd00d2fa95975.json.gz",
+      "shardSha256": "07bf228dec676b3f63321a9ecbaf3017942ed0bf35d6f4e123bbd00d2fa95975",
+      "calculationPassesQualityGate": false,
+      "literalGrowthCalculationEligible": false,
+      "distributionAdjustedTotalReturnEstablished": false,
+      "archiveMetadata": {
+        "version": 1,
+        "schemeCode": 113076,
+        "fetchedAt": "2026-10-30T08:51:49.529Z",
+        "archivedAt": "2026-10-30T08:51:49.902Z",
+        "coverageStart": "2010-08-26",
+        "coverageEnd": "2026-10-29",
+        "unresolved": true,
+        "warnings": [
+          "Unresolved discontinuity: 3 single-observation move(s) exceed 40%; derived analytics are blocked."
+        ]
+      },
+      "rejectedZeroNavDatesPresentInRawDocument": false,
+      "independentInvalidRowBlocker": false,
+      "metadataCrossCheck": "Exact raw archive document metadata and cohort-rows.json match; payload-only warnings are superseded."
+    },
+    {
+      "code": 113434,
+      "name": "Axis Gold ETF",
+      "isin": "INF846K01W80",
+      "observations": 3932,
+      "scope": true,
+      "adjusted": false,
+      "review": null,
+      "qualityBlocked": true,
+      "growth": false,
+      "warnings": [
+        "Invalid NAV observations were excluded (1); derived analytics are blocked until the data is resolved.",
+        "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked.",
+        "Existing valid observations and their successful fetch time were retained while source quality issues remain unresolved."
+      ],
+      "adjustments": null,
+      "category": "ETF",
+      "disposition": "Blocked by two independent quality conditions: retained invalid-NAV exclusion warning (1 excluded observation, date not retained), and unresolved2020-07-24 to2020-07-27 discontinuity. Event terms alone cannot unlock numerical calculations; consumer Growth/total-return eligibility remains independently unestablished.",
+      "requiredEvidence": [
+        "Identify the exact excluded invalid-observation date and issue from dated source-quality evidence. The checkpoint record contains no rejectedZeroNavDates field (reported null), so the missing date cannot be named from this archive and null does not establish that no zero NAV was rejected.",
+        "Obtain exact-identity issuer/exchange dated proof for the excluded observation: its correct NAV if it was a source error, or a separately justified dated rejection/restoration under the existing source-quality policy. Resolve the retained invalid-NAV warning independently; a July2020 unit-event notice cannot clear it.",
+        "Dated issuer/exchange unit-event terms explicitly binding Axis Gold ETF/INF846K01W80 and documented constant to the2020-07-24 to2020-07-27 NAV boundary, with independently verified NAV denomination timing.",
+        "Full-history verification after both independently supported treatments, preserving unrelated raw evidence. Existing invalid-NAV warning makes financialNavBasis reject a unit-only adjustment even if event terms are later found.",
+        "Exact distribution/total-return eligibility evidence remains required separately under the unchanged consumer policy."
+      ],
+      "primaryLeads": [
+        {
+          "url": "https://www.nseindia.com/api/corporates-corporateActions?index=mf&from_date=01-07-2020&to_date=31-07-2020",
+          "status": "Exact existing registry lead for Axis Nifty50 ETF141545, same boundary. It is not target Axis Gold proof and was not retrieved in this pass."
+        }
+      ],
+      "latestDate": "2026-10-29",
+      "latestNav": "117.40860",
+      "isinDivReinvestment": null,
+      "rawDiscontinuities": [
+        {
+          "before": [
+            "2020-07-24",
+            4450.3444
+          ],
+          "after": [
+            "2020-07-27",
+            45.6691
+          ],
+          "ratio": 0.010261924897318059,
+          "calendarDaysBetweenSavedObservations": 3
+        }
+      ],
+      "observedRatiosAreDiagnosticOnly": true,
+      "newFixSupported": false,
+      "rawWarnings": [
+        "Invalid NAV observations were excluded (1); derived analytics are blocked until the data is resolved.",
+        "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked.",
+        "Existing valid observations and their successful fetch time were retained while source quality issues remain unresolved."
+      ],
+      "rejectedZeroNavDates": null,
+      "qualityGroup": "both",
+      "coverageStart": "2010-11-16",
+      "coverageEnd": "2026-10-23",
+      "historyBehindCatalogue": true,
+      "remainingWarnings": [
+        "Invalid NAV observations were excluded (1); derived analytics are blocked until the data is resolved.",
+        "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked.",
+        "Existing valid observations and their successful fetch time were retained while source quality issues remain unresolved."
+      ],
+      "calculationBasis": "unchanged",
+      "rawDocumentSha256": "7bd7021829a6f5121c0e7cc48c788acdcbef17b0d43e72518d856bc68e1cf85b",
+      "rawFundSha256": "77cb195fa466a4a8cef0b9a7f4d75e7762245413e7f37255baf977e28cc3b657",
+      "shardPath": "archive/history-3544-29c38e76c6a40c91bce404335096a364de66b63caf301238031057ff7e99db97.json.gz",
+      "shardSha256": "29c38e76c6a40c91bce404335096a364de66b63caf301238031057ff7e99db97",
+      "calculationPassesQualityGate": false,
+      "literalGrowthCalculationEligible": false,
+      "distributionAdjustedTotalReturnEstablished": false,
+      "archiveMetadata": {
+        "version": 1,
+        "schemeCode": 113434,
+        "fetchedAt": "2026-10-22T09:32:45.309Z",
+        "archivedAt": "2026-10-25T22:30:58.281Z",
+        "coverageStart": "2010-11-16",
+        "coverageEnd": "2026-10-23",
+        "unresolved": true,
+        "warnings": [
+          "Invalid NAV observations were excluded (1); derived analytics are blocked until the data is resolved.",
+          "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked.",
+          "Existing valid observations and their successful fetch time were retained while source quality issues remain unresolved."
+        ]
+      },
+      "rejectedZeroNavDatesPresentInRawDocument": false,
+      "independentInvalidRowBlocker": true,
+      "metadataCrossCheck": "Exact raw archive document metadata and cohort-rows.json match; payload-only warnings are superseded."
+    },
+    {
+      "code": 116075,
+      "name": "Invesco India Gold ETF Fund of Fund - Regular Plan - IDCW",
+      "isin": "INF205K01FB2",
+      "observations": 3662,
+      "scope": true,
+      "adjusted": false,
+      "review": null,
+      "qualityBlocked": true,
+      "growth": false,
+      "warnings": [
+        "Unresolved discontinuity: 2 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "adjustments": null,
+      "category": "IDCW FoF",
+      "disposition": "Blocked:25Oct2019 low observation and reversal; underlying ETF series and another plan do not establish replacement NAV or distribution-adjusted return basis.",
+      "requiredEvidence": [
+        "Exact25Oct2019 issuer/exchange NAV for Regular IDCW INF205K01FB2; do not substitute Regular Growth116077.",
+        "Exact option distribution and reinvestment record/basis if eligibility is reconsidered."
+      ],
+      "primaryLeads": [
+        {
+          "url": "https://www.invescomutualfund.com/nav-idcw",
+          "status": "Prior research of Growth siblings116077/120531 returned403. No new retrieval in this pass; IDCW values differ from Growth."
+        },
+        {
+          "url": "https://invescomutualfund.com/docs/default-source/default-document-library/factsheet---october-2019.pdf?sfvrsn=0",
+          "status": "Prior research notes month-end NAV cannot establish25October target value."
+        }
+      ],
+      "latestDate": "2026-10-29",
+      "latestNav": "39.44970",
+      "isinDivReinvestment": "INF205K01FC0",
+      "rawDiscontinuities": [
+        {
+          "before": [
+            "2019-10-24",
+            11.6457
+          ],
+          "after": [
+            "2019-10-25",
+            0.188
+          ],
+          "ratio": 0.016143297526125523,
+          "calendarDaysBetweenSavedObservations": 1
+        },
+        {
+          "before": [
+            "2019-10-25",
+            0.188
+          ],
+          "after": [
+            "2019-10-29",
+            11.7746
+          ],
+          "ratio": 62.63085106382979,
+          "calendarDaysBetweenSavedObservations": 4
+        }
+      ],
+      "observedRatiosAreDiagnosticOnly": true,
+      "newFixSupported": false,
+      "rawWarnings": [
+        "Unresolved discontinuity: 2 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "rejectedZeroNavDates": null,
+      "qualityGroup": "discontinuityOnly",
+      "coverageStart": "2011-12-08",
+      "coverageEnd": "2026-10-23",
+      "historyBehindCatalogue": true,
+      "remainingWarnings": [
+        "Unresolved discontinuity: 2 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "calculationBasis": "unchanged",
+      "rawDocumentSha256": "5a7479057ec89a6ee21de3bb16e0af769fc6d7ae1e7f2cd4fc7a3b59a2372a5a",
+      "rawFundSha256": "a60bec4b770c5dbf31bee1c16e8c3658573019249c59d2a4e90c52e28f25de57",
+      "shardPath": "archive/history-3627-183a995241b554e44471accddd3dcc616cc315f5e24f21477daf93e1d598a005.json.gz",
+      "shardSha256": "183a995241b554e44471accddd3dcc616cc315f5e24f21477daf93e1d598a005",
+      "calculationPassesQualityGate": false,
+      "literalGrowthCalculationEligible": false,
+      "distributionAdjustedTotalReturnEstablished": false,
+      "archiveMetadata": {
+        "version": 1,
+        "schemeCode": 116075,
+        "fetchedAt": "2026-10-26T00:42:28.769Z",
+        "archivedAt": "2026-10-26T00:42:29.048Z",
+        "coverageStart": "2011-12-08",
+        "coverageEnd": "2026-10-23",
+        "unresolved": true,
+        "warnings": [
+          "Unresolved discontinuity: 2 single-observation move(s) exceed 40%; derived analytics are blocked."
+        ]
+      },
+      "rejectedZeroNavDatesPresentInRawDocument": false,
+      "independentInvalidRowBlocker": false,
+      "metadataCrossCheck": "Exact raw archive document metadata and cohort-rows.json match; payload-only warnings are superseded."
+    },
+    {
+      "code": 120530,
+      "name": "Invesco India Gold ETF Fund of Fund - Direct Plan - IDCW",
+      "isin": "INF205K01NH3",
+      "observations": 3399,
+      "scope": true,
+      "adjusted": false,
+      "review": null,
+      "qualityBlocked": true,
+      "growth": false,
+      "warnings": [
+        "Unresolved discontinuity: 2 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "adjustments": null,
+      "category": "IDCW FoF",
+      "disposition": "Blocked:25Oct2019 low observation and reversal; neither underlying ETF nor sibling plan establishes replacement NAV or distribution-adjusted return basis.",
+      "requiredEvidence": [
+        "Exact25Oct2019 issuer/exchange NAV for Direct IDCW INF205K01NH3; do not substitute Direct Growth120531.",
+        "Exact option distribution and reinvestment record/basis if eligibility is reconsidered."
+      ],
+      "primaryLeads": [
+        {
+          "url": "https://www.invescomutualfund.com/nav-idcw",
+          "status": "Prior research of Growth siblings116077/120531 returned403. No new retrieval in this pass; IDCW values differ from Growth."
+        },
+        {
+          "url": "https://invescomutualfund.com/docs/default-source/default-document-library/factsheet---october-2019.pdf?sfvrsn=0",
+          "status": "Prior research notes month-end NAV cannot establish25October target value."
+        }
+      ],
+      "latestDate": "2026-10-29",
+      "latestNav": "41.07360",
+      "isinDivReinvestment": "INF205K01NI1",
+      "rawDiscontinuities": [
+        {
+          "before": [
+            "2019-10-24",
+            11.8468
+          ],
+          "after": [
+            "2019-10-25",
+            0.1913
+          ],
+          "ratio": 0.016147820508491745,
+          "calendarDaysBetweenSavedObservations": 1
+        },
+        {
+          "before": [
+            "2019-10-25",
+            0.1913
+          ],
+          "after": [
+            "2019-10-29",
+            11.9786
+          ],
+          "ratio": 62.616832200731835,
+          "calendarDaysBetweenSavedObservations": 4
+        }
+      ],
+      "observedRatiosAreDiagnosticOnly": true,
+      "newFixSupported": false,
+      "rawWarnings": [
+        "Unresolved discontinuity: 2 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "rejectedZeroNavDates": null,
+      "qualityGroup": "discontinuityOnly",
+      "coverageStart": "2013-01-02",
+      "coverageEnd": "2026-10-26",
+      "historyBehindCatalogue": true,
+      "remainingWarnings": [
+        "Unresolved discontinuity: 2 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "calculationBasis": "unchanged",
+      "rawDocumentSha256": "8f05aebea13651241d82a5d7e0f9ac6702b7d5bcda7c9a2cac845a29456f5c38",
+      "rawFundSha256": "ab807e3e74c44d7a9edca7ba8be4dc7bb2b0ba76cbb7b39396d54f367d334c6c",
+      "shardPath": "archive/history-3766-be565b5a88c963e9313a2b6e1fa4fb4f061399e562eb83a6df9e4aae4800dfae.json.gz",
+      "shardSha256": "be565b5a88c963e9313a2b6e1fa4fb4f061399e562eb83a6df9e4aae4800dfae",
+      "calculationPassesQualityGate": false,
+      "literalGrowthCalculationEligible": false,
+      "distributionAdjustedTotalReturnEstablished": false,
+      "archiveMetadata": {
+        "version": 1,
+        "schemeCode": 120530,
+        "fetchedAt": "2026-10-27T17:43:56.894Z",
+        "archivedAt": "2026-10-27T17:44:12.893Z",
+        "coverageStart": "2013-01-02",
+        "coverageEnd": "2026-10-26",
+        "unresolved": true,
+        "warnings": [
+          "Unresolved discontinuity: 2 single-observation move(s) exceed 40%; derived analytics are blocked."
+        ]
+      },
+      "rejectedZeroNavDatesPresentInRawDocument": false,
+      "independentInvalidRowBlocker": false,
+      "metadataCrossCheck": "Exact raw archive document metadata and cohort-rows.json match; payload-only warnings are superseded."
+    },
+    {
+      "code": 121366,
+      "name": "ICICI Prudential Nifty 50 ETF",
+      "isin": "INF109K012R6",
+      "observations": 2050,
+      "scope": true,
+      "adjusted": false,
+      "review": null,
+      "qualityBlocked": true,
+      "growth": false,
+      "warnings": [
+        "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "adjustments": null,
+      "category": "ETF",
+      "disposition": "Blocked: 2014-06-12 to2018-07-03 raw observed gap; an accumulated market move across4years is not evidence of a unit event.",
+      "requiredEvidence": [
+        "Independent issuer/exchange target series to restore missing observations or substantiate a separately reviewed treatment of the saved multi-year gap.",
+        "Exact option/code/ISIN identity and any predecessor naming chain.",
+        "Consumer eligibility requires existing Growth/distribution policy evidence."
+      ],
+      "primaryLeads": [
+        {
+          "url": "https://www.icicipruamc.com/mutual-fund/nav-%26-dividend",
+          "status": "Official historical NAV lead established in prior diagnostics for separate identity; no target data retrieved."
+        }
+      ],
+      "latestDate": "2026-10-29",
+      "latestNav": "260.37890",
+      "isinDivReinvestment": null,
+      "rawDiscontinuities": [
+        {
+          "before": [
+            "2014-06-12",
+            77.7062
+          ],
+          "after": [
+            "2018-07-03",
+            110.7245
+          ],
+          "ratio": 1.4249120404806825,
+          "calendarDaysBetweenSavedObservations": 1482
+        }
+      ],
+      "observedRatiosAreDiagnosticOnly": true,
+      "newFixSupported": false,
+      "rawWarnings": [
+        "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "rejectedZeroNavDates": null,
+      "qualityGroup": "discontinuityOnly",
+      "coverageStart": "2014-06-12",
+      "coverageEnd": "2026-10-23",
+      "historyBehindCatalogue": true,
+      "remainingWarnings": [
+        "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "calculationBasis": "unchanged",
+      "rawDocumentSha256": "05720b9983b9bc5ce87e9604ce0f37443598b71cecd413ea753ed8cdd5281f23",
+      "rawFundSha256": "c3e1235086c334b82b0543c56388085f0eb9f76fabd5fa53af38b151bc1e1899",
+      "shardPath": "archive/history-3792-151f5fa76b929689f30d319e8f8d96bc8bf845e5baf51ad803ca7cb2194bbdeb.json.gz",
+      "shardSha256": "151f5fa76b929689f30d319e8f8d96bc8bf845e5baf51ad803ca7cb2194bbdeb",
+      "calculationPassesQualityGate": false,
+      "literalGrowthCalculationEligible": false,
+      "distributionAdjustedTotalReturnEstablished": false,
+      "archiveMetadata": {
+        "version": 1,
+        "schemeCode": 121366,
+        "fetchedAt": "2026-10-26T05:29:03.615Z",
+        "archivedAt": "2026-10-26T05:29:03.904Z",
+        "coverageStart": "2014-06-12",
+        "coverageEnd": "2026-10-23",
+        "unresolved": true,
+        "warnings": [
+          "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked."
+        ]
+      },
+      "rejectedZeroNavDatesPresentInRawDocument": false,
+      "independentInvalidRowBlocker": false,
+      "metadataCrossCheck": "Exact raw archive document metadata and cohort-rows.json match; payload-only warnings are superseded."
+    },
+    {
+      "code": 123004,
+      "name": "ICICI Prudential Nifty 100 ETF",
+      "isin": "INF109KC16V9",
+      "observations": 2051,
+      "scope": true,
+      "adjusted": false,
+      "review": null,
+      "qualityBlocked": true,
+      "growth": false,
+      "warnings": [
+        "Unresolved discontinuity: 2 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "adjustments": null,
+      "category": "ETF",
+      "disposition": "Blocked: multi-year raw observed gap plus May2024 split-like boundary; existing other-ETF registry action does not resolve complete target series.",
+      "requiredEvidence": [
+        "Independent target NAV observations or reviewed justified interval treatment for2014-06-12 to2018-07-03.",
+        "Exact target identity primary terms and NAV timing for2024-05-10 to2024-05-13.",
+        "Distribution/total-return eligibility remains separate."
+      ],
+      "primaryLeads": [
+        {
+          "url": "https://nsearchives.nseindia.com/content/circulars/CML61766.pdf#page=1",
+          "status": "Existing registered primary source for several other ICICI ETFs at May2024 boundary; target123004 absent from registry. Not independently retrieved or claimed to bind target in this pass."
+        }
+      ],
+      "latestDate": "2026-10-29",
+      "latestNav": "26.69010",
+      "isinDivReinvestment": null,
+      "rawDiscontinuities": [
+        {
+          "before": [
+            "2014-06-12",
+            77.5025
+          ],
+          "after": [
+            "2018-07-03",
+            115.6703
+          ],
+          "ratio": 1.4924718557465888,
+          "calendarDaysBetweenSavedObservations": 1482
+        },
+        {
+          "before": [
+            "2024-05-10",
+            251.708
+          ],
+          "after": [
+            "2024-05-13",
+            25.2216
+          ],
+          "ratio": 0.10020182115784956,
+          "calendarDaysBetweenSavedObservations": 3
+        }
+      ],
+      "observedRatiosAreDiagnosticOnly": true,
+      "newFixSupported": false,
+      "rawWarnings": [
+        "Unresolved discontinuity: 2 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "rejectedZeroNavDates": null,
+      "qualityGroup": "discontinuityOnly",
+      "coverageStart": "2014-06-12",
+      "coverageEnd": "2026-10-26",
+      "historyBehindCatalogue": true,
+      "remainingWarnings": [
+        "Unresolved discontinuity: 2 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "calculationBasis": "unchanged",
+      "rawDocumentSha256": "14fd61e1aa037fcc0bfabb2345a8c7aef00c7f512e00ac46081405d2439116aa",
+      "rawFundSha256": "0093e1b6f25bea843bfcbb643587e596530660da468784a08102b2ee6a06adf8",
+      "shardPath": "archive/history-3843-3d42924b08a46e5a0b77a7306e4a29848e4ce550f001b652696e9c99439867e3.json.gz",
+      "shardSha256": "3d42924b08a46e5a0b77a7306e4a29848e4ce550f001b652696e9c99439867e3",
+      "calculationPassesQualityGate": false,
+      "literalGrowthCalculationEligible": false,
+      "distributionAdjustedTotalReturnEstablished": false,
+      "archiveMetadata": {
+        "version": 1,
+        "schemeCode": 123004,
+        "fetchedAt": "2026-10-27T18:19:01.271Z",
+        "archivedAt": "2026-10-27T18:19:03.371Z",
+        "coverageStart": "2014-06-12",
+        "coverageEnd": "2026-10-26",
+        "unresolved": true,
+        "warnings": [
+          "Unresolved discontinuity: 2 single-observation move(s) exceed 40%; derived analytics are blocked."
+        ]
+      },
+      "rejectedZeroNavDatesPresentInRawDocument": false,
+      "independentInvalidRowBlocker": false,
+      "metadataCrossCheck": "Exact raw archive document metadata and cohort-rows.json match; payload-only warnings are superseded."
+    }
+  ],
+  "previousResearchReference": "docs/evidence/2026-10-29-bulk-finalization-source-diagnostics.json otherMultipleJumpResearch concerns Growth siblings116077/120531; do not conflate with IDCW116075/120530. docs/BULK_DISCREPANCY_FINALIZATION_2026-10-29.md states four unresolved ETF jump cases retain separate policy/evidence status.",
+  "newFixSupported": false,
+  "correctionNote": "Independent review found that the initial payload-only ETF preview omitted authoritative archive-document warnings for Axis113434. Corrected this evidence record against all six full raw archive documents and cohort-rows.json; Axis has an independent invalid-row blocker plus retained-valid-observations provenance. Other five raw warning sets are unchanged. No new repair is supported.",
+  "warningMetadataVerification": {
+    "checkedAt": "2026-10-30T19:25:21.281969+00:00",
+    "cohortRowsSha256": "34ba0d6e06df8c3ffdc45fef49e1120c9e8adf7186a8820fad4b84db38daeaf2",
+    "allSixCrossChecksPassed": true,
+    "checks": [
+      {
+        "code": 113076,
+        "rawWarningCount": 1,
+        "rejectedZeroNavDates": null,
+        "independentInvalidRowBlocker": false,
+        "exactWarningsMatchRawDocument": true,
+        "exactWarningsMatchCohortRows": true
+      },
+      {
+        "code": 113434,
+        "rawWarningCount": 3,
+        "rejectedZeroNavDates": null,
+        "independentInvalidRowBlocker": true,
+        "exactWarningsMatchRawDocument": true,
+        "exactWarningsMatchCohortRows": true
+      },
+      {
+        "code": 116075,
+        "rawWarningCount": 1,
+        "rejectedZeroNavDates": null,
+        "independentInvalidRowBlocker": false,
+        "exactWarningsMatchRawDocument": true,
+        "exactWarningsMatchCohortRows": true
+      },
+      {
+        "code": 120530,
+        "rawWarningCount": 1,
+        "rejectedZeroNavDates": null,
+        "independentInvalidRowBlocker": false,
+        "exactWarningsMatchRawDocument": true,
+        "exactWarningsMatchCohortRows": true
+      },
+      {
+        "code": 121366,
+        "rawWarningCount": 1,
+        "rejectedZeroNavDates": null,
+        "independentInvalidRowBlocker": false,
+        "exactWarningsMatchRawDocument": true,
+        "exactWarningsMatchCohortRows": true
+      },
+      {
+        "code": 123004,
+        "rawWarningCount": 1,
+        "rejectedZeroNavDates": null,
+        "independentInvalidRowBlocker": false,
+        "exactWarningsMatchRawDocument": true,
+        "exactWarningsMatchCohortRows": true
+      }
+    ]
+  }
+}

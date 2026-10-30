@@ -1,0 +1,295 @@
+{
+  "schemaVersion": 1,
+  "repository": "Vasuki8/mutual-fund-dashboard",
+  "observedAtUtc": "2026-10-30 19:18:46 UTC",
+  "scope": "Operational verification of failed continuation only; no collector or publication rerun and no code changes.",
+  "codeSha": "55ff6ad03be436189cd77dd9f627c5f756032d8b",
+  "original": {
+    "runId": 41088053495,
+    "runAttempt": 1,
+    "chainRootRunId": 41079535789,
+    "chainPosition": 5,
+    "chainLimit": 12,
+    "createdAtUtc": "2026-10-30T16:14:28Z",
+    "completedAtUtc": "2026-10-30T16:32:55Z",
+    "status": "completed",
+    "conclusion": "failure",
+    "archiveJobId": 124174354931,
+    "buildJobId": 124181311682,
+    "deployJobId": 124183514030,
+    "continueJobId": 124183622894,
+    "successfulJobs": [
+      "archive",
+      "publish / build",
+      "publish / deploy"
+    ],
+    "failedJob": "continue",
+    "events": [
+      {
+        "loggedAtUtc": "2026-10-30T16:25:39.1459916Z",
+        "event": {
+          "phase": "repair_scope",
+          "navRecencyDays": 30,
+          "asOfDate": "2026-10-30",
+          "manualRosterDate": "2026-10-26",
+          "eligibleSchemes": 8544,
+          "excludedSchemes": 29482,
+          "selectedSchemes": 212
+        }
+      },
+      {
+        "loggedAtUtc": "2026-10-30T16:27:28.8699448Z",
+        "event": {
+          "phase": "verified",
+          "changed": true,
+          "sequence": 255,
+          "attempted": 212,
+          "firstAttempted": 0,
+          "historiesAdded": 0,
+          "reconciliationAdvanced": true,
+          "activeRepairProgress": {
+            "asOf": "2026-10-30T16:27:23.820Z",
+            "before": {
+              "total": 8544,
+              "attempted": 8544,
+              "saved": 8544,
+              "clean": 7941,
+              "qualityIssues": 603,
+              "sourceGaps": 76,
+              "pending": 0,
+              "refreshPending": 3843,
+              "bulkPassComplete": true,
+              "coverageComplete": false
+            },
+            "after": {
+              "total": 8544,
+              "attempted": 8544,
+              "saved": 8544,
+              "clean": 7941,
+              "qualityIssues": 603,
+              "sourceGaps": 75,
+              "pending": 0,
+              "refreshPending": 3648,
+              "bulkPassComplete": true,
+              "coverageComplete": false
+            }
+          },
+          "deferred": 0,
+          "counts": {
+            "total": 38026,
+            "attempted": 38018,
+            "saved": 37400,
+            "clean": 33878,
+            "qualityIssues": 3522,
+            "sourceGaps": 695,
+            "pending": 8,
+            "refreshPending": 30093,
+            "bulkPassComplete": false,
+            "coverageComplete": false
+          },
+          "lastCatalogueError": null,
+          "sourceRetryAt": null
+        }
+      },
+      {
+        "loggedAtUtc": "2026-10-30T16:32:52.8859874Z",
+        "event": {
+          "phase": "backfill_failed",
+          "error": "published_checkpoint_not_verified"
+        }
+      }
+    ]
+  },
+  "recovery": {
+    "runId": 41088053495,
+    "runAttempt": 2,
+    "status": "completed",
+    "conclusion": "success",
+    "completedAtUtc": "2026-10-30T19:17:53Z",
+    "headSha": "55ff6ad03be436189cd77dd9f627c5f756032d8b",
+    "job": {
+      "id": 124263566727,
+      "startedAtUtc": "2026-10-30T19:17:43Z",
+      "completedAtUtc": "2026-10-30T19:17:52Z",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    "events": [
+      {
+        "loggedAtUtc": "2026-10-30T19:17:50.4423836Z",
+        "event": {
+          "phase": "backfill_publication_verified",
+          "rootRunId": "41079535789",
+          "parentRunId": "41085358506",
+          "position": 5,
+          "deadline": "2026-10-30T19:18:49.000Z",
+          "runId": "41088053495",
+          "runAttempt": 1,
+          "startingSequence": 254,
+          "sequence": 255,
+          "checkpointAt": "2026-10-30T16:27:23.820Z",
+          "counts": {
+            "total": 38026,
+            "attempted": 38018,
+            "saved": 37400,
+            "clean": 33878,
+            "qualityIssues": 3522,
+            "sourceGaps": 695,
+            "pending": 8,
+            "refreshPending": 30093,
+            "bulkPassComplete": false,
+            "coverageComplete": false
+          }
+        }
+      },
+      {
+        "loggedAtUtc": "2026-10-30T19:17:50.4426984Z",
+        "event": {
+          "phase": "backfill_continue",
+          "rootRunId": "41079535789",
+          "parentRunId": "41085358506",
+          "position": 5,
+          "deadline": "2026-10-30T19:18:49.000Z",
+          "runId": "41088053495",
+          "runAttempt": 1,
+          "startingSequence": 254,
+          "reason": "recovery_attempt",
+          "dispatched": false,
+          "sequence": 255,
+          "counts": {
+            "total": 38026,
+            "attempted": 38018,
+            "saved": 37400,
+            "clean": 33878,
+            "qualityIssues": 3522,
+            "sourceGaps": 695,
+            "pending": 8,
+            "refreshPending": 30093,
+            "bulkPassComplete": false,
+            "coverageComplete": false
+          },
+          "firstAttempted": 0,
+          "historiesAdded": 0,
+          "reconciliationAdvanced": true,
+          "activeRepairCounts": {
+            "total": 8544,
+            "attempted": 8544,
+            "saved": 8544,
+            "clean": 7941,
+            "qualityIssues": 603,
+            "sourceGaps": 75,
+            "pending": 0,
+            "refreshPending": 3648,
+            "bulkPassComplete": true,
+            "coverageComplete": false
+          }
+        }
+      }
+    ],
+    "contextRunAttemptNote": "Recovery events retain runAttempt=1 from the original serialized BACKFILL_CONTEXT. The REST workflow attempt is 2; the controller uses current GITHUB_RUN_ATTEMPT for its recovery guard.",
+    "noSuccessorDispatched": true,
+    "noCollectionOrArchiveMutation": true,
+    "noPublicationRerun": true,
+    "guardEvidence": "scripts/backfill-control.ts: continueBackfill reads and validates the snapshot and exact public publication, then returns reason recovery_attempt when current GITHUB_RUN_ATTEMPT>1 before the successor POST. Its supplied store exposes loadSnapshot only.",
+    "inheritedJobsNote": "Attempt-2 jobs list includes successful archive/build/deploy results with new job IDs but their original 16:14–16:31 timestamps; only continue has new 19:17 timestamps."
+  },
+  "checkpoint": {
+    "sequence": 255,
+    "checkpointAtUtc": "2026-10-30T16:27:23.820Z",
+    "controlReleaseUpdatedAtUtc": "2026-10-30T16:27:27Z",
+    "asset": {
+      "id": 692693963,
+      "releaseTag": "fundscope-mfapi-v2-data-000005",
+      "name": "checkpoint-56b17af2584548489026086be112213e7a202f85a75c10bfd170be8b0514794b.json.gz",
+      "url": "https://github.com/Vasuki8/mutual-fund-dashboard/releases/download/fundscope-mfapi-v2-data-000005/checkpoint-56b17af2584548489026086be112213e7a202f85a75c10bfd170be8b0514794b.json.gz",
+      "sha256": "56b17af2584548489026086be112213e7a202f85a75c10bfd170be8b0514794b",
+      "bytes": 979845,
+      "expandedBytes": 13947680
+    }
+  },
+  "artifact": {
+    "artifactId": 12993856840,
+    "name": "github-pages-41088053495-1",
+    "localManifest": "audit-input/checkpoint-255/archive/manifest.json",
+    "sequence": 255,
+    "checkpointAtUtc": "2026-10-30T16:27:23.820Z",
+    "generatedAtUtc": "2026-10-30T16:28:16.009Z",
+    "manifestBytes": 370777,
+    "shardCount": 1615,
+    "verifiedReferenceCount": 1616,
+    "integrityFailures": 0,
+    "verificationMethod": "Read extracted manifest; for catalogue and each of 1615 shard references read artifact file, compare compressed length and SHA-256 against manifest, gzip-decompress and compare expanded length. All match. Manifest is below controller 4MiB JSON limit. Scalar publication fields and counts match the original verified event. Publisher publicRef shape exactly matches controller predicate.",
+    "limitation": "Release checkpoint JSON was not independently downloaded/decompressed during this local check; reference integrity was checked against extracted deployment manifest. Successful recovery independently verified the public manifest against the saved checkpoint using the production predicate.",
+    "deploymentReportedSuccessAtUtc": "2026-10-30T16:31:52.6797985Z",
+    "environmentUrl": "https://vasuki8.github.io/mutual-fund-dashboard/"
+  },
+  "activeRepairScope": {
+    "navRecencyDays": 30,
+    "eligibleSchemes": 8544,
+    "excludedSchemes": 29482
+  },
+  "activeCountsBeforeOriginalTranche": {
+    "total": 8544,
+    "attempted": 8544,
+    "saved": 8544,
+    "clean": 7941,
+    "qualityIssues": 603,
+    "sourceGaps": 76,
+    "pending": 0,
+    "refreshPending": 3843,
+    "bulkPassComplete": true,
+    "coverageComplete": false
+  },
+  "activeCountsAfterOriginalTranche": {
+    "total": 8544,
+    "attempted": 8544,
+    "saved": 8544,
+    "clean": 7941,
+    "qualityIssues": 603,
+    "sourceGaps": 75,
+    "pending": 0,
+    "refreshPending": 3648,
+    "bulkPassComplete": true,
+    "coverageComplete": false
+  },
+  "activeCountsAfterRecovery": {
+    "total": 8544,
+    "attempted": 8544,
+    "saved": 8544,
+    "clean": 7941,
+    "qualityIssues": 603,
+    "sourceGaps": 75,
+    "pending": 0,
+    "refreshPending": 3648,
+    "bulkPassComplete": true,
+    "coverageComplete": false
+  },
+  "currentQueue": {
+    "observedAtUtc": "2026-10-30 19:18:46 UTC",
+    "inProgress": 0,
+    "queued": 0,
+    "scope": "Repository-wide Actions API results."
+  },
+  "conclusion": {
+    "established": "Exact checkpoint255 public publication verifies on attempt2 with unchanged code and counts. Failed-only recovery succeeds and deliberately dispatches no successor. Original publication verification failure is transient at this level of observation.",
+    "notEstablished": "Original attempt logs omit per-request HTTP status, transport/parse errors and predicate mismatch fields. Pages propagation, caching, HTTP/transport failure and other transient read causes cannot be distinguished retrospectively.",
+    "changeDecision": "No predicate, retry count, timeout, scope or budget change justified by available evidence."
+  },
+  "sources": {
+    "run": "https://github.com/Vasuki8/mutual-fund-dashboard/actions/runs/41088053495",
+    "attempt1": "https://github.com/Vasuki8/mutual-fund-dashboard/actions/runs/41088053495/attempts/1",
+    "attempt2": "https://github.com/Vasuki8/mutual-fund-dashboard/actions/runs/41088053495/attempts/2",
+    "originalArchiveJob": "https://github.com/Vasuki8/mutual-fund-dashboard/actions/runs/41088053495/job/124174354931",
+    "originalContinueJob": "https://github.com/Vasuki8/mutual-fund-dashboard/actions/runs/41088053495/job/124183622894",
+    "recoveryContinueJob": "https://github.com/Vasuki8/mutual-fund-dashboard/actions/runs/41088053495/job/124263566727",
+    "deployJob": "https://github.com/Vasuki8/mutual-fund-dashboard/actions/runs/41088053495/job/124183514030",
+    "controlRelease": "https://github.com/Vasuki8/mutual-fund-dashboard/releases/tag/fundscope-mfapi-history-v2",
+    "checkpointAsset": "https://github.com/Vasuki8/mutual-fund-dashboard/releases/download/fundscope-mfapi-v2-data-000005/checkpoint-56b17af2584548489026086be112213e7a202f85a75c10bfd170be8b0514794b.json.gz",
+    "publicManifest": "https://vasuki8.github.io/mutual-fund-dashboard/archive/manifest.json",
+    "controller": "https://github.com/Vasuki8/mutual-fund-dashboard/blob/55ff6ad03be436189cd77dd9f627c5f756032d8b/scripts/backfill-control.ts",
+    "publisher": "https://github.com/Vasuki8/mutual-fund-dashboard/blob/55ff6ad03be436189cd77dd9f627c5f756032d8b/scripts/publish-archive.ts",
+    "controllerTests": "https://github.com/Vasuki8/mutual-fund-dashboard/blob/55ff6ad03be436189cd77dd9f627c5f756032d8b/tests/backfill-control.test.ts",
+    "inProgress": "https://api.github.com/repos/Vasuki8/mutual-fund-dashboard/actions/runs?status=in_progress&per_page=100",
+    "queued": "https://api.github.com/repos/Vasuki8/mutual-fund-dashboard/actions/runs?status=queued&per_page=100"
+  }
+}
