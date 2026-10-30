@@ -1,0 +1,309 @@
+{
+  "version": 1,
+  "historicalOperationalSnapshot": true,
+  "sourceRunUrl": "https://github.com/Vasuki8/mutual-fund-dashboard/actions/runs/41142515461",
+  "collectionIndependentOfUnitNormalization": true,
+  "run": {
+    "id": 41142515461,
+    "status": "completed",
+    "conclusion": "success",
+    "head_sha": "8bdc157c8ba985772dd7723c118f77ffcdf936ec",
+    "updated_at": "2026-10-30T23:25:39Z"
+  },
+  "jobs": [
+    {
+      "id": 124359927171,
+      "name": "archive",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-30T23:07:33Z",
+      "completed_at": "2026-10-30T23:21:36Z"
+    },
+    {
+      "id": 124364668110,
+      "name": "publish / build",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-30T23:21:39Z",
+      "completed_at": "2026-10-30T23:24:53Z"
+    },
+    {
+      "id": 124365728325,
+      "name": "publish / deploy",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-30T23:24:57Z",
+      "completed_at": "2026-10-30T23:25:06Z"
+    },
+    {
+      "id": 124365798432,
+      "name": "continue",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-30T23:25:08Z",
+      "completed_at": "2026-10-30T23:25:38Z"
+    }
+  ],
+  "archiveEvents": [
+    {
+      "time": "2026-10-30T23:07:40.5805114Z",
+      "phase": "backfill_current_run_status",
+      "runId": "41142515461",
+      "runAttempt": 1,
+      "apiStatus": "in_progress",
+      "apiConclusion": null
+    },
+    {
+      "time": "2026-10-30T23:07:40.7367996Z",
+      "phase": "backfill_ancestor_observed",
+      "runId": "41142515461",
+      "ancestorId": "41141818678",
+      "role": "root",
+      "expectedTitle": "FundScope archive \u00b7 41141818678 \u00b7 1/12",
+      "observedTitle": "FundScope archive \u00b7 41141818678 \u00b7 1/12",
+      "runAttempt": 1,
+      "event": "push",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "time": "2026-10-30T23:07:41.8066590Z",
+      "phase": "backfill_wait",
+      "rootRunId": "41141818678",
+      "parentRunId": "41141818678",
+      "position": 2,
+      "deadline": "2026-10-31T03:00:59.000Z",
+      "runId": "41142515461",
+      "runAttempt": 1,
+      "startingSequence": 257,
+      "wakeAt": "2026-10-30T23:19:15.628Z"
+    },
+    {
+      "time": "2026-10-30T23:19:16.7505448Z",
+      "phase": "backfill_prepare",
+      "rootRunId": "41141818678",
+      "parentRunId": "41141818678",
+      "position": 2,
+      "deadline": "2026-10-31T03:00:59.000Z",
+      "runId": "41142515461",
+      "runAttempt": 1,
+      "startingSequence": 257,
+      "collect": true,
+      "reason": "ready"
+    },
+    {
+      "time": "2026-10-30T23:19:18.1905918Z",
+      "phase": "repair_scope",
+      "navRecencyDays": 30,
+      "asOfDate": "2026-10-30",
+      "manualRosterDate": "2026-10-26",
+      "eligibleSchemes": 8542,
+      "excludedSchemes": 29484,
+      "selectedSchemes": 135
+    },
+    {
+      "time": "2026-10-30T23:20:56.4203150Z",
+      "phase": "scheme",
+      "code": 120822,
+      "outcome": "failed",
+      "error": "source_transport"
+    },
+    {
+      "time": "2026-10-30T23:21:05.7085186Z",
+      "phase": "scheme",
+      "code": 120785,
+      "outcome": "quality",
+      "observations": 3884
+    },
+    {
+      "time": "2026-10-30T23:21:05.8237616Z",
+      "phase": "scheme",
+      "code": 120777,
+      "outcome": "quality",
+      "observations": 4504
+    },
+    {
+      "time": "2026-10-30T23:21:06.1509298Z",
+      "phase": "scheme",
+      "code": 120786,
+      "outcome": "quality",
+      "observations": 3870
+    },
+    {
+      "time": "2026-10-30T23:21:06.4870240Z",
+      "phase": "scheme",
+      "code": 120794,
+      "outcome": "quality",
+      "observations": 4531
+    },
+    {
+      "time": "2026-10-30T23:21:06.5547839Z",
+      "phase": "scheme",
+      "code": 120821,
+      "outcome": "quality",
+      "observations": 3399
+    },
+    {
+      "time": "2026-10-30T23:21:06.9389470Z",
+      "phase": "scheme",
+      "code": 120826,
+      "outcome": "quality",
+      "observations": 3406
+    },
+    {
+      "time": "2026-10-30T23:21:07.2515765Z",
+      "phase": "scheme",
+      "code": 120825,
+      "outcome": "quality",
+      "observations": 3406
+    },
+    {
+      "time": "2026-10-30T23:21:07.6326170Z",
+      "phase": "scheme",
+      "code": 120827,
+      "outcome": "quality",
+      "observations": 3402
+    },
+    {
+      "time": "2026-10-30T23:21:34.1993206Z",
+      "phase": "verified",
+      "changed": true,
+      "sequence": 258,
+      "attempted": 135,
+      "firstAttempted": 0,
+      "historiesAdded": 0,
+      "reconciliationAdvanced": true,
+      "activeRepairProgress": {
+        "asOf": "2026-10-30T23:21:29.294Z",
+        "before": {
+          "total": 8542,
+          "attempted": 8542,
+          "saved": 8542,
+          "clean": 7939,
+          "qualityIssues": 603,
+          "sourceGaps": 79,
+          "pending": 0,
+          "refreshPending": 3367,
+          "bulkPassComplete": true,
+          "coverageComplete": false
+        },
+        "after": {
+          "total": 8542,
+          "attempted": 8542,
+          "saved": 8542,
+          "clean": 7939,
+          "qualityIssues": 603,
+          "sourceGaps": 80,
+          "pending": 0,
+          "refreshPending": 3241,
+          "bulkPassComplete": true,
+          "coverageComplete": false
+        }
+      },
+      "deferred": 0,
+      "counts": {
+        "total": 38026,
+        "attempted": 38018,
+        "saved": 37400,
+        "clean": 33878,
+        "qualityIssues": 3522,
+        "sourceGaps": 700,
+        "pending": 8,
+        "refreshPending": 32099,
+        "bulkPassComplete": false,
+        "coverageComplete": false
+      },
+      "lastCatalogueError": null,
+      "sourceRetryAt": null
+    }
+  ],
+  "schemeSummary": {
+    "saved": 126,
+    "failed": 1,
+    "quality": 8
+  },
+  "continuationEvents": [
+    {
+      "time": "2026-10-30T23:25:34.7878744Z",
+      "phase": "backfill_publication_verified",
+      "rootRunId": "41141818678",
+      "parentRunId": "41141818678",
+      "position": 2,
+      "deadline": "2026-10-31T03:00:59.000Z",
+      "runId": "41142515461",
+      "runAttempt": 1,
+      "startingSequence": 257,
+      "sequence": 258,
+      "checkpointAt": "2026-10-30T23:21:29.294Z",
+      "counts": {
+        "total": 38026,
+        "attempted": 38018,
+        "saved": 37400,
+        "clean": 33878,
+        "qualityIssues": 3522,
+        "sourceGaps": 700,
+        "pending": 8,
+        "refreshPending": 32099,
+        "bulkPassComplete": false,
+        "coverageComplete": false
+      }
+    },
+    {
+      "time": "2026-10-30T23:25:36.0306840Z",
+      "phase": "backfill_continue",
+      "rootRunId": "41141818678",
+      "parentRunId": "41141818678",
+      "position": 2,
+      "deadline": "2026-10-31T03:00:59.000Z",
+      "runId": "41142515461",
+      "runAttempt": 1,
+      "startingSequence": 257,
+      "reason": "dispatched",
+      "dispatched": true,
+      "sequence": 258,
+      "counts": {
+        "total": 38026,
+        "attempted": 38018,
+        "saved": 37400,
+        "clean": 33878,
+        "qualityIssues": 3522,
+        "sourceGaps": 700,
+        "pending": 8,
+        "refreshPending": 32099,
+        "bulkPassComplete": false,
+        "coverageComplete": false
+      },
+      "firstAttempted": 0,
+      "historiesAdded": 0,
+      "reconciliationAdvanced": true,
+      "activeRepairCounts": {
+        "total": 8542,
+        "attempted": 8542,
+        "saved": 8542,
+        "clean": 7939,
+        "qualityIssues": 603,
+        "sourceGaps": 80,
+        "pending": 0,
+        "refreshPending": 3241,
+        "bulkPassComplete": true,
+        "coverageComplete": false
+      },
+      "childRunId": 41144397944
+    }
+  ],
+  "nextRun": {
+    "id": 41144397944,
+    "display_title": "FundScope archive \u00b7 41141818678 \u00b7 3/12",
+    "status": "in_progress",
+    "conclusion": null,
+    "event": "workflow_dispatch",
+    "run_attempt": 1,
+    "head_sha": "8bdc157c8ba985772dd7723c118f77ffcdf936ec",
+    "created_at": "2026-10-30T23:25:35Z",
+    "updated_at": "2026-10-30T23:25:41Z",
+    "html_url": "https://github.com/Vasuki8/mutual-fund-dashboard/actions/runs/41144397944"
+  },
+  "limitation": "Current diagnostics show successful accepted ancestor metadata, and do not establish the cause of prior run 41120732139's unlogged backfill_root_invalid.",
+  "latestRunMetadataUpdatedAt": "2026-10-30T23:25:41Z",
+  "observationTimeLimit": "The original retained capture did not record its retrieval timestamp. latestRunMetadataUpdatedAt is the next-run API metadata timestamp, not a retrieval timestamp."
+}
