@@ -326,6 +326,99 @@ test('due recent missing histories are selected before 40 routine lag refreshes 
   assert.equal(eligible[0].schemeCode,130000);
 });
 
+test('due clean date lag precedes saved quality and source-error retries after missing histories', () => {
+  const now = Date.parse('2026-10-26T17:00:00.000Z');
+  const codes = [130000, 130032, 130064, 130096, 130128];
+  const catalogue = { version: 1 as const, fetchedAt: new Date(now).toISOString(), warnings: [],
+    entries: codes.map(schemeCode => ({ schemeCode, schemeName: `Fund ${schemeCode}`,
+      latestDate: '2026-10-26', nav: '11.00', current: true })) };
+  const clean: ArchiveSchemeState = { code: 130064, status: 'clean', attempts: 2, failures: 0,
+    lastAttemptAt: '2026-10-25T12:00:00.000Z', nextAttemptAt: null,
+    historyFetchedAt: '2026-10-25T12:00:00.000Z', coverageStart: '2026-10-23',
+    coverageEnd: '2026-10-24', latestNav: '10.90', observationCount: 2,
+    quality: false, warnings: [], lastError: null };
+  const retry = { ...clean, lastAttemptAt: '2026-10-24T12:00:00.000Z',
+    historyFetchedAt: '2026-10-24T12:00:00.000Z', failures: 1,
+    nextAttemptAt: '2026-10-24T12:15:00.000Z' };
+  const states: Record<string, ArchiveSchemeState> = {
+    130000: { ...retry, code: 130000, status: 'quality', quality: true,
+      warnings: ['Invalid NAV observations were excluded (1).'] },
+    130032: { ...retry, code: 130032, status: 'source-error', lastError: 'source_unavailable' },
+    130064: clean,
+    130096: { ...retry, code: 130096, status: 'source-error', lastError: 'source_history_empty',
+      observationCount: 0, historyFetchedAt: null, coverageStart: null, coverageEnd: null, latestNav: null },
+    130128: { ...clean, code: 130128, status: 'pending', attempts: 0, lastAttemptAt: null,
+      observationCount: 0, historyFetchedAt: null, coverageStart: null, coverageEnd: null, latestNav: null },
+  };
+  assert.deepEqual(selectWork(catalogue, states, now).map(entry => entry.schemeCode),
+    [130128, 130096, 130064, 130000, 130032],
+    'Never-attempted and recent missing histories stay first; saved issue retries cannot preempt clean date lag.');
+});
+
+test('a clean refresh escapes 16 quality shards and earns continuation without clearing raw quality flags', async () => {
+  const store = new MemoryStore(); let time = START;
+  // Official roster members in sixteen different shards; CODE occupies a seventeenth.
+  const qualityCodes = [100033, 100064, 100119, 100128, 100174, 100218, 100224, 100264,
+    100291, 100320, 100352, 100384, 100417, 100470, 100480, 100519];
+  const codes = [...qualityCodes, CODE];
+  const response = (code: number, refreshed = false) => history(code, [
+    ...(refreshed ? [{ date: '21-10-2026', nav: '11.00' }] : []),
+    { date: '20-10-2026', nav: '11.00' },
+    ...(code === CODE ? [] : [{ date: '19-10-2026', nav: '0.00000' }]),
+    { date: '18-10-2026', nav: '10.90' },
+  ]);
+  await runTranche({ store, now: () => time, activeRepairOnly: true, minCatalogueSize: 1,
+    source: async path => path === '/mf/latest' ? rawCatalogue(codes, '20-10-2026')
+      : response(Number(path.split('/').at(-1))) });
+  time += 60_000;
+  await runTranche({ store, now: () => time, activeRepairOnly: true, minCatalogueSize: 1,
+    source: async path => response(Number(path.split('/').at(-1))) });
+  assert.equal(store.snapshot!.checkpoint.counts.saved, 17);
+  const startingSequence = store.snapshot!.checkpoint.sequence;
+  time = START + 12 * 3600_000;
+  const requested: number[] = [];
+  const result = await runTranche({ store, now: () => time, activeRepairOnly: true, minCatalogueSize: 1,
+    source: async path => {
+      if (path === '/mf/latest') return rawCatalogue(codes);
+      const code = Number(path.split('/').at(-1)); requested.push(code); return response(code, true);
+    } });
+  assert.equal(result.attempted, 16);
+  assert.equal(new Set(requested.map(code => Math.floor(code / 32))).size, 16);
+  assert.equal(result.activeRepairProgress!.before.refreshPending, 17);
+  assert.equal(result.activeRepairProgress!.after.refreshPending, 16,
+    'One clean history must catch up even when sixteen older quality retries occupy distinct shards.');
+  assert.equal(result.reconciliationAdvanced, true);
+  assert.equal(result.firstAttempted, 0); assert.equal(result.historiesAdded, 0);
+  const checkpoint = store.snapshot!.checkpoint;
+  assert.equal(checkpoint.states[CODE].coverageEnd, '2026-10-21');
+  assert.equal(checkpoint.counts.qualityIssues, 16);
+  for (const code of qualityCodes) {
+    const bucket = String(Math.floor(code / 32));
+    const shard = await store.readShard(checkpoint.shards[bucket], bucket);
+    assert.equal(shard.records[0].unresolved, true);
+    assert.ok(shard.records[0].warnings.some(warning => warning.startsWith('Invalid NAV')));
+  }
+  const publicRef = (ref: ArchiveAssetRef) => ({ path: `archive/${ref.name}`, sha256: ref.sha256,
+    bytes: ref.bytes, expandedBytes: ref.expandedBytes });
+  const methods: string[] = [];
+  const outcome = await continueBackfill({ store, result, now: () => time,
+    context: { rootRunId: '100', parentRunId: null, runId: '100', runAttempt: 1, position: 1,
+      startingSequence, deadline: new Date(time + 4 * 3600_000).toISOString() },
+    env: { GITHUB_REPOSITORY: 'Vasuki8/mutual-fund-dashboard', GITHUB_REF: 'refs/heads/main',
+      FUNDSCOPE_GITHUB_ARCHIVE_ENABLED: 'true', GITHUB_TOKEN: 'fixture-token', GITHUB_RUN_ID: '100', GITHUB_RUN_ATTEMPT: '1' },
+    fetch: async (_input, init) => {
+      methods.push(init?.method ?? 'GET');
+      return Response.json(init?.method === 'POST' ? { workflow_run_id: 102 } : {
+        version: 2, source: 'mfapi.in', status: 'ready', collectionEnabled: true,
+        sequence: checkpoint.sequence, checkpointAt: checkpoint.updatedAt, counts: checkpoint.counts,
+        catalogue: publicRef(checkpoint.catalogue),
+        shards: Object.fromEntries(Object.entries(checkpoint.shards).map(([key, ref]) => [key, publicRef(ref)])),
+      });
+    } });
+  assert.equal(outcome.reason, 'dispatched');
+  assert.deepEqual(methods, ['GET', 'POST']);
+});
+
 test('continuation progress distinguishes newly saved first attempts from refreshes and no-ops', async () => {
   const store = new MemoryStore();
   const first = await runTranche({ store, now: () => START, minCatalogueSize: 1,
