@@ -1,0 +1,1392 @@
+{
+  "version": 1,
+  "evidenceDate": "2026-10-30",
+  "scope": "Exact primary identity chain for 18 UTI Liquid Fund distribution candidates; 14 approved and four excluded.",
+  "originalIdentityReview": {
+    "reviewedAt": "2026-10-30T20:31:19.594492+00:00",
+    "archiveCheckpoint": 255,
+    "inputLedgerSha256": "14bb417b47861e777def507f0c106f4b4166f02566a8a493bb96471a41c645f5",
+    "retainedObservationsInApprovedHistories": 53773,
+    "method": "Original source-document and complete retained-history review with a read-only factor preview. Its archive hashes below remain checkpoint-255 provenance."
+  },
+  "finalProductionReplay": {
+    "archiveCheckpoint": 256,
+    "file": "2026-10-30-uti-distribution-replay.json",
+    "script": "2026-10-30-uti-distribution-replay.mjs",
+    "manifestSha256": "0cea4ec864490977b8914f4b50293f98f82c3327f9a3c1951a1aa1a28ab38bd2",
+    "checkedAgainstFixture": "../../tests/fixtures/uti-distribution-units.ts",
+    "all18ExactCurrentIdentitiesMatch": true,
+    "all14FixtureIdentitiesMatch": true,
+    "all14RawDocumentHashesMatchOriginalReview": true,
+    "retainedObservationsInApprovedHistories": 53773
+  },
+  "approvedCodes": [
+    102010,
+    102011,
+    120558,
+    120794,
+    133973,
+    134427,
+    135721,
+    139838,
+    140024,
+    140504,
+    140517,
+    140913,
+    141768,
+    144475
+  ],
+  "excludedCodes": [
+    102007,
+    102008,
+    102013,
+    120777
+  ],
+  "documentedAction": {
+    "oldFaceValueInr": 1000,
+    "newFaceValueInr": 100,
+    "oldNavMultiplier": 0.1,
+    "documentedEffectiveDate": "2026-06-19",
+    "lastSavedOldBasisNavDate": "2026-06-19",
+    "firstSavedNewBasisNavDate": "2026-06-20",
+    "factorSourceIds": [
+      "uti-addendum-14-2026-27",
+      "nse-nmf74721"
+    ],
+    "boundarySource": "The complete retained series for each exact target; the notices state the legal effective date but do not explicitly state close-of-business NAV timing.",
+    "currentIsinAdmissionDate": "2026-06-18",
+    "currentIsinAdmissionDateIsNavBoundary": false
+  },
+  "sources": [
+    {
+      "sourceId": "nse-nmf74721",
+      "sha256": "db0962b621f4c59393dd27f9e2ce61845fd854988eb6a0082b2331cfcefd347e",
+      "reviewedPdfPages": [
+        1
+      ],
+      "title": "NSE/NMFTM/74721, dated 16 June 2026",
+      "url": "https://nsearchives.nseindia.com/content/circulars/NMF74721.zip",
+      "bytes": 291816,
+      "visualInspectionPerformedDuringOriginalReview": true,
+      "zipMember": "NMF74721.pdf"
+    },
+    {
+      "sourceId": "uti-addendum-14-2026-27",
+      "sha256": "87b61495aa0150dda94f627fcc90e4dfeb88622481c2975ea1c4b044d51d3cdb",
+      "reviewedPdfPages": [
+        1
+      ],
+      "title": "UTI Addendum 14/2026-27, dated 4 June 2026",
+      "url": "https://nsearchives.nseindia.com/content/circulars/NMF74721.zip",
+      "bytes": 235500,
+      "visualInspectionPerformedDuringOriginalReview": true,
+      "zipMember": "Addendum no. 14-2026-27 - Change in face value of units of UTI Liquid Fu....pdf"
+    },
+    {
+      "sourceId": "cdsl-2026-416",
+      "sha256": "1bfde588087093f8d1fc53564f5fafae0d928539f2c46ef538e9f2fe181beef6",
+      "reviewedPdfPages": [
+        5,
+        6,
+        7,
+        8
+      ],
+      "title": "CDSL/ADM/DP/GENRL/2026/416, dated 19 June 2026",
+      "url": "https://www.cdslindia.com/eservices/Publications/DownloadFile?eventID=DP2026-416&method=communique",
+      "bytes": 408713,
+      "visualInspectionPerformedDuringOriginalReview": true
+    },
+    {
+      "sourceId": "uti-ssd-march-2026",
+      "sha256": "1cb76ea553debbd2a9993aad950a2f8cccbd91f656a781503f216956fa06c1f8",
+      "reviewedPdfPages": [
+        114
+      ],
+      "title": "UTI Scheme Summary Document, March 2026 snapshot",
+      "url": "https://nsearchives.nseindia.com/trading_security/mf/pdf/UTI_10032026180054_UTIMutualFund.pdf",
+      "bytes": 5561333,
+      "visualInspectionPerformedDuringOriginalReview": true
+    }
+  ],
+  "sourceArchive": {
+    "sha256": "b0b810c51b8307af39fae035455977c86c966613a3502d36fe1dbaab00710dde",
+    "pdfMembers": [
+      {
+        "member": "Addendum no. 14-2026-27 - Change in face value of units of UTI Liquid Fu....pdf",
+        "sha256": "87b61495aa0150dda94f627fcc90e4dfeb88622481c2975ea1c4b044d51d3cdb"
+      },
+      {
+        "member": "NMF74721.pdf",
+        "sha256": "db0962b621f4c59393dd27f9e2ce61845fd854988eb6a0082b2331cfcefd347e"
+      }
+    ],
+    "url": "https://nsearchives.nseindia.com/content/circulars/NMF74721.zip",
+    "bytes": 485152
+  },
+  "approved": [
+    {
+      "schemeCode": 102010,
+      "schemeName": "UTI - Liquid Fund - Regular Plan - Daily IDCW (Reinvestment)",
+      "fundHouse": "UTI Mutual Fund",
+      "plan": "Regular",
+      "frequency": "Daily",
+      "option": "IDCW",
+      "currentPayloadIdentity": {
+        "isinGrowth": null,
+        "isinDivReinvestment": "INF789F1AF77"
+      },
+      "primaryPreEventIdentity": {
+        "payoutIsin": null,
+        "reinvestmentIsin": "INF789F01PG3",
+        "sourceId": "uti-ssd-march-2026",
+        "pdfPage": 114,
+        "printedSchemePage": 1,
+        "fields": {
+          "fundName": 1,
+          "optionNames": 2,
+          "faceValue": 10,
+          "isins": 28,
+          "amfiCodeAndPlan": 29
+        },
+        "faceValue": 1000
+      },
+      "primaryCurrentIdentity": {
+        "payout": null,
+        "reinvestment": {
+          "isin": "INF789F1AF77",
+          "citation": {
+            "sourceId": "cdsl-2026-416",
+            "pdfPage": 7,
+            "printedAnnexurePage": 6,
+            "serialRow": 59,
+            "activatedOn": "2026-06-18",
+            "faceValue": 100
+          }
+        }
+      },
+      "originalCheckpoint255Review": {
+        "observations": 7024,
+        "coverageStart": "2006-04-01",
+        "coverageEnd": "2026-10-29",
+        "rawWarningCount": 1,
+        "rawDiscontinuities": [
+          {
+            "beforeDate": "2026-06-19",
+            "beforeNav": 1196.0616,
+            "afterDate": "2026-06-20",
+            "afterNav": 119.6264
+          }
+        ],
+        "invalidObservationsPresent": 0,
+        "discontinuitiesAfterDocumentedFactorPreview": 0,
+        "previewMethod": "Read-only arithmetic diagnostic in the original checkpoint-255 review; separate from the checkpoint-256 production replay.",
+        "rawDocumentSha256": "3ced3f501523a2f804056fcc19d386d9d160f56897f2cf992ae30c7fcb2d2265",
+        "rawFundSha256": "68fd550318656e160381dd3b12603bfe06f61401d565e4b6aec8ac6128eb0bc4",
+        "shardPath": "archive/history-3187-32c3c693fa60b0fe75bd6135325d445da6c7eff5bcb157655958718cfcd864b8.json.gz",
+        "shardSha256": "32c3c693fa60b0fe75bd6135325d445da6c7eff5bcb157655958718cfcd864b8"
+      },
+      "checkpoint256CrossCheck": {
+        "exactCurrentIdentityMatches": true,
+        "fixtureIdentityMatches": true,
+        "retainedObservationCountMatches": true,
+        "rawDocumentSha256MatchesOriginalReview": true,
+        "productionReplayFile": "2026-10-30-uti-distribution-replay.json"
+      },
+      "identityVerified": true,
+      "approvedForExactRegistration": true,
+      "literalGrowthEligible": false,
+      "consumerTotalReturnEligibilityEstablished": false
+    },
+    {
+      "schemeCode": 102011,
+      "schemeName": "UTI - Liquid Fund - Regular Plan - Monthly IDCW",
+      "fundHouse": "UTI Mutual Fund",
+      "plan": "Regular",
+      "frequency": "Monthly",
+      "option": "IDCW",
+      "currentPayloadIdentity": {
+        "isinGrowth": "INF789F1AF93",
+        "isinDivReinvestment": "INF789F1AG01"
+      },
+      "primaryPreEventIdentity": {
+        "payoutIsin": "INF789F01PI9",
+        "reinvestmentIsin": "INF789F01PJ7",
+        "sourceId": "uti-ssd-march-2026",
+        "pdfPage": 114,
+        "printedSchemePage": 1,
+        "fields": {
+          "fundName": 1,
+          "optionNames": 2,
+          "faceValue": 10,
+          "isins": 28,
+          "amfiCodeAndPlan": 29
+        },
+        "faceValue": 1000
+      },
+      "primaryCurrentIdentity": {
+        "payout": {
+          "isin": "INF789F1AF93",
+          "citation": {
+            "sourceId": "cdsl-2026-416",
+            "pdfPage": 8,
+            "printedAnnexurePage": 7,
+            "serialRow": 61,
+            "activatedOn": "2026-06-18",
+            "faceValue": 100
+          }
+        },
+        "reinvestment": {
+          "isin": "INF789F1AG01",
+          "citation": {
+            "sourceId": "cdsl-2026-416",
+            "pdfPage": 8,
+            "printedAnnexurePage": 7,
+            "serialRow": 62,
+            "activatedOn": "2026-06-18",
+            "faceValue": 100
+          }
+        }
+      },
+      "originalCheckpoint255Review": {
+        "observations": 7024,
+        "coverageStart": "2006-04-01",
+        "coverageEnd": "2026-10-29",
+        "rawWarningCount": 1,
+        "rawDiscontinuities": [
+          {
+            "beforeDate": "2026-06-19",
+            "beforeNav": 1130.0749,
+            "afterDate": "2026-06-20",
+            "afterNav": 113.0266
+          }
+        ],
+        "invalidObservationsPresent": 0,
+        "discontinuitiesAfterDocumentedFactorPreview": 0,
+        "previewMethod": "Read-only arithmetic diagnostic in the original checkpoint-255 review; separate from the checkpoint-256 production replay.",
+        "rawDocumentSha256": "df63e337479011129dd6a6760ed9194e554804f5766559d5e2a97638f9cfc7bf",
+        "rawFundSha256": "de3c2d5e9de7dda9321144a72a02efeae02f024f84a7b70abd65d226f5309c84",
+        "shardPath": "archive/history-3187-32c3c693fa60b0fe75bd6135325d445da6c7eff5bcb157655958718cfcd864b8.json.gz",
+        "shardSha256": "32c3c693fa60b0fe75bd6135325d445da6c7eff5bcb157655958718cfcd864b8"
+      },
+      "checkpoint256CrossCheck": {
+        "exactCurrentIdentityMatches": true,
+        "fixtureIdentityMatches": true,
+        "retainedObservationCountMatches": true,
+        "rawDocumentSha256MatchesOriginalReview": true,
+        "productionReplayFile": "2026-10-30-uti-distribution-replay.json"
+      },
+      "identityVerified": true,
+      "approvedForExactRegistration": true,
+      "literalGrowthEligible": false,
+      "consumerTotalReturnEligibilityEstablished": false
+    },
+    {
+      "schemeCode": 120558,
+      "schemeName": "UTI - Liquid Fund - Direct Plan - Daily IDCW (Reinvestment)",
+      "fundHouse": "UTI Mutual Fund",
+      "plan": "Direct",
+      "frequency": "Daily",
+      "option": "IDCW",
+      "currentPayloadIdentity": {
+        "isinGrowth": null,
+        "isinDivReinvestment": "INF789F1AD38"
+      },
+      "primaryPreEventIdentity": {
+        "payoutIsin": null,
+        "reinvestmentIsin": "INF789F01XP8",
+        "sourceId": "uti-ssd-march-2026",
+        "pdfPage": 114,
+        "printedSchemePage": 1,
+        "fields": {
+          "fundName": 1,
+          "optionNames": 2,
+          "faceValue": 10,
+          "isins": 28,
+          "amfiCodeAndPlan": 29
+        },
+        "faceValue": 1000
+      },
+      "primaryCurrentIdentity": {
+        "payout": null,
+        "reinvestment": {
+          "isin": "INF789F1AD38",
+          "citation": {
+            "sourceId": "cdsl-2026-416",
+            "pdfPage": 5,
+            "printedAnnexurePage": 4,
+            "serialRow": 35,
+            "activatedOn": "2026-06-18",
+            "faceValue": 100
+          }
+        }
+      },
+      "originalCheckpoint255Review": {
+        "observations": 4556,
+        "coverageStart": "2013-01-01",
+        "coverageEnd": "2026-10-26",
+        "rawWarningCount": 1,
+        "rawDiscontinuities": [
+          {
+            "beforeDate": "2026-06-19",
+            "beforeNav": 1065.3037,
+            "afterDate": "2026-06-20",
+            "afterNav": 106.5304
+          }
+        ],
+        "invalidObservationsPresent": 0,
+        "discontinuitiesAfterDocumentedFactorPreview": 0,
+        "previewMethod": "Read-only arithmetic diagnostic in the original checkpoint-255 review; separate from the checkpoint-256 production replay.",
+        "rawDocumentSha256": "de579bdc785dd07ff01cb127cd352eedac9877385ca3475394a7a6a43205ada1",
+        "rawFundSha256": "4fbce9a8a1d22d57f76872b8097b0980623be1a156caca7559fe9da233244bc1",
+        "shardPath": "archive/history-3767-6e26a3d4a4a217ce53aed3cb5272aaaaf4f6d3c3291b036936ce32fa5679dbea.json.gz",
+        "shardSha256": "6e26a3d4a4a217ce53aed3cb5272aaaaf4f6d3c3291b036936ce32fa5679dbea"
+      },
+      "checkpoint256CrossCheck": {
+        "exactCurrentIdentityMatches": true,
+        "fixtureIdentityMatches": true,
+        "retainedObservationCountMatches": true,
+        "rawDocumentSha256MatchesOriginalReview": true,
+        "productionReplayFile": "2026-10-30-uti-distribution-replay.json"
+      },
+      "identityVerified": true,
+      "approvedForExactRegistration": true,
+      "literalGrowthEligible": false,
+      "consumerTotalReturnEligibilityEstablished": false
+    },
+    {
+      "schemeCode": 120794,
+      "schemeName": "UTI - Liquid Fund - Direct Plan - Monthly IDCW",
+      "fundHouse": "UTI Mutual Fund",
+      "plan": "Direct",
+      "frequency": "Monthly",
+      "option": "IDCW",
+      "currentPayloadIdentity": {
+        "isinGrowth": "INF789F1AD53",
+        "isinDivReinvestment": "INF789F1AD61"
+      },
+      "primaryPreEventIdentity": {
+        "payoutIsin": "INF789F01XR4",
+        "reinvestmentIsin": "INF789F01XS2",
+        "sourceId": "uti-ssd-march-2026",
+        "pdfPage": 114,
+        "printedSchemePage": 1,
+        "fields": {
+          "fundName": 1,
+          "optionNames": 2,
+          "faceValue": 10,
+          "isins": 28,
+          "amfiCodeAndPlan": 29
+        },
+        "faceValue": 1000
+      },
+      "primaryCurrentIdentity": {
+        "payout": {
+          "isin": "INF789F1AD53",
+          "citation": {
+            "sourceId": "cdsl-2026-416",
+            "pdfPage": 5,
+            "printedAnnexurePage": 4,
+            "serialRow": 37,
+            "activatedOn": "2026-06-18",
+            "faceValue": 100
+          }
+        },
+        "reinvestment": {
+          "isin": "INF789F1AD61",
+          "citation": {
+            "sourceId": "cdsl-2026-416",
+            "pdfPage": 5,
+            "printedAnnexurePage": 4,
+            "serialRow": 38,
+            "activatedOn": "2026-06-18",
+            "faceValue": 100
+          }
+        }
+      },
+      "originalCheckpoint255Review": {
+        "observations": 4527,
+        "coverageStart": "2013-01-10",
+        "coverageEnd": "2026-10-26",
+        "rawWarningCount": 1,
+        "rawDiscontinuities": [
+          {
+            "beforeDate": "2026-06-19",
+            "beforeNav": 1047.5507,
+            "afterDate": "2026-06-20",
+            "afterNav": 104.7731
+          }
+        ],
+        "invalidObservationsPresent": 0,
+        "discontinuitiesAfterDocumentedFactorPreview": 0,
+        "previewMethod": "Read-only arithmetic diagnostic in the original checkpoint-255 review; separate from the checkpoint-256 production replay.",
+        "rawDocumentSha256": "6628b82e2f041908ef312cc0f72a9e927e56fad091a80241bc336c4d3606a9eb",
+        "rawFundSha256": "d720323d88ac2ba1af8e086be80b53a29009a061a577bdcb835d71d858fc5d81",
+        "shardPath": "archive/history-3774-7b496628c2e753faebd1bcb6b8418a8d5d5a18cf4379e1f4c10dcfde44243762.json.gz",
+        "shardSha256": "7b496628c2e753faebd1bcb6b8418a8d5d5a18cf4379e1f4c10dcfde44243762"
+      },
+      "checkpoint256CrossCheck": {
+        "exactCurrentIdentityMatches": true,
+        "fixtureIdentityMatches": true,
+        "retainedObservationCountMatches": true,
+        "rawDocumentSha256MatchesOriginalReview": true,
+        "productionReplayFile": "2026-10-30-uti-distribution-replay.json"
+      },
+      "identityVerified": true,
+      "approvedForExactRegistration": true,
+      "literalGrowthEligible": false,
+      "consumerTotalReturnEligibilityEstablished": false
+    },
+    {
+      "schemeCode": 133973,
+      "schemeName": "UTI - Liquid Fund - Regular Plan - Annual IDCW",
+      "fundHouse": "UTI Mutual Fund",
+      "plan": "Regular",
+      "frequency": "Annual",
+      "option": "IDCW",
+      "currentPayloadIdentity": {
+        "isinGrowth": "INF789F1AD12",
+        "isinDivReinvestment": "INF789F1AD20"
+      },
+      "primaryPreEventIdentity": {
+        "payoutIsin": "INF789FA1J66",
+        "reinvestmentIsin": "INF789FA1J74",
+        "sourceId": "uti-ssd-march-2026",
+        "pdfPage": 114,
+        "printedSchemePage": 1,
+        "fields": {
+          "fundName": 1,
+          "optionNames": 2,
+          "faceValue": 10,
+          "isins": 28,
+          "amfiCodeAndPlan": 29
+        },
+        "faceValue": 1000
+      },
+      "primaryCurrentIdentity": {
+        "payout": {
+          "isin": "INF789F1AD12",
+          "citation": {
+            "sourceId": "cdsl-2026-416",
+            "pdfPage": 5,
+            "printedAnnexurePage": 4,
+            "serialRow": 33,
+            "activatedOn": "2026-06-18",
+            "faceValue": 100
+          }
+        },
+        "reinvestment": {
+          "isin": "INF789F1AD20",
+          "citation": {
+            "sourceId": "cdsl-2026-416",
+            "pdfPage": 5,
+            "printedAnnexurePage": 4,
+            "serialRow": 34,
+            "activatedOn": "2026-06-18",
+            "faceValue": 100
+          }
+        }
+      },
+      "originalCheckpoint255Review": {
+        "observations": 3777,
+        "coverageStart": "2015-02-20",
+        "coverageEnd": "2026-10-27",
+        "rawWarningCount": 1,
+        "rawDiscontinuities": [
+          {
+            "beforeDate": "2026-06-19",
+            "beforeNav": 2003.5149,
+            "afterDate": "2026-06-20",
+            "afterNav": 200.3854
+          }
+        ],
+        "invalidObservationsPresent": 0,
+        "discontinuitiesAfterDocumentedFactorPreview": 0,
+        "previewMethod": "Read-only arithmetic diagnostic in the original checkpoint-255 review; separate from the checkpoint-256 production replay.",
+        "rawDocumentSha256": "a4aab4ce969223a774cf3d2fc5d4bf1809b43e571e887306273507f142775a7f",
+        "rawFundSha256": "32cfcde984f8e44b6e0e1a796b41cf1bb18ebcc398208ecb321c76b6c04a12e0",
+        "shardPath": "archive/history-4186-9975cb16eda8940317a6e589edca1c5ebae013468e730bbc442747a98e9e4b5c.json.gz",
+        "shardSha256": "9975cb16eda8940317a6e589edca1c5ebae013468e730bbc442747a98e9e4b5c"
+      },
+      "checkpoint256CrossCheck": {
+        "exactCurrentIdentityMatches": true,
+        "fixtureIdentityMatches": true,
+        "retainedObservationCountMatches": true,
+        "rawDocumentSha256MatchesOriginalReview": true,
+        "productionReplayFile": "2026-10-30-uti-distribution-replay.json"
+      },
+      "identityVerified": true,
+      "approvedForExactRegistration": true,
+      "literalGrowthEligible": false,
+      "consumerTotalReturnEligibilityEstablished": false
+    },
+    {
+      "schemeCode": 134427,
+      "schemeName": "UTI - Liquid Fund - Direct Plan - Annual IDCW",
+      "fundHouse": "UTI Mutual Fund",
+      "plan": "Direct",
+      "frequency": "Annual",
+      "option": "IDCW",
+      "currentPayloadIdentity": {
+        "isinGrowth": "INF789F1AE45",
+        "isinDivReinvestment": "INF789F1AE52"
+      },
+      "primaryPreEventIdentity": {
+        "payoutIsin": "INF789FA1K63",
+        "reinvestmentIsin": "INF789FA1K71",
+        "sourceId": "uti-ssd-march-2026",
+        "pdfPage": 114,
+        "printedSchemePage": 1,
+        "fields": {
+          "fundName": 1,
+          "optionNames": 2,
+          "faceValue": 10,
+          "isins": 28,
+          "amfiCodeAndPlan": 29
+        },
+        "faceValue": 1000
+      },
+      "primaryCurrentIdentity": {
+        "payout": {
+          "isin": "INF789F1AE45",
+          "citation": {
+            "sourceId": "cdsl-2026-416",
+            "pdfPage": 6,
+            "printedAnnexurePage": 5,
+            "serialRow": 46,
+            "activatedOn": "2026-06-18",
+            "faceValue": 100
+          }
+        },
+        "reinvestment": {
+          "isin": "INF789F1AE52",
+          "citation": {
+            "sourceId": "cdsl-2026-416",
+            "pdfPage": 6,
+            "printedAnnexurePage": 5,
+            "serialRow": 47,
+            "activatedOn": "2026-06-18",
+            "faceValue": 100
+          }
+        }
+      },
+      "originalCheckpoint255Review": {
+        "observations": 3456,
+        "coverageStart": "2015-03-31",
+        "coverageEnd": "2026-10-29",
+        "rawWarningCount": 1,
+        "rawDiscontinuities": [
+          {
+            "beforeDate": "2026-06-19",
+            "beforeNav": 2018.2382,
+            "afterDate": "2026-06-20",
+            "afterNav": 201.8586
+          }
+        ],
+        "invalidObservationsPresent": 0,
+        "discontinuitiesAfterDocumentedFactorPreview": 0,
+        "previewMethod": "Read-only arithmetic diagnostic in the original checkpoint-255 review; separate from the checkpoint-256 production replay.",
+        "rawDocumentSha256": "4e96acb7bbc515c5af32f16c0815fc67bb57e5f4f29796eb60f5fd20ed2c61c4",
+        "rawFundSha256": "068a932441ec6dec403556a30c3ba10db63a81b42ffde83e51e4926f60a4a77c",
+        "shardPath": "archive/history-4200-1ebc96bd1a90eee9f8e4590e8f3286c0383900e0123948d683d14e9764760f3d.json.gz",
+        "shardSha256": "1ebc96bd1a90eee9f8e4590e8f3286c0383900e0123948d683d14e9764760f3d"
+      },
+      "checkpoint256CrossCheck": {
+        "exactCurrentIdentityMatches": true,
+        "fixtureIdentityMatches": true,
+        "retainedObservationCountMatches": true,
+        "rawDocumentSha256MatchesOriginalReview": true,
+        "productionReplayFile": "2026-10-30-uti-distribution-replay.json"
+      },
+      "identityVerified": true,
+      "approvedForExactRegistration": true,
+      "literalGrowthEligible": false,
+      "consumerTotalReturnEligibilityEstablished": false
+    },
+    {
+      "schemeCode": 135721,
+      "schemeName": "UTI - Liquid Fund - Regular Plan - Quarterly IDCW",
+      "fundHouse": "UTI Mutual Fund",
+      "plan": "Regular",
+      "frequency": "Quarterly",
+      "option": "IDCW",
+      "currentPayloadIdentity": {
+        "isinGrowth": "INF789F1AG43",
+        "isinDivReinvestment": "INF789F1AG50"
+      },
+      "primaryPreEventIdentity": {
+        "payoutIsin": "INF789FA1J25",
+        "reinvestmentIsin": "INF789FA1J33",
+        "sourceId": "uti-ssd-march-2026",
+        "pdfPage": 114,
+        "printedSchemePage": 1,
+        "fields": {
+          "fundName": 1,
+          "optionNames": 2,
+          "faceValue": 10,
+          "isins": 28,
+          "amfiCodeAndPlan": 29
+        },
+        "faceValue": 1000
+      },
+      "primaryCurrentIdentity": {
+        "payout": {
+          "isin": "INF789F1AG43",
+          "citation": {
+            "sourceId": "cdsl-2026-416",
+            "pdfPage": 8,
+            "printedAnnexurePage": 7,
+            "serialRow": 66,
+            "activatedOn": "2026-06-18",
+            "faceValue": 100
+          }
+        },
+        "reinvestment": {
+          "isin": "INF789F1AG50",
+          "citation": {
+            "sourceId": "cdsl-2026-416",
+            "pdfPage": 8,
+            "printedAnnexurePage": 7,
+            "serialRow": 67,
+            "activatedOn": "2026-06-18",
+            "faceValue": 100
+          }
+        }
+      },
+      "originalCheckpoint255Review": {
+        "observations": 3517,
+        "coverageStart": "2015-11-09",
+        "coverageEnd": "2026-10-29",
+        "rawWarningCount": 1,
+        "rawDiscontinuities": [
+          {
+            "beforeDate": "2026-06-19",
+            "beforeNav": 1891.7631,
+            "afterDate": "2026-06-20",
+            "afterNav": 189.2083
+          }
+        ],
+        "invalidObservationsPresent": 0,
+        "discontinuitiesAfterDocumentedFactorPreview": 0,
+        "previewMethod": "Read-only arithmetic diagnostic in the original checkpoint-255 review; separate from the checkpoint-256 production replay.",
+        "rawDocumentSha256": "8523b4e8cca2486f3d400f97102671feb85c9ce73f3f7d213107868e7149378c",
+        "rawFundSha256": "442f71af291d716f3129d39905dd66ea8fb23b0dd47c3d23426aea9389f382f6",
+        "shardPath": "archive/history-4241-e0c2486c6fe41bb7893dbcca0363f77a1d2da2b8ba964d14426b98bd113a1024.json.gz",
+        "shardSha256": "e0c2486c6fe41bb7893dbcca0363f77a1d2da2b8ba964d14426b98bd113a1024"
+      },
+      "checkpoint256CrossCheck": {
+        "exactCurrentIdentityMatches": true,
+        "fixtureIdentityMatches": true,
+        "retainedObservationCountMatches": true,
+        "rawDocumentSha256MatchesOriginalReview": true,
+        "productionReplayFile": "2026-10-30-uti-distribution-replay.json"
+      },
+      "identityVerified": true,
+      "approvedForExactRegistration": true,
+      "literalGrowthEligible": false,
+      "consumerTotalReturnEligibilityEstablished": false
+    },
+    {
+      "schemeCode": 139838,
+      "schemeName": "UTI - Liquid Fund - Regular Plan - Fortnightly IDCW",
+      "fundHouse": "UTI Mutual Fund",
+      "plan": "Regular",
+      "frequency": "Fortnightly",
+      "option": "IDCW",
+      "currentPayloadIdentity": {
+        "isinGrowth": "INF789F1AF28",
+        "isinDivReinvestment": "INF789F1AF36"
+      },
+      "primaryPreEventIdentity": {
+        "payoutIsin": "INF789FA1J09",
+        "reinvestmentIsin": "INF789FA1J17",
+        "sourceId": "uti-ssd-march-2026",
+        "pdfPage": 114,
+        "printedSchemePage": 1,
+        "fields": {
+          "fundName": 1,
+          "optionNames": 2,
+          "faceValue": 10,
+          "isins": 28,
+          "amfiCodeAndPlan": 29
+        },
+        "faceValue": 1000
+      },
+      "primaryCurrentIdentity": {
+        "payout": {
+          "isin": "INF789F1AF28",
+          "citation": {
+            "sourceId": "cdsl-2026-416",
+            "pdfPage": 7,
+            "printedAnnexurePage": 6,
+            "serialRow": 54,
+            "activatedOn": "2026-06-18",
+            "faceValue": 100
+          }
+        },
+        "reinvestment": {
+          "isin": "INF789F1AF36",
+          "citation": {
+            "sourceId": "cdsl-2026-416",
+            "pdfPage": 7,
+            "printedAnnexurePage": 6,
+            "serialRow": 55,
+            "activatedOn": "2026-06-18",
+            "faceValue": 100
+          }
+        }
+      },
+      "originalCheckpoint255Review": {
+        "observations": 3226,
+        "coverageStart": "2016-08-25",
+        "coverageEnd": "2026-10-28",
+        "rawWarningCount": 1,
+        "rawDiscontinuities": [
+          {
+            "beforeDate": "2026-06-19",
+            "beforeNav": 1156.2576,
+            "afterDate": "2026-06-20",
+            "afterNav": 115.6453
+          }
+        ],
+        "invalidObservationsPresent": 0,
+        "discontinuitiesAfterDocumentedFactorPreview": 0,
+        "previewMethod": "Read-only arithmetic diagnostic in the original checkpoint-255 review; separate from the checkpoint-256 production replay.",
+        "rawDocumentSha256": "45215863e2517b35a8a24249444dd974b7252e6142204e0897ab5674a9357766",
+        "rawFundSha256": "3008c897dc0f25df16ef80b2667bdd6868b7dedfb47ef29719e985f493896ab1",
+        "shardPath": "archive/history-4369-d6b80325afaca42b69ed8820379e94392b0e7f5c4480ab911e51bb34a1dd73d6.json.gz",
+        "shardSha256": "d6b80325afaca42b69ed8820379e94392b0e7f5c4480ab911e51bb34a1dd73d6"
+      },
+      "checkpoint256CrossCheck": {
+        "exactCurrentIdentityMatches": true,
+        "fixtureIdentityMatches": true,
+        "retainedObservationCountMatches": true,
+        "rawDocumentSha256MatchesOriginalReview": true,
+        "productionReplayFile": "2026-10-30-uti-distribution-replay.json"
+      },
+      "identityVerified": true,
+      "approvedForExactRegistration": true,
+      "literalGrowthEligible": false,
+      "consumerTotalReturnEligibilityEstablished": false
+    },
+    {
+      "schemeCode": 140024,
+      "schemeName": "UTI - Liquid Fund - Direct Plan - Quarterly IDCW",
+      "fundHouse": "UTI Mutual Fund",
+      "plan": "Direct",
+      "frequency": "Quarterly",
+      "option": "IDCW",
+      "currentPayloadIdentity": {
+        "isinGrowth": "INF789F1AE03",
+        "isinDivReinvestment": "INF789F1AE11"
+      },
+      "primaryPreEventIdentity": {
+        "payoutIsin": "INF789FA1K22",
+        "reinvestmentIsin": "INF789FA1K30",
+        "sourceId": "uti-ssd-march-2026",
+        "pdfPage": 114,
+        "printedSchemePage": 1,
+        "fields": {
+          "fundName": 1,
+          "optionNames": 2,
+          "faceValue": 10,
+          "isins": 28,
+          "amfiCodeAndPlan": 29
+        },
+        "faceValue": 1000
+      },
+      "primaryCurrentIdentity": {
+        "payout": {
+          "isin": "INF789F1AE03",
+          "citation": {
+            "sourceId": "cdsl-2026-416",
+            "pdfPage": 6,
+            "printedAnnexurePage": 5,
+            "serialRow": 42,
+            "activatedOn": "2026-06-18",
+            "faceValue": 100
+          }
+        },
+        "reinvestment": {
+          "isin": "INF789F1AE11",
+          "citation": {
+            "sourceId": "cdsl-2026-416",
+            "pdfPage": 6,
+            "printedAnnexurePage": 5,
+            "serialRow": 43,
+            "activatedOn": "2026-06-18",
+            "faceValue": 100
+          }
+        }
+      },
+      "originalCheckpoint255Review": {
+        "observations": 3186,
+        "coverageStart": "2016-10-04",
+        "coverageEnd": "2026-10-28",
+        "rawWarningCount": 1,
+        "rawDiscontinuities": [
+          {
+            "beforeDate": "2026-06-19",
+            "beforeNav": 1906.0881,
+            "afterDate": "2026-06-20",
+            "afterNav": 190.6416
+          }
+        ],
+        "invalidObservationsPresent": 0,
+        "discontinuitiesAfterDocumentedFactorPreview": 0,
+        "previewMethod": "Read-only arithmetic diagnostic in the original checkpoint-255 review; separate from the checkpoint-256 production replay.",
+        "rawDocumentSha256": "6aa0ddab6c7880dfb4e3169e1d6bda8116baeab5ca7b23be9d8b999dd3100588",
+        "rawFundSha256": "9f9631e2a5b3784d9e0eba6a1ca13f05db09eef4a00556eceecd529f437251d7",
+        "shardPath": "archive/history-4375-ed3eb7116093a3f888747236b01880e37df11afeecfa13dc0130c7c9db302215.json.gz",
+        "shardSha256": "ed3eb7116093a3f888747236b01880e37df11afeecfa13dc0130c7c9db302215"
+      },
+      "checkpoint256CrossCheck": {
+        "exactCurrentIdentityMatches": true,
+        "fixtureIdentityMatches": true,
+        "retainedObservationCountMatches": true,
+        "rawDocumentSha256MatchesOriginalReview": true,
+        "productionReplayFile": "2026-10-30-uti-distribution-replay.json"
+      },
+      "identityVerified": true,
+      "approvedForExactRegistration": true,
+      "literalGrowthEligible": false,
+      "consumerTotalReturnEligibilityEstablished": false
+    },
+    {
+      "schemeCode": 140504,
+      "schemeName": "UTI - Liquid Fund - Direct Plan - Half-Yearly IDCW",
+      "fundHouse": "UTI Mutual Fund",
+      "plan": "Direct",
+      "frequency": "Half-Yearly",
+      "option": "IDCW",
+      "currentPayloadIdentity": {
+        "isinGrowth": "INF789F1AE29",
+        "isinDivReinvestment": "INF789F1AE37"
+      },
+      "primaryPreEventIdentity": {
+        "payoutIsin": "INF789FA1K48",
+        "reinvestmentIsin": "INF789FA1K55",
+        "sourceId": "uti-ssd-march-2026",
+        "pdfPage": 114,
+        "printedSchemePage": 1,
+        "fields": {
+          "fundName": 1,
+          "optionNames": 2,
+          "faceValue": 10,
+          "isins": 28,
+          "amfiCodeAndPlan": 29
+        },
+        "faceValue": 1000
+      },
+      "primaryCurrentIdentity": {
+        "payout": {
+          "isin": "INF789F1AE29",
+          "citation": {
+            "sourceId": "cdsl-2026-416",
+            "pdfPage": 6,
+            "printedAnnexurePage": 5,
+            "serialRow": 44,
+            "activatedOn": "2026-06-18",
+            "faceValue": 100
+          }
+        },
+        "reinvestment": {
+          "isin": "INF789F1AE37",
+          "citation": {
+            "sourceId": "cdsl-2026-416",
+            "pdfPage": 6,
+            "printedAnnexurePage": 5,
+            "serialRow": 45,
+            "activatedOn": "2026-06-18",
+            "faceValue": 100
+          }
+        }
+      },
+      "originalCheckpoint255Review": {
+        "observations": 2891,
+        "coverageStart": "2017-01-05",
+        "coverageEnd": "2026-10-29",
+        "rawWarningCount": 1,
+        "rawDiscontinuities": [
+          {
+            "beforeDate": "2026-06-19",
+            "beforeNav": 1576.5073,
+            "afterDate": "2026-06-20",
+            "afterNav": 157.6779
+          }
+        ],
+        "invalidObservationsPresent": 0,
+        "discontinuitiesAfterDocumentedFactorPreview": 0,
+        "previewMethod": "Read-only arithmetic diagnostic in the original checkpoint-255 review; separate from the checkpoint-256 production replay.",
+        "rawDocumentSha256": "9fbd7994ac7af8ffed38c8bfc8ae190c12728c712f02af09ec4c3d6ff478c4d6",
+        "rawFundSha256": "3bf0cdd50125d7820d011b643eef512c0860ca7345aa31a3090b0e3bf2e4e3e2",
+        "shardPath": "archive/history-4390-b6a63e91057672603548861215f3175f0d982763839528208751e243480d040e.json.gz",
+        "shardSha256": "b6a63e91057672603548861215f3175f0d982763839528208751e243480d040e"
+      },
+      "checkpoint256CrossCheck": {
+        "exactCurrentIdentityMatches": true,
+        "fixtureIdentityMatches": true,
+        "retainedObservationCountMatches": true,
+        "rawDocumentSha256MatchesOriginalReview": true,
+        "productionReplayFile": "2026-10-30-uti-distribution-replay.json"
+      },
+      "identityVerified": true,
+      "approvedForExactRegistration": true,
+      "literalGrowthEligible": false,
+      "consumerTotalReturnEligibilityEstablished": false
+    },
+    {
+      "schemeCode": 140517,
+      "schemeName": "UTI - Liquid Fund - Regular Plan - Flexi IDCW",
+      "fundHouse": "UTI Mutual Fund",
+      "plan": "Regular",
+      "frequency": "Flexi",
+      "option": "IDCW",
+      "currentPayloadIdentity": {
+        "isinGrowth": "INF789F1AF02",
+        "isinDivReinvestment": "INF789F1AF10"
+      },
+      "primaryPreEventIdentity": {
+        "payoutIsin": "INF789FA1J82",
+        "reinvestmentIsin": "INF789FA1J90",
+        "sourceId": "uti-ssd-march-2026",
+        "pdfPage": 114,
+        "printedSchemePage": 1,
+        "fields": {
+          "fundName": 1,
+          "optionNames": 2,
+          "faceValue": 10,
+          "isins": 28,
+          "amfiCodeAndPlan": 29
+        },
+        "faceValue": 1000
+      },
+      "primaryCurrentIdentity": {
+        "payout": {
+          "isin": "INF789F1AF02",
+          "citation": {
+            "sourceId": "cdsl-2026-416",
+            "pdfPage": 7,
+            "printedAnnexurePage": 6,
+            "serialRow": 52,
+            "activatedOn": "2026-06-18",
+            "faceValue": 100
+          }
+        },
+        "reinvestment": {
+          "isin": "INF789F1AF10",
+          "citation": {
+            "sourceId": "cdsl-2026-416",
+            "pdfPage": 7,
+            "printedAnnexurePage": 6,
+            "serialRow": 53,
+            "activatedOn": "2026-06-18",
+            "faceValue": 100
+          }
+        }
+      },
+      "originalCheckpoint255Review": {
+        "observations": 2808,
+        "coverageStart": "2017-10-17",
+        "coverageEnd": "2026-10-28",
+        "rawWarningCount": 1,
+        "rawDiscontinuities": [
+          {
+            "beforeDate": "2026-06-19",
+            "beforeNav": 1651.2528,
+            "afterDate": "2026-06-20",
+            "afterNav": 165.1532
+          }
+        ],
+        "invalidObservationsPresent": 0,
+        "discontinuitiesAfterDocumentedFactorPreview": 0,
+        "previewMethod": "Read-only arithmetic diagnostic in the original checkpoint-255 review; separate from the checkpoint-256 production replay.",
+        "rawDocumentSha256": "1740ce2ee7e5a67632f57753b7ceacae9c36093a21ef4d1d950b05d952226ee3",
+        "rawFundSha256": "dc050ce6859bcfdac8b16f0e964f4b6a2c6d0caeba6aecf50f3f8c68f5a93cb2",
+        "shardPath": "archive/history-4391-fd4563434f1ef874aa9a9fbbd82e7790985bb067d3ccd8fb399911c1ba7572a6.json.gz",
+        "shardSha256": "fd4563434f1ef874aa9a9fbbd82e7790985bb067d3ccd8fb399911c1ba7572a6"
+      },
+      "checkpoint256CrossCheck": {
+        "exactCurrentIdentityMatches": true,
+        "fixtureIdentityMatches": true,
+        "retainedObservationCountMatches": true,
+        "rawDocumentSha256MatchesOriginalReview": true,
+        "productionReplayFile": "2026-10-30-uti-distribution-replay.json"
+      },
+      "identityVerified": true,
+      "approvedForExactRegistration": true,
+      "literalGrowthEligible": false,
+      "consumerTotalReturnEligibilityEstablished": false
+    },
+    {
+      "schemeCode": 140913,
+      "schemeName": "UTI - Liquid Fund - Direct Plan - Fortnightly IDCW",
+      "fundHouse": "UTI Mutual Fund",
+      "plan": "Direct",
+      "frequency": "Fortnightly",
+      "option": "IDCW",
+      "currentPayloadIdentity": {
+        "isinGrowth": "INF789F1AD87",
+        "isinDivReinvestment": "INF789F1AD95"
+      },
+      "primaryPreEventIdentity": {
+        "payoutIsin": "INF789FA1K06",
+        "reinvestmentIsin": "INF789FA1K14",
+        "sourceId": "uti-ssd-march-2026",
+        "pdfPage": 114,
+        "printedSchemePage": 1,
+        "fields": {
+          "fundName": 1,
+          "optionNames": 2,
+          "faceValue": 10,
+          "isins": 28,
+          "amfiCodeAndPlan": 29
+        },
+        "faceValue": 1000
+      },
+      "primaryCurrentIdentity": {
+        "payout": {
+          "isin": "INF789F1AD87",
+          "citation": {
+            "sourceId": "cdsl-2026-416",
+            "pdfPage": 5,
+            "printedAnnexurePage": 4,
+            "serialRow": 40,
+            "activatedOn": "2026-06-18",
+            "faceValue": 100
+          }
+        },
+        "reinvestment": {
+          "isin": "INF789F1AD95",
+          "citation": {
+            "sourceId": "cdsl-2026-416",
+            "pdfPage": 6,
+            "printedAnnexurePage": 5,
+            "serialRow": 41,
+            "activatedOn": "2026-06-18",
+            "faceValue": 100
+          }
+        }
+      },
+      "originalCheckpoint255Review": {
+        "observations": 2981,
+        "coverageStart": "2017-03-06",
+        "coverageEnd": "2026-10-29",
+        "rawWarningCount": 1,
+        "rawDiscontinuities": [
+          {
+            "beforeDate": "2026-06-19",
+            "beforeNav": 1157.1081,
+            "afterDate": "2026-06-20",
+            "afterNav": 115.7307
+          }
+        ],
+        "invalidObservationsPresent": 0,
+        "discontinuitiesAfterDocumentedFactorPreview": 0,
+        "previewMethod": "Read-only arithmetic diagnostic in the original checkpoint-255 review; separate from the checkpoint-256 production replay.",
+        "rawDocumentSha256": "51e80549ce189f2d616314d4c3dd0c45added5ee75aa60214359111127e93e06",
+        "rawFundSha256": "5eef39c08637223f233a0b09801d5ec85725226e34fefbdec2636ddf681e2b79",
+        "shardPath": "archive/history-4403-2d3c47e0672718eddac65ee850f73aa233fe4e3d69e6742bb48eb805d89dec82.json.gz",
+        "shardSha256": "2d3c47e0672718eddac65ee850f73aa233fe4e3d69e6742bb48eb805d89dec82"
+      },
+      "checkpoint256CrossCheck": {
+        "exactCurrentIdentityMatches": true,
+        "fixtureIdentityMatches": true,
+        "retainedObservationCountMatches": true,
+        "rawDocumentSha256MatchesOriginalReview": true,
+        "productionReplayFile": "2026-10-30-uti-distribution-replay.json"
+      },
+      "identityVerified": true,
+      "approvedForExactRegistration": true,
+      "literalGrowthEligible": false,
+      "consumerTotalReturnEligibilityEstablished": false
+    },
+    {
+      "schemeCode": 141768,
+      "schemeName": "UTI - Liquid Fund - Direct Plan - Flexi IDCW",
+      "fundHouse": "UTI Mutual Fund",
+      "plan": "Direct",
+      "frequency": "Flexi",
+      "option": "IDCW",
+      "currentPayloadIdentity": {
+        "isinGrowth": "INF789F1AE60",
+        "isinDivReinvestment": "INF789F1AE78"
+      },
+      "primaryPreEventIdentity": {
+        "payoutIsin": "INF789FA1K89",
+        "reinvestmentIsin": "INF789FA1K97",
+        "sourceId": "uti-ssd-march-2026",
+        "pdfPage": 114,
+        "printedSchemePage": 1,
+        "fields": {
+          "fundName": 1,
+          "optionNames": 2,
+          "faceValue": 10,
+          "isins": 28,
+          "amfiCodeAndPlan": 29
+        },
+        "faceValue": 1000
+      },
+      "primaryCurrentIdentity": {
+        "payout": {
+          "isin": "INF789F1AE60",
+          "citation": {
+            "sourceId": "cdsl-2026-416",
+            "pdfPage": 6,
+            "printedAnnexurePage": 5,
+            "serialRow": 48,
+            "activatedOn": "2026-06-18",
+            "faceValue": 100
+          }
+        },
+        "reinvestment": {
+          "isin": "INF789F1AE78",
+          "citation": {
+            "sourceId": "cdsl-2026-416",
+            "pdfPage": 6,
+            "printedAnnexurePage": 5,
+            "serialRow": 49,
+            "activatedOn": "2026-06-18",
+            "faceValue": 100
+          }
+        }
+      },
+      "originalCheckpoint255Review": {
+        "observations": 2595,
+        "coverageStart": "2017-08-14",
+        "coverageEnd": "2026-10-28",
+        "rawWarningCount": 1,
+        "rawDiscontinuities": [
+          {
+            "beforeDate": "2026-06-19",
+            "beforeNav": 1662.3117,
+            "afterDate": "2026-06-20",
+            "afterNav": 166.2598
+          }
+        ],
+        "invalidObservationsPresent": 0,
+        "discontinuitiesAfterDocumentedFactorPreview": 0,
+        "previewMethod": "Read-only arithmetic diagnostic in the original checkpoint-255 review; separate from the checkpoint-256 production replay.",
+        "rawDocumentSha256": "e1767bb092ebf1b71b6ce21ab25abdc7549e2cfe6202884e05f2025b8c23059a",
+        "rawFundSha256": "73379b3eaaa8ed9393e1b994be1f0f8f1e8ac533bf2eb6bea4884d2ae112d86e",
+        "shardPath": "archive/history-4430-8f4bcfcdb96fc8c966dec8e5eb778fa3ef9baa6d98cff079c2fdfed7763b9dbd.json.gz",
+        "shardSha256": "8f4bcfcdb96fc8c966dec8e5eb778fa3ef9baa6d98cff079c2fdfed7763b9dbd"
+      },
+      "checkpoint256CrossCheck": {
+        "exactCurrentIdentityMatches": true,
+        "fixtureIdentityMatches": true,
+        "retainedObservationCountMatches": true,
+        "rawDocumentSha256MatchesOriginalReview": true,
+        "productionReplayFile": "2026-10-30-uti-distribution-replay.json"
+      },
+      "identityVerified": true,
+      "approvedForExactRegistration": true,
+      "literalGrowthEligible": false,
+      "consumerTotalReturnEligibilityEstablished": false
+    },
+    {
+      "schemeCode": 144475,
+      "schemeName": "UTI - Liquid Fund - Regular Plan - Half-Yearly IDCW",
+      "fundHouse": "UTI Mutual Fund",
+      "plan": "Regular",
+      "frequency": "Half-Yearly",
+      "option": "IDCW",
+      "currentPayloadIdentity": {
+        "isinGrowth": "INF789F1AF51",
+        "isinDivReinvestment": "INF789F1AF69"
+      },
+      "primaryPreEventIdentity": {
+        "payoutIsin": "INF789FA1J41",
+        "reinvestmentIsin": "INF789FA1J58",
+        "sourceId": "uti-ssd-march-2026",
+        "pdfPage": 114,
+        "printedSchemePage": 1,
+        "fields": {
+          "fundName": 1,
+          "optionNames": 2,
+          "faceValue": 10,
+          "isins": 28,
+          "amfiCodeAndPlan": 29
+        },
+        "faceValue": 1000
+      },
+      "primaryCurrentIdentity": {
+        "payout": {
+          "isin": "INF789F1AF51",
+          "citation": {
+            "sourceId": "cdsl-2026-416",
+            "pdfPage": 7,
+            "printedAnnexurePage": 6,
+            "serialRow": 57,
+            "activatedOn": "2026-06-18",
+            "faceValue": 100
+          }
+        },
+        "reinvestment": {
+          "isin": "INF789F1AF69",
+          "citation": {
+            "sourceId": "cdsl-2026-416",
+            "pdfPage": 7,
+            "printedAnnexurePage": 6,
+            "serialRow": 58,
+            "activatedOn": "2026-06-18",
+            "faceValue": 100
+          }
+        }
+      },
+      "originalCheckpoint255Review": {
+        "observations": 2205,
+        "coverageStart": "2018-07-26",
+        "coverageEnd": "2026-10-28",
+        "rawWarningCount": 1,
+        "rawDiscontinuities": [
+          {
+            "beforeDate": "2026-06-19",
+            "beforeNav": 1395.2988,
+            "afterDate": "2026-06-20",
+            "afterNav": 139.554
+          }
+        ],
+        "invalidObservationsPresent": 0,
+        "discontinuitiesAfterDocumentedFactorPreview": 0,
+        "previewMethod": "Read-only arithmetic diagnostic in the original checkpoint-255 review; separate from the checkpoint-256 production replay.",
+        "rawDocumentSha256": "44d0635582b76c8a8140e9d3a364cd8d25a50eb178d1d6f1489d24ae3c930c3a",
+        "rawFundSha256": "2810d8166007fafe687e61516c25d0be30fcd79b68a51d9457e5fefadad78a42",
+        "shardPath": "archive/history-4514-15322d514cf83b5bef663e579739e6ab0f46e89367ea170688a7ccb4c2053161.json.gz",
+        "shardSha256": "15322d514cf83b5bef663e579739e6ab0f46e89367ea170688a7ccb4c2053161"
+      },
+      "checkpoint256CrossCheck": {
+        "exactCurrentIdentityMatches": true,
+        "fixtureIdentityMatches": true,
+        "retainedObservationCountMatches": true,
+        "rawDocumentSha256MatchesOriginalReview": true,
+        "productionReplayFile": "2026-10-30-uti-distribution-replay.json"
+      },
+      "identityVerified": true,
+      "approvedForExactRegistration": true,
+      "literalGrowthEligible": false,
+      "consumerTotalReturnEligibilityEstablished": false
+    }
+  ],
+  "excluded": [
+    {
+      "schemeCode": 102007,
+      "schemeName": "UTI - Liquid Fund - Regular Plan - Discontinued Periodic Dividend",
+      "currentPayloadIdentity": {
+        "isinGrowth": "INF789F1AE86",
+        "isinDivReinvestment": "INF789F1AE94"
+      },
+      "recommendedForImplementation": false,
+      "reason": "The exact numeric scheme code is absent from SSD field 29. Current CDSL ISIN/name rows do not establish that the legacy code is the same historical option; nearby or similar names are insufficient.",
+      "ssdAmfiCodeVerified": false,
+      "currentPayoutCitation": {
+        "sourceId": "cdsl-2026-416",
+        "pdfPage": 6,
+        "printedAnnexurePage": 5,
+        "serialRow": 50,
+        "activatedOn": "2026-06-18",
+        "faceValue": 100
+      },
+      "currentReinvestmentCitation": {
+        "sourceId": "cdsl-2026-416",
+        "pdfPage": 7,
+        "printedAnnexurePage": 6,
+        "serialRow": 51,
+        "activatedOn": "2026-06-18",
+        "faceValue": 100
+      },
+      "preEventIdentityAssigned": false,
+      "checkpoint256ExactCurrentIdentityMatches": true
+    },
+    {
+      "schemeCode": 102008,
+      "schemeName": "UTI - Liquid Fund - Regular Plan - Discontinued Monthly Dividend",
+      "currentPayloadIdentity": {
+        "isinGrowth": "INF789F1AG27",
+        "isinDivReinvestment": "INF789F1AG35"
+      },
+      "recommendedForImplementation": false,
+      "reason": "The exact numeric scheme code is absent from SSD field 29. Current CDSL ISIN/name rows do not establish that the legacy code is the same historical option; nearby or similar names are insufficient.",
+      "ssdAmfiCodeVerified": false,
+      "currentPayoutCitation": {
+        "sourceId": "cdsl-2026-416",
+        "pdfPage": 8,
+        "printedAnnexurePage": 7,
+        "serialRow": 64,
+        "activatedOn": "2026-06-18",
+        "faceValue": 100
+      },
+      "currentReinvestmentCitation": {
+        "sourceId": "cdsl-2026-416",
+        "pdfPage": 8,
+        "printedAnnexurePage": 7,
+        "serialRow": 65,
+        "activatedOn": "2026-06-18",
+        "faceValue": 100
+      },
+      "preEventIdentityAssigned": false,
+      "checkpoint256ExactCurrentIdentityMatches": true,
+      "additionalCaution": "CDSL rows 64–65 have no monthly frequency label. Do not conflate these unnamed payout/reinvestment securities with the separately documented current monthly option."
+    },
+    {
+      "schemeCode": 102013,
+      "schemeName": "UTI - Liquid Fund - Regular Plan - Weekly IDCW",
+      "currentPayloadIdentity": {
+        "isinGrowth": "INF789F1AH83",
+        "isinDivReinvestment": "INF789F1AG19"
+      },
+      "recommendedForImplementation": false,
+      "reason": "The complete current ISIN pair is not verified in retrieved primary sources. The weekly reinvestment identity is exact in CDSL 2026/416, but the current payout ISIN has only a secondary lead to CDSL 2026/623; the primary download returned HTTP 403.",
+      "ssdAmfiCodeVerified": true,
+      "ssdPdfPage": 114,
+      "ssdField": 29,
+      "preEventReinvestmentIsin": "INF789F01PK5",
+      "preEventPayoutIsinVerified": false,
+      "verifiedCurrentReinvestmentCitation": {
+        "sourceId": "cdsl-2026-416",
+        "pdfPage": 8,
+        "printedAnnexurePage": 7,
+        "serialRow": 63,
+        "activatedOn": "2026-06-18",
+        "faceValue": 100
+      },
+      "unverifiedPrimaryLead": "https://www.cdslindia.com/eservices/Publications/DownloadFile?eventID=DP2026-623&method=communique",
+      "unverifiedLeadTiming": "The secondary index describes activation on 9 September 2026. This is not evidence of the June split boundary and is not promoted to verified evidence.",
+      "checkpoint256ExactCurrentIdentityMatches": true
+    },
+    {
+      "schemeCode": 120777,
+      "schemeName": "UTI - Liquid Fund - Direct Plan - Weekly IDCW",
+      "currentPayloadIdentity": {
+        "isinGrowth": "INF789F1AH75",
+        "isinDivReinvestment": "INF789F1AD79"
+      },
+      "recommendedForImplementation": false,
+      "reason": "The complete current ISIN pair is not verified in retrieved primary sources. The weekly reinvestment identity is exact in CDSL 2026/416, but the current payout ISIN has only a secondary lead to CDSL 2026/623; the primary download returned HTTP 403.",
+      "ssdAmfiCodeVerified": true,
+      "ssdPdfPage": 114,
+      "ssdField": 29,
+      "preEventReinvestmentIsin": "INF789F01XT0",
+      "preEventPayoutIsinVerified": false,
+      "verifiedCurrentReinvestmentCitation": {
+        "sourceId": "cdsl-2026-416",
+        "pdfPage": 5,
+        "printedAnnexurePage": 4,
+        "serialRow": 39,
+        "activatedOn": "2026-06-18",
+        "faceValue": 100
+      },
+      "unverifiedPrimaryLead": "https://www.cdslindia.com/eservices/Publications/DownloadFile?eventID=DP2026-623&method=communique",
+      "unverifiedLeadTiming": "The secondary index describes activation on 9 September 2026. This is not evidence of the June split boundary and is not promoted to verified evidence.",
+      "checkpoint256ExactCurrentIdentityMatches": true
+    }
+  ],
+  "limitations": [
+    "The provider field isinGrowth stores payout ISINs for these IDCW options; its field name does not establish Growth eligibility.",
+    "The documented 19 June effective date, CDSL 18 June identifier activation date, and saved 19/20 June NAV boundary are distinct facts. No primary close-of-business timing claim is made for this event.",
+    "The original review used checkpoint 255. The final production replay uses checkpoint 256; no original archive hash has been relabeled.",
+    "All 53,773 retained points are reviewed. This does not assert that every historical source observation is present.",
+    "Unit normalization establishes a consistent unit denomination for a calculation copy. It does not establish distribution-adjusted total returns or consumer ranking eligibility.",
+    "Raw observations and raw archive warnings/flags remain unchanged; the replay file records calculation-copy outcomes.",
+    "The four excluded identities remain unregistered."
+  ]
+}

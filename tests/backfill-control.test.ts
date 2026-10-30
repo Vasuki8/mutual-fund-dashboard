@@ -136,6 +136,44 @@ test('a valid child verifies its successful parent, root lineage and exact expec
   assert.ok(value.requests.some(request => request.url.endsWith('/actions/runs/100')));
 });
 
+for (const sample of [
+  { name: 'an incorrect root title', patch: { display_title: 'Unexpected root title' },
+    observedTitle: 'Unexpected root title', status: 'completed', conclusion: 'success' },
+  { name: 'a mixed queued/success root state', patch: { status: 'queued', conclusion: 'success' },
+    observedTitle: 'FundScope archive · 100 · 1/12', status: 'queued', conclusion: 'success' },
+]) {
+  test(`ancestor observations record ${sample.name} before rejecting without archive reads`, async () => {
+    const value = fixture(); child(value);
+    Object.assign(value.runs.get(100)!, sample.patch);
+    const logs: Record<string, unknown>[] = [];
+    await assert.rejects(prepareBackfill({ ...value.options, log: row => logs.push(row) }),
+      { message: 'backfill_root_invalid' });
+    assert.equal(value.reads, 0);
+    assert.deepEqual(value.waits, []);
+    assert.ok(value.requests.every(request => request.method === 'GET'));
+    assert.deepEqual(logs.filter(row => row.phase === 'backfill_ancestor_observed'), [{
+      phase: 'backfill_ancestor_observed', runId: '101', ancestorId: '100', role: 'root',
+      expectedTitle: 'FundScope archive · 100 · 1/12', observedTitle: sample.observedTitle,
+      runAttempt: 1, event: 'workflow_dispatch', status: sample.status, conclusion: sample.conclusion,
+    }]);
+  });
+}
+
+test('ancestor observations whitelist metadata and exclude API extras and credentials', async () => {
+  const value = fixture(); child(value);
+  Object.assign(value.runs.get(100)!, { api_secret: 'unrelated-api-secret',
+    authorization: 'Bearer unrelated-credential', token: value.env.GITHUB_TOKEN });
+  const logs: Record<string, unknown>[] = [];
+  const prepared = await prepareBackfill({ ...value.options, log: row => logs.push(row) });
+  assert.equal(prepared.collect, true);
+  assert.deepEqual(logs.filter(row => row.phase === 'backfill_ancestor_observed'), [{
+    phase: 'backfill_ancestor_observed', runId: '101', ancestorId: '100', role: 'root',
+    expectedTitle: 'FundScope archive · 100 · 1/12', observedTitle: 'FundScope archive · 100 · 1/12',
+    runAttempt: 1, event: 'workflow_dispatch', status: 'completed', conclusion: 'success',
+  }]);
+  assert.doesNotMatch(JSON.stringify(logs), /api_secret|unrelated-api-secret|authorization|unrelated-credential|token|fixture-token/);
+});
+
 test('a successor waits for the root dispatch workflow to finish instead of racing its final job', async () => {
   const value = fixture(); child(value);
   Object.assign(value.runs.get(100)!, { status: 'in_progress', conclusion: null });
@@ -153,6 +191,15 @@ test('a successor waits for the root dispatch workflow to finish instead of raci
   assert.equal(value.reads, 2);
   assert.equal(logs.filter(row => row.phase === 'backfill_lineage_wait').length, 2);
   assert.equal(value.requests.filter(request => request.url.endsWith('/actions/runs/100')).length, 3);
+  assert.deepEqual(logs.filter(row => row.phase === 'backfill_ancestor_observed').map(row =>
+    [row.role, row.ancestorId, row.status, row.conclusion]), [
+    ['root', '100', 'in_progress', null],
+    ['root', '100', 'in_progress', null],
+    ['root', '100', 'completed', 'success'],
+  ]);
+  assert.deepEqual(logs.filter(row => ['backfill_ancestor_observed', 'backfill_lineage_wait'].includes(String(row.phase)))
+    .map(row => row.phase), ['backfill_ancestor_observed', 'backfill_lineage_wait',
+    'backfill_ancestor_observed', 'backfill_lineage_wait', 'backfill_ancestor_observed']);
 });
 
 test('a third tranche only collects after its distinct parent has succeeded', async () => {
@@ -167,7 +214,8 @@ test('a third tranche only collects after its distinct parent has succeeded', as
     created_at: iso(START - 10 * 60_000) });
   value.runs.set(102, { ...run(102, 3), status: 'in_progress', conclusion: null });
   let polls = 0;
-  const prepared = await prepareBackfill({ ...value.options, sleep: async ms => {
+  const logs: Record<string, unknown>[] = [];
+  const prepared = await prepareBackfill({ ...value.options, log: row => logs.push(row), sleep: async ms => {
     await value.options.sleep(ms);
     if (++polls === 3) Object.assign(value.runs.get(101)!, { status: 'completed', conclusion: 'success' });
   } });
@@ -176,6 +224,14 @@ test('a third tranche only collects after its distinct parent has succeeded', as
   assert.equal(prepared.context?.position, 3);
   assert.deepEqual(value.waits, [15_000, 15_000, 15_000]);
   assert.equal(value.requests.filter(request => request.url.endsWith('/actions/runs/101')).length, 4);
+  assert.deepEqual(logs.filter(row => row.phase === 'backfill_ancestor_observed').map(row =>
+    [row.role, row.ancestorId, row.status, row.conclusion]), [
+    ['root', '100', 'completed', 'success'],
+    ['parent', '101', 'queued', null],
+    ['parent', '101', 'queued', null],
+    ['parent', '101', 'queued', null],
+    ['parent', '101', 'completed', 'success'],
+  ]);
 });
 
 test('parent failure or cancellation during bounded lineage wait never authorizes collection', async () => {

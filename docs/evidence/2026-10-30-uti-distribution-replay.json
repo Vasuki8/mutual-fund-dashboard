@@ -1,0 +1,1340 @@
+{
+  "version": 1,
+  "replayedAt": "2026-10-30T20:35:53.006Z",
+  "historicalEligibilitySnapshot": true,
+  "asOfDate": "2026-10-30",
+  "evaluatedOnActualScopeDate": true,
+  "repositoryBase": "a951c2f33b623d23bb38badd192c041ef6529942",
+  "productionSourceSha256": {
+    "scripts/active-repair-scope.ts": "1fb23e52bd92f1e7fff701307e9ebe165c7988fcd015ed97ce284dca2e9cc172",
+    "scripts/archive-model.ts": "8252e6d6c2bc82ab342a3e5a94960b9f5a55af5ca7cc466981b011bfbe101025",
+    "server/types.ts": "7189e930a30909641d72b920d5bdfa0af4b1a38f0a5ddb1478022cc580ad97d6",
+    "server/validation.ts": "1d8b58231e21e6e3161b61bbb410f0406d5f784af063b06054832bc357484854",
+    "src/lib/storage.ts": "c5642d7c744fed709b1777e9f7b7e82387fc2f0d5ad61a795b467a2cfcb7dccd",
+    "src/lib/provenance.ts": "e475895e7534e74e02b62691a96ad49932b50eaef95f9316d7e840de131cb876",
+    "src/lib/types.ts": "a6fdfe8d7e001d1b11d602c81417702b8a7b230da10fbf2ac94132d42d61bbd1",
+    "src/lib/corporate-actions.ts": "41e7575981db77d5f58bf529e847805a6dc64efa6d1181eec61836bcdbb1ef59",
+    "src/lib/verified-nav-reviews.ts": "1bb2effd7f249cf2a46fc805002632eb09a256408abca550f3e07612aa1f1843",
+    "src/lib/verified-sbi-infrastructure-history.ts": "057f0e32358adafb6df28d63950e46d41bdbb42c008c9071c70802e83b6fedad",
+    "src/lib/analytics.ts": "98a93fb1002362cc705ee721b5db160574fc2aedef1ded0a0571d046dfacdebd",
+    "src/lib/format.ts": "975122113ac307b08775a0202c52855269de249c47c4a90506de7f226992874e",
+    "src/lib/amfi-open-ended-roster.ts": "31441bcb846eebdc75cda52c51ace505a2f731732408ebe6b4c6748d24c5489c",
+    "src/lib/nav-quality-evidence.ts": "861bdd6633b58c23496eae7f5d1e5d8a24f384cb1dd387e1f2624115d60b59cc",
+    "src/lib/fund-sort.ts": "af0f42bc34111f9ff6d21a9fd0a7d87dc009ffc1d2b801973a19f66c320f4db2"
+  },
+  "checkpoint": 256,
+  "checkpointAt": "2026-10-30T20:01:41.985Z",
+  "manifestSha256": "0cea4ec864490977b8914f4b50293f98f82c3327f9a3c1951a1aa1a28ab38bd2",
+  "artifactId": 13008571816,
+  "artifactZipSha256": "c0720aa4212ba3efe41c4336fcb37f837fe73c5037d0c9ac0fdc47d554a671a1",
+  "catalogueFetchedAt": "2026-10-30T19:58:19.963Z",
+  "catalogueMembership": {
+    "source": "mf-list",
+    "verifiedAt": "2026-10-30T19:58:19.963Z",
+    "listedSchemes": 38026,
+    "bulkNavSchemes": 38026,
+    "missingBulkNav": 0
+  },
+  "officialRosterDate": "2026-10-26",
+  "approvedCodes": [
+    102010,
+    102011,
+    120558,
+    120794,
+    133973,
+    134427,
+    135721,
+    139838,
+    140024,
+    140504,
+    140517,
+    140913,
+    141768,
+    144475
+  ],
+  "excludedCodes": [
+    102007,
+    102008,
+    102013,
+    120777
+  ],
+  "verifiedReferences": [
+    {
+      "path": "archive/catalogue-baa9c5ff7a7a99f277bcab9d26fa58def85caf2bf519bfa6795ebad7b73e531e.json.gz",
+      "sha256": "baa9c5ff7a7a99f277bcab9d26fa58def85caf2bf519bfa6795ebad7b73e531e",
+      "bytes": 636915,
+      "expandedBytes": 7960106
+    },
+    {
+      "path": "archive/history-3187-32c3c693fa60b0fe75bd6135325d445da6c7eff5bcb157655958718cfcd864b8.json.gz",
+      "sha256": "32c3c693fa60b0fe75bd6135325d445da6c7eff5bcb157655958718cfcd864b8",
+      "bytes": 612792,
+      "expandedBytes": 4710125
+    },
+    {
+      "path": "archive/history-3767-6e26a3d4a4a217ce53aed3cb5272aaaaf4f6d3c3291b036936ce32fa5679dbea.json.gz",
+      "sha256": "6e26a3d4a4a217ce53aed3cb5272aaaaf4f6d3c3291b036936ce32fa5679dbea",
+      "bytes": 448792,
+      "expandedBytes": 3055618
+    },
+    {
+      "path": "archive/history-3774-7b496628c2e753faebd1bcb6b8418a8d5d5a18cf4379e1f4c10dcfde44243762.json.gz",
+      "sha256": "7b496628c2e753faebd1bcb6b8418a8d5d5a18cf4379e1f4c10dcfde44243762",
+      "bytes": 488787,
+      "expandedBytes": 3393356
+    },
+    {
+      "path": "archive/history-4186-9975cb16eda8940317a6e589edca1c5ebae013468e730bbc442747a98e9e4b5c.json.gz",
+      "sha256": "9975cb16eda8940317a6e589edca1c5ebae013468e730bbc442747a98e9e4b5c",
+      "bytes": 81882,
+      "expandedBytes": 592771
+    },
+    {
+      "path": "archive/history-4200-1ebc96bd1a90eee9f8e4590e8f3286c0383900e0123948d683d14e9764760f3d.json.gz",
+      "sha256": "1ebc96bd1a90eee9f8e4590e8f3286c0383900e0123948d683d14e9764760f3d",
+      "bytes": 123693,
+      "expandedBytes": 915694
+    },
+    {
+      "path": "archive/history-4241-e0c2486c6fe41bb7893dbcca0363f77a1d2da2b8ba964d14426b98bd113a1024.json.gz",
+      "sha256": "e0c2486c6fe41bb7893dbcca0363f77a1d2da2b8ba964d14426b98bd113a1024",
+      "bytes": 43059,
+      "expandedBytes": 328373
+    },
+    {
+      "path": "archive/history-4369-d6b80325afaca42b69ed8820379e94392b0e7f5c4480ab911e51bb34a1dd73d6.json.gz",
+      "sha256": "d6b80325afaca42b69ed8820379e94392b0e7f5c4480ab911e51bb34a1dd73d6",
+      "bytes": 100028,
+      "expandedBytes": 747194
+    },
+    {
+      "path": "archive/history-4375-ed3eb7116093a3f888747236b01880e37df11afeecfa13dc0130c7c9db302215.json.gz",
+      "sha256": "ed3eb7116093a3f888747236b01880e37df11afeecfa13dc0130c7c9db302215",
+      "bytes": 111273,
+      "expandedBytes": 893005
+    },
+    {
+      "path": "archive/history-4390-b6a63e91057672603548861215f3175f0d982763839528208751e243480d040e.json.gz",
+      "sha256": "b6a63e91057672603548861215f3175f0d982763839528208751e243480d040e",
+      "bytes": 125332,
+      "expandedBytes": 906318
+    },
+    {
+      "path": "archive/history-4391-fd4563434f1ef874aa9a9fbbd82e7790985bb067d3ccd8fb399911c1ba7572a6.json.gz",
+      "sha256": "fd4563434f1ef874aa9a9fbbd82e7790985bb067d3ccd8fb399911c1ba7572a6",
+      "bytes": 153259,
+      "expandedBytes": 1123454
+    },
+    {
+      "path": "archive/history-4403-2d3c47e0672718eddac65ee850f73aa233fe4e3d69e6742bb48eb805d89dec82.json.gz",
+      "sha256": "2d3c47e0672718eddac65ee850f73aa233fe4e3d69e6742bb48eb805d89dec82",
+      "bytes": 79453,
+      "expandedBytes": 707919
+    },
+    {
+      "path": "archive/history-4430-8f4bcfcdb96fc8c966dec8e5eb778fa3ef9baa6d98cff079c2fdfed7763b9dbd.json.gz",
+      "sha256": "8f4bcfcdb96fc8c966dec8e5eb778fa3ef9baa6d98cff079c2fdfed7763b9dbd",
+      "bytes": 95727,
+      "expandedBytes": 799448
+    },
+    {
+      "path": "archive/history-4514-15322d514cf83b5bef663e579739e6ab0f46e89367ea170688a7ccb4c2053161.json.gz",
+      "sha256": "15322d514cf83b5bef663e579739e6ab0f46e89367ea170688a7ccb4c2053161",
+      "bytes": 142633,
+      "expandedBytes": 1037004
+    }
+  ],
+  "counts": {
+    "approvedHistories": 14,
+    "approvedObservations": 53773,
+    "excludedHistories": 4,
+    "excludedObservations": 25564,
+    "newlyContinuousCalculationCopies": 14,
+    "rawArchiveFlagsCleared": 0,
+    "consumerReturnEligibilityAdded": 0
+  },
+  "rows": [
+    {
+      "schemeCode": 102010,
+      "name": "UTI - Liquid Fund - Regular Plan - Daily IDCW (Reinvestment)",
+      "included": true,
+      "catalogue": {
+        "schemeCode": 102010,
+        "schemeName": "UTI - Liquid Fund - Regular Plan - Daily IDCW (Reinvestment)",
+        "isinGrowth": null,
+        "isinDivReinvestment": "INF789F1AF77",
+        "latestDate": "2026-10-29",
+        "nav": "122.22560",
+        "current": true
+      },
+      "activeRepairEligible": true,
+      "observationCount": 7024,
+      "coverageStart": "2006-04-01",
+      "coverageEnd": "2026-10-29",
+      "savedHistoryBehindCatalogue": false,
+      "rawUnresolved": true,
+      "rawWarnings": [
+        "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "rawMoves": [
+        {
+          "beforeDate": "2026-06-19",
+          "beforeNav": 1196.0616,
+          "afterDate": "2026-06-20",
+          "afterNav": 119.6264,
+          "ratio": 0.10001692220534461
+        }
+      ],
+      "calculationWarnings": [],
+      "remainingMoves": [],
+      "calculationQualityPass": true,
+      "adjustment": {
+        "schemeCode": 102010,
+        "label": "verified 10-for-1 UTI - Liquid Fund - Regular Plan - Daily IDCW (Reinvestment) unit split effective 19 June 2026",
+        "oldNavThrough": "2026-06-19",
+        "firstNewNavDate": "2026-06-20",
+        "factor": 0.1,
+        "evidenceUrl": "https://nsearchives.nseindia.com/content/circulars/NMF74721.zip"
+      },
+      "normalizedRows": 6904,
+      "rawDocumentSha256": "3ced3f501523a2f804056fcc19d386d9d160f56897f2cf992ae30c7fcb2d2265",
+      "rawFundSha256": "2b84473b247f5612446ee3538920e3400725d4762562accc661c1d22aabd7221",
+      "calculationPointsSha256": "39e74f09911b086d1148990edd37c83bdc7d52d8c05b311dbcfb94f4caf2304b",
+      "rawInputUnchanged": true,
+      "literalGrowthEligible": false,
+      "distributionAdjustedTotalReturnEstablished": false,
+      "consumerRanking": {
+        "schemeCode": 102010,
+        "navDate": "2026-10-29",
+        "oneYear": null,
+        "threeYear": null,
+        "fiveYear": null,
+        "threeYearMaxDrawdown": null
+      },
+      "archivedRanking": null,
+      "shard": {
+        "path": "archive/history-3187-32c3c693fa60b0fe75bd6135325d445da6c7eff5bcb157655958718cfcd864b8.json.gz",
+        "sha256": "32c3c693fa60b0fe75bd6135325d445da6c7eff5bcb157655958718cfcd864b8",
+        "bytes": 612792,
+        "expandedBytes": 4710125
+      }
+    },
+    {
+      "schemeCode": 102011,
+      "name": "UTI - Liquid Fund - Regular Plan - Monthly IDCW",
+      "included": true,
+      "catalogue": {
+        "schemeCode": 102011,
+        "schemeName": "UTI - Liquid Fund - Regular Plan - Monthly IDCW",
+        "isinGrowth": "INF789F1AF93",
+        "isinDivReinvestment": "INF789F1AG01",
+        "latestDate": "2026-10-29",
+        "nav": "109.53460",
+        "current": true
+      },
+      "activeRepairEligible": true,
+      "observationCount": 7024,
+      "coverageStart": "2006-04-01",
+      "coverageEnd": "2026-10-29",
+      "savedHistoryBehindCatalogue": false,
+      "rawUnresolved": true,
+      "rawWarnings": [
+        "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "rawMoves": [
+        {
+          "beforeDate": "2026-06-19",
+          "beforeNav": 1130.0749,
+          "afterDate": "2026-06-20",
+          "afterNav": 113.0266,
+          "ratio": 0.10001691038355068
+        }
+      ],
+      "calculationWarnings": [],
+      "remainingMoves": [],
+      "calculationQualityPass": true,
+      "adjustment": {
+        "schemeCode": 102011,
+        "label": "verified 10-for-1 UTI - Liquid Fund - Regular Plan - Monthly IDCW unit split effective 19 June 2026",
+        "oldNavThrough": "2026-06-19",
+        "firstNewNavDate": "2026-06-20",
+        "factor": 0.1,
+        "evidenceUrl": "https://nsearchives.nseindia.com/content/circulars/NMF74721.zip"
+      },
+      "normalizedRows": 6904,
+      "rawDocumentSha256": "df63e337479011129dd6a6760ed9194e554804f5766559d5e2a97638f9cfc7bf",
+      "rawFundSha256": "e6fdca5145933e0be7a7487141adb9bf0a5f634628ad16e6709363eacda11b23",
+      "calculationPointsSha256": "b8258176b9605ace5cdb4d35e848d06274e767f2de90efb793d7a19466faeb13",
+      "rawInputUnchanged": true,
+      "literalGrowthEligible": false,
+      "distributionAdjustedTotalReturnEstablished": false,
+      "consumerRanking": {
+        "schemeCode": 102011,
+        "navDate": "2026-10-29",
+        "oneYear": null,
+        "threeYear": null,
+        "fiveYear": null,
+        "threeYearMaxDrawdown": null
+      },
+      "archivedRanking": null,
+      "shard": {
+        "path": "archive/history-3187-32c3c693fa60b0fe75bd6135325d445da6c7eff5bcb157655958718cfcd864b8.json.gz",
+        "sha256": "32c3c693fa60b0fe75bd6135325d445da6c7eff5bcb157655958718cfcd864b8",
+        "bytes": 612792,
+        "expandedBytes": 4710125
+      }
+    },
+    {
+      "schemeCode": 120558,
+      "name": "UTI - Liquid Fund - Direct Plan - Daily IDCW (Reinvestment)",
+      "included": true,
+      "catalogue": {
+        "schemeCode": 120558,
+        "schemeName": "UTI - Liquid Fund - Direct Plan - Daily IDCW (Reinvestment)",
+        "isinGrowth": null,
+        "isinDivReinvestment": "INF789F1AD38",
+        "latestDate": "2026-10-29",
+        "nav": "106.53040",
+        "current": true
+      },
+      "activeRepairEligible": true,
+      "observationCount": 4556,
+      "coverageStart": "2013-01-01",
+      "coverageEnd": "2026-10-26",
+      "savedHistoryBehindCatalogue": true,
+      "rawUnresolved": true,
+      "rawWarnings": [
+        "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "rawMoves": [
+        {
+          "beforeDate": "2026-06-19",
+          "beforeNav": 1065.3037,
+          "afterDate": "2026-06-20",
+          "afterNav": 106.5304,
+          "ratio": 0.10000002816098358
+        }
+      ],
+      "calculationWarnings": [],
+      "remainingMoves": [],
+      "calculationQualityPass": true,
+      "adjustment": {
+        "schemeCode": 120558,
+        "label": "verified 10-for-1 UTI - Liquid Fund - Direct Plan - Daily IDCW (Reinvestment) unit split effective 19 June 2026",
+        "oldNavThrough": "2026-06-19",
+        "firstNewNavDate": "2026-06-20",
+        "factor": 0.1,
+        "evidenceUrl": "https://nsearchives.nseindia.com/content/circulars/NMF74721.zip"
+      },
+      "normalizedRows": 4439,
+      "rawDocumentSha256": "de579bdc785dd07ff01cb127cd352eedac9877385ca3475394a7a6a43205ada1",
+      "rawFundSha256": "9a85c373fb7a71fe8c41948fecf2f81264033fce73cbddfa7edd35b8a54292c4",
+      "calculationPointsSha256": "54ccf96dfacfd09122f2b5fb80d7f92fc0240d18f558834fed6fc06759972651",
+      "rawInputUnchanged": true,
+      "literalGrowthEligible": false,
+      "distributionAdjustedTotalReturnEstablished": false,
+      "consumerRanking": {
+        "schemeCode": 120558,
+        "navDate": "2026-10-26",
+        "oneYear": null,
+        "threeYear": null,
+        "fiveYear": null,
+        "threeYearMaxDrawdown": null
+      },
+      "archivedRanking": null,
+      "shard": {
+        "path": "archive/history-3767-6e26a3d4a4a217ce53aed3cb5272aaaaf4f6d3c3291b036936ce32fa5679dbea.json.gz",
+        "sha256": "6e26a3d4a4a217ce53aed3cb5272aaaaf4f6d3c3291b036936ce32fa5679dbea",
+        "bytes": 448792,
+        "expandedBytes": 3055618
+      }
+    },
+    {
+      "schemeCode": 120794,
+      "name": "UTI - Liquid Fund - Direct Plan - Monthly IDCW",
+      "included": true,
+      "catalogue": {
+        "schemeCode": 120794,
+        "schemeName": "UTI - Liquid Fund - Direct Plan - Monthly IDCW",
+        "isinGrowth": "INF789F1AD53",
+        "isinDivReinvestment": "INF789F1AD61",
+        "latestDate": "2026-10-29",
+        "nav": "104.85300",
+        "current": true
+      },
+      "activeRepairEligible": true,
+      "observationCount": 4527,
+      "coverageStart": "2013-01-10",
+      "coverageEnd": "2026-10-26",
+      "savedHistoryBehindCatalogue": true,
+      "rawUnresolved": true,
+      "rawWarnings": [
+        "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "rawMoves": [
+        {
+          "beforeDate": "2026-06-19",
+          "beforeNav": 1047.5507,
+          "afterDate": "2026-06-20",
+          "afterNav": 104.7731,
+          "ratio": 0.1000172115774444
+        }
+      ],
+      "calculationWarnings": [],
+      "remainingMoves": [],
+      "calculationQualityPass": true,
+      "adjustment": {
+        "schemeCode": 120794,
+        "label": "verified 10-for-1 UTI - Liquid Fund - Direct Plan - Monthly IDCW unit split effective 19 June 2026",
+        "oldNavThrough": "2026-06-19",
+        "firstNewNavDate": "2026-06-20",
+        "factor": 0.1,
+        "evidenceUrl": "https://nsearchives.nseindia.com/content/circulars/NMF74721.zip"
+      },
+      "normalizedRows": 4410,
+      "rawDocumentSha256": "6628b82e2f041908ef312cc0f72a9e927e56fad091a80241bc336c4d3606a9eb",
+      "rawFundSha256": "f4db858bb8c88980e1254b086f8f5ab5849018b25799c839addc2feea747aad0",
+      "calculationPointsSha256": "61c7ca0e7e43b7b7909f1103e2974a6016a49b6832139f47071e3ac8aeb57b76",
+      "rawInputUnchanged": true,
+      "literalGrowthEligible": false,
+      "distributionAdjustedTotalReturnEstablished": false,
+      "consumerRanking": {
+        "schemeCode": 120794,
+        "navDate": "2026-10-26",
+        "oneYear": null,
+        "threeYear": null,
+        "fiveYear": null,
+        "threeYearMaxDrawdown": null
+      },
+      "archivedRanking": null,
+      "shard": {
+        "path": "archive/history-3774-7b496628c2e753faebd1bcb6b8418a8d5d5a18cf4379e1f4c10dcfde44243762.json.gz",
+        "sha256": "7b496628c2e753faebd1bcb6b8418a8d5d5a18cf4379e1f4c10dcfde44243762",
+        "bytes": 488787,
+        "expandedBytes": 3393356
+      }
+    },
+    {
+      "schemeCode": 133973,
+      "name": "UTI - Liquid Fund - Regular Plan - Annual IDCW",
+      "included": true,
+      "catalogue": {
+        "schemeCode": 133973,
+        "schemeName": "UTI - Liquid Fund - Regular Plan - Annual IDCW",
+        "isinGrowth": "INF789F1AD12",
+        "isinDivReinvestment": "INF789F1AD20",
+        "latestDate": "2026-10-29",
+        "nav": "204.73920",
+        "current": true
+      },
+      "activeRepairEligible": true,
+      "observationCount": 3777,
+      "coverageStart": "2015-02-20",
+      "coverageEnd": "2026-10-27",
+      "savedHistoryBehindCatalogue": true,
+      "rawUnresolved": true,
+      "rawWarnings": [
+        "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "rawMoves": [
+        {
+          "beforeDate": "2026-06-19",
+          "beforeNav": 2003.5149,
+          "afterDate": "2026-06-20",
+          "afterNav": 200.3854,
+          "ratio": 0.10001692525471112
+        }
+      ],
+      "calculationWarnings": [],
+      "remainingMoves": [],
+      "calculationQualityPass": true,
+      "adjustment": {
+        "schemeCode": 133973,
+        "label": "verified 10-for-1 UTI - Liquid Fund - Regular Plan - Annual IDCW unit split effective 19 June 2026",
+        "oldNavThrough": "2026-06-19",
+        "firstNewNavDate": "2026-06-20",
+        "factor": 0.1,
+        "evidenceUrl": "https://nsearchives.nseindia.com/content/circulars/NMF74721.zip"
+      },
+      "normalizedRows": 3659,
+      "rawDocumentSha256": "a4aab4ce969223a774cf3d2fc5d4bf1809b43e571e887306273507f142775a7f",
+      "rawFundSha256": "35a22893686a3f2b3ace19e9d1d1f3cca3fcc25d341ad3c301f05a17a0de8219",
+      "calculationPointsSha256": "675eab35d7fe2ec406b764e9c27fbbecaecba90804d8c6e378481b1a24b6a9e9",
+      "rawInputUnchanged": true,
+      "literalGrowthEligible": false,
+      "distributionAdjustedTotalReturnEstablished": false,
+      "consumerRanking": {
+        "schemeCode": 133973,
+        "navDate": "2026-10-27",
+        "oneYear": null,
+        "threeYear": null,
+        "fiveYear": null,
+        "threeYearMaxDrawdown": null
+      },
+      "archivedRanking": null,
+      "shard": {
+        "path": "archive/history-4186-9975cb16eda8940317a6e589edca1c5ebae013468e730bbc442747a98e9e4b5c.json.gz",
+        "sha256": "9975cb16eda8940317a6e589edca1c5ebae013468e730bbc442747a98e9e4b5c",
+        "bytes": 81882,
+        "expandedBytes": 592771
+      }
+    },
+    {
+      "schemeCode": 134427,
+      "name": "UTI - Liquid Fund - Direct Plan - Annual IDCW",
+      "included": true,
+      "catalogue": {
+        "schemeCode": 134427,
+        "schemeName": "UTI - Liquid Fund - Direct Plan - Annual IDCW",
+        "isinGrowth": "INF789F1AE45",
+        "isinDivReinvestment": "INF789F1AE52",
+        "latestDate": "2026-10-29",
+        "nav": "206.32160",
+        "current": true
+      },
+      "activeRepairEligible": true,
+      "observationCount": 3456,
+      "coverageStart": "2015-03-31",
+      "coverageEnd": "2026-10-29",
+      "savedHistoryBehindCatalogue": false,
+      "rawUnresolved": true,
+      "rawWarnings": [
+        "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "rawMoves": [
+        {
+          "beforeDate": "2026-06-19",
+          "beforeNav": 2018.2382,
+          "afterDate": "2026-06-20",
+          "afterNav": 201.8586,
+          "ratio": 0.10001723285190023
+        }
+      ],
+      "calculationWarnings": [],
+      "remainingMoves": [],
+      "calculationQualityPass": true,
+      "adjustment": {
+        "schemeCode": 134427,
+        "label": "verified 10-for-1 UTI - Liquid Fund - Direct Plan - Annual IDCW unit split effective 19 June 2026",
+        "oldNavThrough": "2026-06-19",
+        "firstNewNavDate": "2026-06-20",
+        "factor": 0.1,
+        "evidenceUrl": "https://nsearchives.nseindia.com/content/circulars/NMF74721.zip"
+      },
+      "normalizedRows": 3336,
+      "rawDocumentSha256": "4e96acb7bbc515c5af32f16c0815fc67bb57e5f4f29796eb60f5fd20ed2c61c4",
+      "rawFundSha256": "0da21fe45ff086adbd927c0beacf57bd49f1da63b4076fe6313682b46849309f",
+      "calculationPointsSha256": "ce64df8b062d50ecb33718ca36574b46beb8dbcf818825f70c68d31ac3f3d333",
+      "rawInputUnchanged": true,
+      "literalGrowthEligible": false,
+      "distributionAdjustedTotalReturnEstablished": false,
+      "consumerRanking": {
+        "schemeCode": 134427,
+        "navDate": "2026-10-29",
+        "oneYear": null,
+        "threeYear": null,
+        "fiveYear": null,
+        "threeYearMaxDrawdown": null
+      },
+      "archivedRanking": null,
+      "shard": {
+        "path": "archive/history-4200-1ebc96bd1a90eee9f8e4590e8f3286c0383900e0123948d683d14e9764760f3d.json.gz",
+        "sha256": "1ebc96bd1a90eee9f8e4590e8f3286c0383900e0123948d683d14e9764760f3d",
+        "bytes": 123693,
+        "expandedBytes": 915694
+      }
+    },
+    {
+      "schemeCode": 135721,
+      "name": "UTI - Liquid Fund - Regular Plan - Quarterly IDCW",
+      "included": true,
+      "catalogue": {
+        "schemeCode": 135721,
+        "schemeName": "UTI - Liquid Fund - Regular Plan - Quarterly IDCW",
+        "isinGrowth": "INF789F1AG43",
+        "isinDivReinvestment": "INF789F1AG50",
+        "latestDate": "2026-10-29",
+        "nav": "193.31930",
+        "current": true
+      },
+      "activeRepairEligible": true,
+      "observationCount": 3517,
+      "coverageStart": "2015-11-09",
+      "coverageEnd": "2026-10-29",
+      "savedHistoryBehindCatalogue": false,
+      "rawUnresolved": true,
+      "rawWarnings": [
+        "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "rawMoves": [
+        {
+          "beforeDate": "2026-06-19",
+          "beforeNav": 1891.7631,
+          "afterDate": "2026-06-20",
+          "afterNav": 189.2083,
+          "ratio": 0.10001691015117063
+        }
+      ],
+      "calculationWarnings": [],
+      "remainingMoves": [],
+      "calculationQualityPass": true,
+      "adjustment": {
+        "schemeCode": 135721,
+        "label": "verified 10-for-1 UTI - Liquid Fund - Regular Plan - Quarterly IDCW unit split effective 19 June 2026",
+        "oldNavThrough": "2026-06-19",
+        "firstNewNavDate": "2026-06-20",
+        "factor": 0.1,
+        "evidenceUrl": "https://nsearchives.nseindia.com/content/circulars/NMF74721.zip"
+      },
+      "normalizedRows": 3397,
+      "rawDocumentSha256": "8523b4e8cca2486f3d400f97102671feb85c9ce73f3f7d213107868e7149378c",
+      "rawFundSha256": "fbc2849967c27808d527dc8ece6e6a61ae68a44a375b99d55c11533271fd986e",
+      "calculationPointsSha256": "8329a121e0fc3dc7e813cf93ea1f129c31c161a43c1e4298ddeb9e06b8f7b51c",
+      "rawInputUnchanged": true,
+      "literalGrowthEligible": false,
+      "distributionAdjustedTotalReturnEstablished": false,
+      "consumerRanking": {
+        "schemeCode": 135721,
+        "navDate": "2026-10-29",
+        "oneYear": null,
+        "threeYear": null,
+        "fiveYear": null,
+        "threeYearMaxDrawdown": null
+      },
+      "archivedRanking": null,
+      "shard": {
+        "path": "archive/history-4241-e0c2486c6fe41bb7893dbcca0363f77a1d2da2b8ba964d14426b98bd113a1024.json.gz",
+        "sha256": "e0c2486c6fe41bb7893dbcca0363f77a1d2da2b8ba964d14426b98bd113a1024",
+        "bytes": 43059,
+        "expandedBytes": 328373
+      }
+    },
+    {
+      "schemeCode": 139838,
+      "name": "UTI - Liquid Fund - Regular Plan - Fortnightly IDCW",
+      "included": true,
+      "catalogue": {
+        "schemeCode": 139838,
+        "schemeName": "UTI - Liquid Fund - Regular Plan - Fortnightly IDCW",
+        "isinGrowth": "INF789F1AF28",
+        "isinDivReinvestment": "INF789F1AF36",
+        "latestDate": "2026-10-29",
+        "nav": "115.70780",
+        "current": true
+      },
+      "activeRepairEligible": true,
+      "observationCount": 3226,
+      "coverageStart": "2016-08-25",
+      "coverageEnd": "2026-10-28",
+      "savedHistoryBehindCatalogue": true,
+      "rawUnresolved": true,
+      "rawWarnings": [
+        "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "rawMoves": [
+        {
+          "beforeDate": "2026-06-19",
+          "beforeNav": 1156.2576,
+          "afterDate": "2026-06-20",
+          "afterNav": 115.6453,
+          "ratio": 0.10001689934838051
+        }
+      ],
+      "calculationWarnings": [],
+      "remainingMoves": [],
+      "calculationQualityPass": true,
+      "adjustment": {
+        "schemeCode": 139838,
+        "label": "verified 10-for-1 UTI - Liquid Fund - Regular Plan - Fortnightly IDCW unit split effective 19 June 2026",
+        "oldNavThrough": "2026-06-19",
+        "firstNewNavDate": "2026-06-20",
+        "factor": 0.1,
+        "evidenceUrl": "https://nsearchives.nseindia.com/content/circulars/NMF74721.zip"
+      },
+      "normalizedRows": 3107,
+      "rawDocumentSha256": "45215863e2517b35a8a24249444dd974b7252e6142204e0897ab5674a9357766",
+      "rawFundSha256": "c66a64ffc4b7272b7333316526616023848a4f2a0552d7d96b980a698e7b1a64",
+      "calculationPointsSha256": "9926c0050979fb0048352198f5cf260c913f788396814c74ff4dcd892d8ba384",
+      "rawInputUnchanged": true,
+      "literalGrowthEligible": false,
+      "distributionAdjustedTotalReturnEstablished": false,
+      "consumerRanking": {
+        "schemeCode": 139838,
+        "navDate": "2026-10-28",
+        "oneYear": null,
+        "threeYear": null,
+        "fiveYear": null,
+        "threeYearMaxDrawdown": null
+      },
+      "archivedRanking": null,
+      "shard": {
+        "path": "archive/history-4369-d6b80325afaca42b69ed8820379e94392b0e7f5c4480ab911e51bb34a1dd73d6.json.gz",
+        "sha256": "d6b80325afaca42b69ed8820379e94392b0e7f5c4480ab911e51bb34a1dd73d6",
+        "bytes": 100028,
+        "expandedBytes": 747194
+      }
+    },
+    {
+      "schemeCode": 140024,
+      "name": "UTI - Liquid Fund - Direct Plan - Quarterly IDCW",
+      "included": true,
+      "catalogue": {
+        "schemeCode": 140024,
+        "schemeName": "UTI - Liquid Fund - Direct Plan - Quarterly IDCW",
+        "isinGrowth": "INF789F1AE03",
+        "isinDivReinvestment": "INF789F1AE11",
+        "latestDate": "2026-10-29",
+        "nav": "194.85660",
+        "current": true
+      },
+      "activeRepairEligible": true,
+      "observationCount": 3186,
+      "coverageStart": "2016-10-04",
+      "coverageEnd": "2026-10-28",
+      "savedHistoryBehindCatalogue": true,
+      "rawUnresolved": true,
+      "rawWarnings": [
+        "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "rawMoves": [
+        {
+          "beforeDate": "2026-06-19",
+          "beforeNav": 1906.0881,
+          "afterDate": "2026-06-20",
+          "afterNav": 190.6416,
+          "ratio": 0.10001720277252663
+        }
+      ],
+      "calculationWarnings": [],
+      "remainingMoves": [],
+      "calculationQualityPass": true,
+      "adjustment": {
+        "schemeCode": 140024,
+        "label": "verified 10-for-1 UTI - Liquid Fund - Direct Plan - Quarterly IDCW unit split effective 19 June 2026",
+        "oldNavThrough": "2026-06-19",
+        "firstNewNavDate": "2026-06-20",
+        "factor": 0.1,
+        "evidenceUrl": "https://nsearchives.nseindia.com/content/circulars/NMF74721.zip"
+      },
+      "normalizedRows": 3067,
+      "rawDocumentSha256": "6aa0ddab6c7880dfb4e3169e1d6bda8116baeab5ca7b23be9d8b999dd3100588",
+      "rawFundSha256": "29dc15d08028d3c6a175efa058a1f295244890ccef07d3b4da0760eda30b5229",
+      "calculationPointsSha256": "0ce60cfd3a2216d6b9231867047ec2434b066eacfe3c11bb04206876e1bca7c4",
+      "rawInputUnchanged": true,
+      "literalGrowthEligible": false,
+      "distributionAdjustedTotalReturnEstablished": false,
+      "consumerRanking": {
+        "schemeCode": 140024,
+        "navDate": "2026-10-28",
+        "oneYear": null,
+        "threeYear": null,
+        "fiveYear": null,
+        "threeYearMaxDrawdown": null
+      },
+      "archivedRanking": null,
+      "shard": {
+        "path": "archive/history-4375-ed3eb7116093a3f888747236b01880e37df11afeecfa13dc0130c7c9db302215.json.gz",
+        "sha256": "ed3eb7116093a3f888747236b01880e37df11afeecfa13dc0130c7c9db302215",
+        "bytes": 111273,
+        "expandedBytes": 893005
+      }
+    },
+    {
+      "schemeCode": 140504,
+      "name": "UTI - Liquid Fund - Direct Plan - Half-Yearly IDCW",
+      "included": true,
+      "catalogue": {
+        "schemeCode": 140504,
+        "schemeName": "UTI - Liquid Fund - Direct Plan - Half-Yearly IDCW",
+        "isinGrowth": "INF789F1AE29",
+        "isinDivReinvestment": "INF789F1AE37",
+        "latestDate": "2026-10-29",
+        "nav": "161.16410",
+        "current": true
+      },
+      "activeRepairEligible": true,
+      "observationCount": 2891,
+      "coverageStart": "2017-01-05",
+      "coverageEnd": "2026-10-29",
+      "savedHistoryBehindCatalogue": false,
+      "rawUnresolved": true,
+      "rawWarnings": [
+        "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "rawMoves": [
+        {
+          "beforeDate": "2026-06-19",
+          "beforeNav": 1576.5073,
+          "afterDate": "2026-06-20",
+          "afterNav": 157.6779,
+          "ratio": 0.10001723430015198
+        }
+      ],
+      "calculationWarnings": [],
+      "remainingMoves": [],
+      "calculationQualityPass": true,
+      "adjustment": {
+        "schemeCode": 140504,
+        "label": "verified 10-for-1 UTI - Liquid Fund - Direct Plan - Half-Yearly IDCW unit split effective 19 June 2026",
+        "oldNavThrough": "2026-06-19",
+        "firstNewNavDate": "2026-06-20",
+        "factor": 0.1,
+        "evidenceUrl": "https://nsearchives.nseindia.com/content/circulars/NMF74721.zip"
+      },
+      "normalizedRows": 2771,
+      "rawDocumentSha256": "9fbd7994ac7af8ffed38c8bfc8ae190c12728c712f02af09ec4c3d6ff478c4d6",
+      "rawFundSha256": "1a4b24abead53a3639cded9e7747b8b07fd49de79b2eab07c59ef3c03515f854",
+      "calculationPointsSha256": "2efb8af583c822e8cd5663afd290d086a54818759e7e63fb348eebeac7b071e7",
+      "rawInputUnchanged": true,
+      "literalGrowthEligible": false,
+      "distributionAdjustedTotalReturnEstablished": false,
+      "consumerRanking": {
+        "schemeCode": 140504,
+        "navDate": "2026-10-29",
+        "oneYear": null,
+        "threeYear": null,
+        "fiveYear": null,
+        "threeYearMaxDrawdown": null
+      },
+      "archivedRanking": null,
+      "shard": {
+        "path": "archive/history-4390-b6a63e91057672603548861215f3175f0d982763839528208751e243480d040e.json.gz",
+        "sha256": "b6a63e91057672603548861215f3175f0d982763839528208751e243480d040e",
+        "bytes": 125332,
+        "expandedBytes": 906318
+      }
+    },
+    {
+      "schemeCode": 140517,
+      "name": "UTI - Liquid Fund - Regular Plan - Flexi IDCW",
+      "included": true,
+      "catalogue": {
+        "schemeCode": 140517,
+        "schemeName": "UTI - Liquid Fund - Regular Plan - Flexi IDCW",
+        "isinGrowth": "INF789F1AF02",
+        "isinDivReinvestment": "INF789F1AF10",
+        "latestDate": "2026-10-29",
+        "nav": "168.74160",
+        "current": true
+      },
+      "activeRepairEligible": true,
+      "observationCount": 2808,
+      "coverageStart": "2017-10-17",
+      "coverageEnd": "2026-10-28",
+      "savedHistoryBehindCatalogue": true,
+      "rawUnresolved": true,
+      "rawWarnings": [
+        "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "rawMoves": [
+        {
+          "beforeDate": "2026-06-19",
+          "beforeNav": 1651.2528,
+          "afterDate": "2026-06-20",
+          "afterNav": 165.1532,
+          "ratio": 0.10001690837405393
+        }
+      ],
+      "calculationWarnings": [],
+      "remainingMoves": [],
+      "calculationQualityPass": true,
+      "adjustment": {
+        "schemeCode": 140517,
+        "label": "verified 10-for-1 UTI - Liquid Fund - Regular Plan - Flexi IDCW unit split effective 19 June 2026",
+        "oldNavThrough": "2026-06-19",
+        "firstNewNavDate": "2026-06-20",
+        "factor": 0.1,
+        "evidenceUrl": "https://nsearchives.nseindia.com/content/circulars/NMF74721.zip"
+      },
+      "normalizedRows": 2689,
+      "rawDocumentSha256": "1740ce2ee7e5a67632f57753b7ceacae9c36093a21ef4d1d950b05d952226ee3",
+      "rawFundSha256": "05f56d3da685e680dc2a3d40368e4c39748ca50195fec9b97483f9d3ffc9ca74",
+      "calculationPointsSha256": "759f99f207057c517490a590411be48812f92e0d71da85703015029546c60385",
+      "rawInputUnchanged": true,
+      "literalGrowthEligible": false,
+      "distributionAdjustedTotalReturnEstablished": false,
+      "consumerRanking": {
+        "schemeCode": 140517,
+        "navDate": "2026-10-28",
+        "oneYear": null,
+        "threeYear": null,
+        "fiveYear": null,
+        "threeYearMaxDrawdown": null
+      },
+      "archivedRanking": null,
+      "shard": {
+        "path": "archive/history-4391-fd4563434f1ef874aa9a9fbbd82e7790985bb067d3ccd8fb399911c1ba7572a6.json.gz",
+        "sha256": "fd4563434f1ef874aa9a9fbbd82e7790985bb067d3ccd8fb399911c1ba7572a6",
+        "bytes": 153259,
+        "expandedBytes": 1123454
+      }
+    },
+    {
+      "schemeCode": 140913,
+      "name": "UTI - Liquid Fund - Direct Plan - Fortnightly IDCW",
+      "included": true,
+      "catalogue": {
+        "schemeCode": 140913,
+        "schemeName": "UTI - Liquid Fund - Direct Plan - Fortnightly IDCW",
+        "isinGrowth": "INF789F1AD87",
+        "isinDivReinvestment": "INF789F1AD95",
+        "latestDate": "2026-10-29",
+        "nav": "115.79350",
+        "current": true
+      },
+      "activeRepairEligible": true,
+      "observationCount": 2981,
+      "coverageStart": "2017-03-06",
+      "coverageEnd": "2026-10-29",
+      "savedHistoryBehindCatalogue": false,
+      "rawUnresolved": true,
+      "rawWarnings": [
+        "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "rawMoves": [
+        {
+          "beforeDate": "2026-06-19",
+          "beforeNav": 1157.1081,
+          "afterDate": "2026-06-20",
+          "afterNav": 115.7307,
+          "ratio": 0.1000171894052077
+        }
+      ],
+      "calculationWarnings": [],
+      "remainingMoves": [],
+      "calculationQualityPass": true,
+      "adjustment": {
+        "schemeCode": 140913,
+        "label": "verified 10-for-1 UTI - Liquid Fund - Direct Plan - Fortnightly IDCW unit split effective 19 June 2026",
+        "oldNavThrough": "2026-06-19",
+        "firstNewNavDate": "2026-06-20",
+        "factor": 0.1,
+        "evidenceUrl": "https://nsearchives.nseindia.com/content/circulars/NMF74721.zip"
+      },
+      "normalizedRows": 2861,
+      "rawDocumentSha256": "51e80549ce189f2d616314d4c3dd0c45added5ee75aa60214359111127e93e06",
+      "rawFundSha256": "c87d651407bb23de35433373420c0bb1d0895e6c2d30b5946cd98a57f723f529",
+      "calculationPointsSha256": "ef189a18f26e8b70989e9664969901628b63b2584178d7eb2cc1eb4ea2a1f465",
+      "rawInputUnchanged": true,
+      "literalGrowthEligible": false,
+      "distributionAdjustedTotalReturnEstablished": false,
+      "consumerRanking": {
+        "schemeCode": 140913,
+        "navDate": "2026-10-29",
+        "oneYear": null,
+        "threeYear": null,
+        "fiveYear": null,
+        "threeYearMaxDrawdown": null
+      },
+      "archivedRanking": null,
+      "shard": {
+        "path": "archive/history-4403-2d3c47e0672718eddac65ee850f73aa233fe4e3d69e6742bb48eb805d89dec82.json.gz",
+        "sha256": "2d3c47e0672718eddac65ee850f73aa233fe4e3d69e6742bb48eb805d89dec82",
+        "bytes": 79453,
+        "expandedBytes": 707919
+      }
+    },
+    {
+      "schemeCode": 141768,
+      "name": "UTI - Liquid Fund - Direct Plan - Flexi IDCW",
+      "included": true,
+      "catalogue": {
+        "schemeCode": 141768,
+        "schemeName": "UTI - Liquid Fund - Direct Plan - Flexi IDCW",
+        "isinGrowth": "INF789F1AE60",
+        "isinDivReinvestment": "INF789F1AE78",
+        "latestDate": "2026-10-29",
+        "nav": "169.93570",
+        "current": true
+      },
+      "activeRepairEligible": true,
+      "observationCount": 2595,
+      "coverageStart": "2017-08-14",
+      "coverageEnd": "2026-10-28",
+      "savedHistoryBehindCatalogue": true,
+      "rawUnresolved": true,
+      "rawWarnings": [
+        "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "rawMoves": [
+        {
+          "beforeDate": "2026-06-19",
+          "beforeNav": 1662.3117,
+          "afterDate": "2026-06-20",
+          "afterNav": 166.2598,
+          "ratio": 0.10001722300336334
+        }
+      ],
+      "calculationWarnings": [],
+      "remainingMoves": [],
+      "calculationQualityPass": true,
+      "adjustment": {
+        "schemeCode": 141768,
+        "label": "verified 10-for-1 UTI - Liquid Fund - Direct Plan - Flexi IDCW unit split effective 19 June 2026",
+        "oldNavThrough": "2026-06-19",
+        "firstNewNavDate": "2026-06-20",
+        "factor": 0.1,
+        "evidenceUrl": "https://nsearchives.nseindia.com/content/circulars/NMF74721.zip"
+      },
+      "normalizedRows": 2476,
+      "rawDocumentSha256": "e1767bb092ebf1b71b6ce21ab25abdc7549e2cfe6202884e05f2025b8c23059a",
+      "rawFundSha256": "a22099fd6edc5c4231e980254937b06d45eab070cc150a803a7e6faf4ede0a2a",
+      "calculationPointsSha256": "2a318798b6c25b31869584d24039a6e3df4c84ad83e156e1bb942e77dce2f04f",
+      "rawInputUnchanged": true,
+      "literalGrowthEligible": false,
+      "distributionAdjustedTotalReturnEstablished": false,
+      "consumerRanking": {
+        "schemeCode": 141768,
+        "navDate": "2026-10-28",
+        "oneYear": null,
+        "threeYear": null,
+        "fiveYear": null,
+        "threeYearMaxDrawdown": null
+      },
+      "archivedRanking": null,
+      "shard": {
+        "path": "archive/history-4430-8f4bcfcdb96fc8c966dec8e5eb778fa3ef9baa6d98cff079c2fdfed7763b9dbd.json.gz",
+        "sha256": "8f4bcfcdb96fc8c966dec8e5eb778fa3ef9baa6d98cff079c2fdfed7763b9dbd",
+        "bytes": 95727,
+        "expandedBytes": 799448
+      }
+    },
+    {
+      "schemeCode": 144475,
+      "name": "UTI - Liquid Fund - Regular Plan - Half-Yearly IDCW",
+      "included": true,
+      "catalogue": {
+        "schemeCode": 144475,
+        "schemeName": "UTI - Liquid Fund - Regular Plan - Half-Yearly IDCW",
+        "isinGrowth": "INF789F1AF51",
+        "isinDivReinvestment": "INF789F1AF69",
+        "latestDate": "2026-10-29",
+        "nav": "142.64800",
+        "current": true
+      },
+      "activeRepairEligible": true,
+      "observationCount": 2205,
+      "coverageStart": "2018-07-26",
+      "coverageEnd": "2026-10-28",
+      "savedHistoryBehindCatalogue": true,
+      "rawUnresolved": true,
+      "rawWarnings": [
+        "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "rawMoves": [
+        {
+          "beforeDate": "2026-06-19",
+          "beforeNav": 1395.2988,
+          "afterDate": "2026-06-20",
+          "afterNav": 139.554,
+          "ratio": 0.10001728661989819
+        }
+      ],
+      "calculationWarnings": [],
+      "remainingMoves": [],
+      "calculationQualityPass": true,
+      "adjustment": {
+        "schemeCode": 144475,
+        "label": "verified 10-for-1 UTI - Liquid Fund - Regular Plan - Half-Yearly IDCW unit split effective 19 June 2026",
+        "oldNavThrough": "2026-06-19",
+        "firstNewNavDate": "2026-06-20",
+        "factor": 0.1,
+        "evidenceUrl": "https://nsearchives.nseindia.com/content/circulars/NMF74721.zip"
+      },
+      "normalizedRows": 2086,
+      "rawDocumentSha256": "44d0635582b76c8a8140e9d3a364cd8d25a50eb178d1d6f1489d24ae3c930c3a",
+      "rawFundSha256": "fdce92b7d5547533263f8297ce1f563023db8988c8b91b792d7ce94711a8d70b",
+      "calculationPointsSha256": "2d238a66e993addc8537dac2346340b8498be5ffa694cb6d09299f9b14735942",
+      "rawInputUnchanged": true,
+      "literalGrowthEligible": false,
+      "distributionAdjustedTotalReturnEstablished": false,
+      "consumerRanking": {
+        "schemeCode": 144475,
+        "navDate": "2026-10-28",
+        "oneYear": null,
+        "threeYear": null,
+        "fiveYear": null,
+        "threeYearMaxDrawdown": null
+      },
+      "archivedRanking": null,
+      "shard": {
+        "path": "archive/history-4514-15322d514cf83b5bef663e579739e6ab0f46e89367ea170688a7ccb4c2053161.json.gz",
+        "sha256": "15322d514cf83b5bef663e579739e6ab0f46e89367ea170688a7ccb4c2053161",
+        "bytes": 142633,
+        "expandedBytes": 1037004
+      }
+    },
+    {
+      "schemeCode": 102007,
+      "name": "UTI - Liquid Fund - Regular Plan - Discontinued Periodic Dividend",
+      "included": false,
+      "catalogue": {
+        "schemeCode": 102007,
+        "schemeName": "UTI - Liquid Fund - Regular Plan - Discontinued Periodic Dividend",
+        "isinGrowth": "INF789F1AE86",
+        "isinDivReinvestment": "INF789F1AE94",
+        "latestDate": "2026-10-29",
+        "nav": "114.16640",
+        "current": true
+      },
+      "activeRepairEligible": true,
+      "observationCount": 7020,
+      "coverageStart": "2006-04-01",
+      "coverageEnd": "2026-10-25",
+      "savedHistoryBehindCatalogue": true,
+      "rawUnresolved": true,
+      "rawWarnings": [
+        "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "rawMoves": [
+        {
+          "beforeDate": "2026-06-19",
+          "beforeNav": 1136.1167,
+          "afterDate": "2026-06-20",
+          "afterNav": 113.6309,
+          "ratio": 0.10001692607810447
+        }
+      ],
+      "calculationWarnings": [
+        "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "remainingMoves": [
+        {
+          "beforeDate": "2026-06-19",
+          "beforeNav": 1136.1167,
+          "afterDate": "2026-06-20",
+          "afterNav": 113.6309,
+          "ratio": 0.10001692607810447
+        }
+      ],
+      "calculationQualityPass": false,
+      "adjustment": null,
+      "normalizedRows": 0,
+      "rawDocumentSha256": "bdf2533d7865a15a511174684bb2f52fb4516aa8fba58cda3a7abef1eb278831",
+      "rawFundSha256": "c44cbc89cb73fbb1e1e8f27e654e3a8d71456559cdc5ff6cbee1f549ef36e2ae",
+      "calculationPointsSha256": "1480c2e20d9816bd0b48d4453e8048ccbcefc0a7d74e9351fd479be4cc0d7c11",
+      "rawInputUnchanged": true,
+      "literalGrowthEligible": false,
+      "distributionAdjustedTotalReturnEstablished": false,
+      "consumerRanking": {
+        "schemeCode": 102007,
+        "navDate": "2026-10-25",
+        "oneYear": null,
+        "threeYear": null,
+        "fiveYear": null,
+        "threeYearMaxDrawdown": null
+      },
+      "archivedRanking": null,
+      "shard": {
+        "path": "archive/history-3187-32c3c693fa60b0fe75bd6135325d445da6c7eff5bcb157655958718cfcd864b8.json.gz",
+        "sha256": "32c3c693fa60b0fe75bd6135325d445da6c7eff5bcb157655958718cfcd864b8",
+        "bytes": 612792,
+        "expandedBytes": 4710125
+      }
+    },
+    {
+      "schemeCode": 102008,
+      "name": "UTI - Liquid Fund - Regular Plan - Discontinued Monthly Dividend",
+      "included": false,
+      "catalogue": {
+        "schemeCode": 102008,
+        "schemeName": "UTI - Liquid Fund - Regular Plan - Discontinued Monthly Dividend",
+        "isinGrowth": "INF789F1AG27",
+        "isinDivReinvestment": "INF789F1AG35",
+        "latestDate": "2026-10-29",
+        "nav": "106.80240",
+        "current": true
+      },
+      "activeRepairEligible": true,
+      "observationCount": 7021,
+      "coverageStart": "2006-04-01",
+      "coverageEnd": "2026-10-26",
+      "savedHistoryBehindCatalogue": true,
+      "rawUnresolved": true,
+      "rawWarnings": [
+        "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "rawMoves": [
+        {
+          "beforeDate": "2026-06-19",
+          "beforeNav": 1067.3074,
+          "afterDate": "2026-06-20",
+          "afterNav": 106.7488,
+          "ratio": 0.10001692108571533
+        }
+      ],
+      "calculationWarnings": [
+        "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "remainingMoves": [
+        {
+          "beforeDate": "2026-06-19",
+          "beforeNav": 1067.3074,
+          "afterDate": "2026-06-20",
+          "afterNav": 106.7488,
+          "ratio": 0.10001692108571533
+        }
+      ],
+      "calculationQualityPass": false,
+      "adjustment": null,
+      "normalizedRows": 0,
+      "rawDocumentSha256": "2583597e9c83fc37fc2cffe76a1b9967fd08ac3c438cc2ea0c5d40c331a580da",
+      "rawFundSha256": "24fe454d7bd444323c68d507b6a6adacbca255dd6ca931085e091addedf52883",
+      "calculationPointsSha256": "56de5dcbe8812ac6cfabe1297d9fcd939bf954863c1c3ea3ac3e7d42ab6fa732",
+      "rawInputUnchanged": true,
+      "literalGrowthEligible": false,
+      "distributionAdjustedTotalReturnEstablished": false,
+      "consumerRanking": {
+        "schemeCode": 102008,
+        "navDate": "2026-10-26",
+        "oneYear": null,
+        "threeYear": null,
+        "fiveYear": null,
+        "threeYearMaxDrawdown": null
+      },
+      "archivedRanking": null,
+      "shard": {
+        "path": "archive/history-3187-32c3c693fa60b0fe75bd6135325d445da6c7eff5bcb157655958718cfcd864b8.json.gz",
+        "sha256": "32c3c693fa60b0fe75bd6135325d445da6c7eff5bcb157655958718cfcd864b8",
+        "bytes": 612792,
+        "expandedBytes": 4710125
+      }
+    },
+    {
+      "schemeCode": 102013,
+      "name": "UTI - Liquid Fund - Regular Plan - Weekly IDCW",
+      "included": false,
+      "catalogue": {
+        "schemeCode": 102013,
+        "schemeName": "UTI - Liquid Fund - Regular Plan - Weekly IDCW",
+        "isinGrowth": "INF789F1AH83",
+        "isinDivReinvestment": "INF789F1AG19",
+        "latestDate": "2026-10-29",
+        "nav": "105.39040",
+        "current": true
+      },
+      "activeRepairEligible": true,
+      "observationCount": 7023,
+      "coverageStart": "2006-04-01",
+      "coverageEnd": "2026-10-29",
+      "savedHistoryBehindCatalogue": false,
+      "rawUnresolved": true,
+      "rawWarnings": [
+        "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "rawMoves": [
+        {
+          "beforeDate": "2026-06-19",
+          "beforeNav": 1053.2849,
+          "afterDate": "2026-06-20",
+          "afterNav": 105.3463,
+          "ratio": 0.10001690900534128
+        }
+      ],
+      "calculationWarnings": [
+        "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "remainingMoves": [
+        {
+          "beforeDate": "2026-06-19",
+          "beforeNav": 1053.2849,
+          "afterDate": "2026-06-20",
+          "afterNav": 105.3463,
+          "ratio": 0.10001690900534128
+        }
+      ],
+      "calculationQualityPass": false,
+      "adjustment": null,
+      "normalizedRows": 0,
+      "rawDocumentSha256": "7511362358e3978e7264e5dc80aa8fab0404bb15cfe4987d5d6d2b0be2c5e01f",
+      "rawFundSha256": "bafcabb42f8ba2203e1ddcb9424fbf58b9f50cfb71a22d54e367efa77ad75353",
+      "calculationPointsSha256": "089b2a8fda8cf4c08cea25c9c5afe84123a9fa339101bf8af3ebe9783b25f67b",
+      "rawInputUnchanged": true,
+      "literalGrowthEligible": false,
+      "distributionAdjustedTotalReturnEstablished": false,
+      "consumerRanking": {
+        "schemeCode": 102013,
+        "navDate": "2026-10-29",
+        "oneYear": null,
+        "threeYear": null,
+        "fiveYear": null,
+        "threeYearMaxDrawdown": null
+      },
+      "archivedRanking": null,
+      "shard": {
+        "path": "archive/history-3187-32c3c693fa60b0fe75bd6135325d445da6c7eff5bcb157655958718cfcd864b8.json.gz",
+        "sha256": "32c3c693fa60b0fe75bd6135325d445da6c7eff5bcb157655958718cfcd864b8",
+        "bytes": 612792,
+        "expandedBytes": 4710125
+      }
+    },
+    {
+      "schemeCode": 120777,
+      "name": "UTI - Liquid Fund - Direct Plan - Weekly IDCW",
+      "included": false,
+      "catalogue": {
+        "schemeCode": 120777,
+        "schemeName": "UTI - Liquid Fund - Direct Plan - Weekly IDCW",
+        "isinGrowth": "INF789F1AH75",
+        "isinDivReinvestment": "INF789F1AD79",
+        "latestDate": "2026-10-29",
+        "nav": "106.69280",
+        "current": true
+      },
+      "activeRepairEligible": true,
+      "observationCount": 4500,
+      "coverageStart": "2013-01-02",
+      "coverageEnd": "2026-10-26",
+      "savedHistoryBehindCatalogue": true,
+      "rawUnresolved": true,
+      "rawWarnings": [
+        "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "rawMoves": [
+        {
+          "beforeDate": "2026-06-19",
+          "beforeNav": 1074.5349,
+          "afterDate": "2026-06-20",
+          "afterNav": 107.472,
+          "ratio": 0.10001722605752497
+        }
+      ],
+      "calculationWarnings": [
+        "Unresolved discontinuity: 1 single-observation move(s) exceed 40%; derived analytics are blocked."
+      ],
+      "remainingMoves": [
+        {
+          "beforeDate": "2026-06-19",
+          "beforeNav": 1074.5349,
+          "afterDate": "2026-06-20",
+          "afterNav": 107.472,
+          "ratio": 0.10001722605752497
+        }
+      ],
+      "calculationQualityPass": false,
+      "adjustment": null,
+      "normalizedRows": 0,
+      "rawDocumentSha256": "836c3dde39fc48680adb91976f4fc405933a3708eca87a66e61839eeac1ad55d",
+      "rawFundSha256": "32d07f40ae7e3b5aa748cd1f9883e8f5b5973a22f89a2db02ab76892851e801a",
+      "calculationPointsSha256": "1d5b7c85fb3184bdad3fcc81a3375c265d3e47024a84de1a29b16dc0ea5e2bf5",
+      "rawInputUnchanged": true,
+      "literalGrowthEligible": false,
+      "distributionAdjustedTotalReturnEstablished": false,
+      "consumerRanking": {
+        "schemeCode": 120777,
+        "navDate": "2026-10-26",
+        "oneYear": null,
+        "threeYear": null,
+        "fiveYear": null,
+        "threeYearMaxDrawdown": null
+      },
+      "archivedRanking": null,
+      "shard": {
+        "path": "archive/history-3774-7b496628c2e753faebd1bcb6b8418a8d5d5a18cf4379e1f4c10dcfde44243762.json.gz",
+        "sha256": "7b496628c2e753faebd1bcb6b8418a8d5d5a18cf4379e1f4c10dcfde44243762",
+        "bytes": 488787,
+        "expandedBytes": 3393356
+      }
+    }
+  ]
+}

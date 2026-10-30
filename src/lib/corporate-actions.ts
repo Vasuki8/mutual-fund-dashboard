@@ -183,6 +183,35 @@ function actionForScheme(fund: FundData): ActionSpec | null {
     factor:0.1,maxFactorDeviation:0.0001,
     evidenceUrl:'https://nsearchives.nseindia.com/content/circulars/NMF74721.zip',
   };
+  // Exact distribution options: issuer SSD page 114 binds each numeric code;
+  // CDSL 2026/416 binds both current ISIN fields. NSE 74721 / issuer Addendum
+  // 14/2026-27 document Rs1000 -> Rs100. Raw NAVs and Growth-only consumer
+  // eligibility are unchanged; unit normalization does not include IDCW cashflows.
+  const utiDistributionIdentity = ([
+    [102010,"uti - liquid fund - regular plan - daily idcw (reinvestment)",null,"INF789F1AF77"],
+    [102011,"uti - liquid fund - regular plan - monthly idcw","INF789F1AF93","INF789F1AG01"],
+    [120558,"uti - liquid fund - direct plan - daily idcw (reinvestment)",null,"INF789F1AD38"],
+    [120794,"uti - liquid fund - direct plan - monthly idcw","INF789F1AD53","INF789F1AD61"],
+    [133973,"uti - liquid fund - regular plan - annual idcw","INF789F1AD12","INF789F1AD20"],
+    [134427,"uti - liquid fund - direct plan - annual idcw","INF789F1AE45","INF789F1AE52"],
+    [135721,"uti - liquid fund - regular plan - quarterly idcw","INF789F1AG43","INF789F1AG50"],
+    [139838,"uti - liquid fund - regular plan - fortnightly idcw","INF789F1AF28","INF789F1AF36"],
+    [140024,"uti - liquid fund - direct plan - quarterly idcw","INF789F1AE03","INF789F1AE11"],
+    [140504,"uti - liquid fund - direct plan - half-yearly idcw","INF789F1AE29","INF789F1AE37"],
+    [140517,"uti - liquid fund - regular plan - flexi idcw","INF789F1AF02","INF789F1AF10"],
+    [140913,"uti - liquid fund - direct plan - fortnightly idcw","INF789F1AD87","INF789F1AD95"],
+    [141768,"uti - liquid fund - direct plan - flexi idcw","INF789F1AE60","INF789F1AE78"],
+    [144475,"uti - liquid fund - regular plan - half-yearly idcw","INF789F1AF51","INF789F1AF69"],
+  ] as const).find(([code]) => code === fund.meta.schemeCode);
+  if (utiDistributionIdentity && fund.meta.schemeName.toLowerCase() === utiDistributionIdentity[1]
+    && fund.meta.fundHouse === 'UTI Mutual Fund' && fund.meta.isinGrowth === utiDistributionIdentity[2]
+    && fund.meta.isinDivReinvestment === utiDistributionIdentity[3]) return {
+    schemeCode: fund.meta.schemeCode,
+    label: `verified 10-for-1 ${fund.meta.schemeName} unit split effective 19 June 2026`,
+    oldNavThrough: '2026-06-19', firstNewNavDate: '2026-06-20',
+    factor: 0.1, maxFactorDeviation: 0.0001,
+    evidenceUrl: 'https://nsearchives.nseindia.com/content/circulars/NMF74721.zip',
+  };
   // The issuer's May-2013 factsheet documents Rs10 -> Rs1000 at close
   // on 18-Apr. Exact plan NAV anchors, code/ISIN bindings and rename
   // notices support these ten identities. Legacy 105189/112120 are separately

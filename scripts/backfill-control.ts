@@ -121,6 +121,9 @@ export async function prepareBackfill(options: Options): Promise<Prepared> {
     const successfulAncestor = async (id: string, expectedTitle: string, events: string[], failure: string) => {
       let ancestor = await loadRun(id, current.workflow_id);
       while (true) {
+        log({ phase: 'backfill_ancestor_observed', runId, ancestorId: id,
+          role: id === rootRunId ? 'root' : 'parent', expectedTitle, observedTitle: ancestor.display_title,
+          runAttempt: ancestor.run_attempt, event: ancestor.event, status: ancestor.status, conclusion: ancestor.conclusion });
         requireValue(ancestor.run_attempt === 1 && ancestor.display_title === expectedTitle
           && events.includes(String(ancestor.event)), failure);
         if (ancestor.status === 'completed' && ancestor.conclusion !== null) {

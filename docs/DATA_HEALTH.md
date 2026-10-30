@@ -1,8 +1,16 @@
 # FundScope data integrity baseline and remediation
 
-## Latest verified review — 30 October 2026
+## Latest verified repair batch — 30 October 2026
 
-[Checkpoint 255 bulk review and publication recovery](NON_GROWTH_REVIEW_2026-10-30.md) records the current evidence: all **8,544** eligible active schemes have saved histories; **603** retain unresolved flags; **3,648** need refresh or reconciliation. These counts overlap, and saved history is not proof of complete coverage.
+[Verified UTI distribution unit normalization](UTI_DISTRIBUTION_UNIT_REVIEW_2026-10-30.md) adds **14 exact UTI Liquid IDCW identities** to the existing calculation-only registry. Original issuer, exchange and depository documents establish the unit factor and identity chain. Production replay and independent review verify all **53,773 retained observations** at checkpoint **256**. The supported June unit event is resolved in each calculation copy; **zero raw archive flags are cleared and zero funds gain consumer return eligibility**. The four UTI candidates with incomplete identity evidence remain unregistered.
+
+Checkpoint 256 contains **8,542** eligible active schemes, all with saved histories; **603** retain raw quality flags and **3,550** need refresh or reconciliation. Those buckets overlap. During the collector tranche, pending work in the same final eligible cohort fell by **170**. These source-collection counts are separate from the calculation-only unit normalization.
+
+The root published checkpoint 256, but its position-2 successor failed before collection with `backfill_root_invalid`. The batch adds narrowly scoped ancestor-state diagnostics without changing validation, waits or limits. The original ancestor response was not logged, so the underlying cause remains unproven. The dated report also records newly retrieved Taurus and ETF evidence whose independent contradictions or history gaps still prevent a complete repair.
+
+## Earlier review on the same date — checkpoint 255
+
+[Checkpoint 255 bulk review and publication recovery](NON_GROWTH_REVIEW_2026-10-30.md) records the earlier snapshot: all **8,544** eligible active schemes have saved histories; **603** retain unresolved flags; **3,648** need refresh or reconciliation. These counts overlap, and saved history is not proof of complete coverage.
 
 The complete **420-history non-Growth batch** has been reviewed. Existing adjustments resolve the numerical discontinuities for 48 ETFs; the remaining 372 histories retain calculation-quality blockers. No new NAV correction or raw warning clearance was added. The failed continuation job was recovered by verifying exact public checkpoint 255, then stopped under the existing recovery guard without collecting data or dispatching a successor.
 
