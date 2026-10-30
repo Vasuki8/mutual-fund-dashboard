@@ -1,0 +1,484 @@
+{
+  "version": 1,
+  "researchDate": "2026-10-30",
+  "purpose": "Preserve new primary findings and exact remaining blockers; this research adds no production repair beyond the separately documented UTI batch.",
+  "archiveCheckpoint": 255,
+  "checkpointQualification": "These Growth and ETF research records were reviewed against checkpoint 255. Their counts and scope snapshots are not relabeled as checkpoint 256 or later.",
+  "inputLedgerSha256": {
+    "growth-next-findings.json": "3f632ef20976a923578ccbba56a4fed5e23338a5f7ac4cd1ed9add1e2ae785f0",
+    "taurus-largecap-full-comparison.json": "880a58457c09855cc028a145aeeda76291a3d15e73ad4648ebb29bd3432bcec8",
+    "2026-10-30-primary-research.json": "509abaf37ef14cd42cee8052e900e0ccab173577a79b32cec65489cafb551e59"
+  },
+  "newProductionRepairsFromThisResearch": 0,
+  "sourceArchiveMutations": 0,
+  "automatedAmfiRequests": 0,
+  "newMfapiRequests": 0,
+  "remainingGrowthCohort": {
+    "count": 99,
+    "exclusiveWarningGroups": {
+      "discontinuityOnly": 26,
+      "invalidOnly": 67,
+      "both": 6
+    }
+  },
+  "taurus": {
+    "schemeCode": 101209,
+    "schemeName": "Taurus Large Cap Fund - Regular Plan - Growth",
+    "growthIsin": "INF044D01773",
+    "archiveCheckpoint": 255,
+    "checkedAt": "2026-10-30T20:29:05.362795+00:00",
+    "historicalActiveRepairScope": {
+      "actualUtcDay": "2026-10-30",
+      "officialRosterMember": true,
+      "catalogueEntry": {
+        "schemeCode": 101209,
+        "schemeName": "Taurus Large Cap Fund - Regular Plan - Growth",
+        "isinGrowth": "INF044D01773",
+        "isinDivReinvestment": null,
+        "latestDate": "2026-10-29",
+        "nav": "167.98000",
+        "current": true
+      },
+      "catalogueMembership": {
+        "source": "mf-list",
+        "verifiedAt": "2026-10-30T07:12:31.407Z",
+        "listedSchemes": 38026,
+        "bulkNavSchemes": 38026,
+        "missingBulkNav": 0
+      },
+      "eligible": true,
+      "navAgeDays": 1
+    },
+    "rawHistory": {
+      "observations": 5065,
+      "start": "2006-04-03",
+      "end": "2026-10-29",
+      "shardSha256": "5726adaefc7447a1c661f741f266c3783af9f0af0b34a6e2630d9c3c63706347",
+      "warnings": [
+        "Invalid NAV observations were excluded (3); derived analytics are blocked until the data is resolved.",
+        "Existing valid observations and their successful fetch time were retained while source quality issues remain unresolved."
+      ],
+      "rejectedZeroNavDates": [
+        "2006-11-11",
+        "2006-11-12",
+        "2006-11-18"
+      ]
+    },
+    "issuerFormIdentity": {
+      "fundId": 556,
+      "regularPlanId": 52
+    },
+    "proofUrls": {
+      "identity": "https://taurusmutualfund.com/sites/default/files/2021-05/List_of_ISIN_numbers_of_Taurus_MF.pdf",
+      "window": "https://taurusmutualfund.com/NAVs/NAV_search?field_nav_target_id=556&field_plan_target_id=52&field_date_value%5Bmin%5D=10-11-2006&field_date_value%5Bmax%5D=20-11-2006"
+    },
+    "candidateRestorations": [
+      {
+        "date": "2006-11-11",
+        "issuerNav": "34.68"
+      },
+      {
+        "date": "2006-11-12",
+        "issuerNav": "34.68"
+      },
+      {
+        "date": "2006-11-18",
+        "issuerNav": "34.25"
+      }
+    ],
+    "exactMatchingNeighborAnchors": [
+      {
+        "date": "2006-11-10",
+        "sourceNav": "34.68000",
+        "issuerNav": "34.68"
+      },
+      {
+        "date": "2006-11-13",
+        "sourceNav": "35.09000",
+        "issuerNav": "35.09"
+      },
+      {
+        "date": "2006-11-14",
+        "sourceNav": "34.82000",
+        "issuerNav": "34.82"
+      },
+      {
+        "date": "2006-11-15",
+        "sourceNav": "34.75000",
+        "issuerNav": "34.75"
+      },
+      {
+        "date": "2006-11-16",
+        "sourceNav": "34.71000",
+        "issuerNav": "34.71"
+      },
+      {
+        "date": "2006-11-17",
+        "sourceNav": "34.25000",
+        "issuerNav": "34.25"
+      },
+      {
+        "date": "2006-11-19",
+        "sourceNav": "34.25000",
+        "issuerNav": "34.25"
+      },
+      {
+        "date": "2006-11-20",
+        "sourceNav": "33.87000",
+        "issuerNav": "33.87"
+      }
+    ],
+    "hypotheticalNarrowRestoration": {
+      "calculationObservationCount": 5068,
+      "originalPointsChanged": 0,
+      "rawLargeMoves": [],
+      "calculationLargeMoves": [],
+      "implemented": false
+    },
+    "fullRetainedHistoryComparison": {
+      "issuerUniqueDates": 6483,
+      "issuerStart": "2006-01-01",
+      "issuerEnd": "2025-12-29",
+      "sharedDates": 4854,
+      "unambiguousSharedMatches": 4853,
+      "unambiguousDifferences": [],
+      "issuerDateConflicts": [
+        {
+          "date": "2019-05-28",
+          "source": "75.77000",
+          "issuerValues": [
+            "75.76",
+            "75.77"
+          ]
+        }
+      ],
+      "conflictConfirmedByIndependentIssuerHtml": true,
+      "archivedDatesAbsentFromIssuerExport": 211,
+      "absentDatesInsideIssuerCoverage": [
+        "2019-05-30",
+        "2019-09-05",
+        "2019-09-25",
+        "2025-07-17",
+        "2025-09-26",
+        "2025-10-07"
+      ],
+      "absentDatesAfterIssuerCoverage": 205,
+      "extraIssuerDates": 1629,
+      "blankCsvRows": [
+        {
+          "file": "taurus-largecap-2015-2019.csv",
+          "row": 64
+        },
+        {
+          "file": "taurus-largecap-2015-2019.csv",
+          "row": 66
+        }
+      ]
+    },
+    "issuerCsvCaptures": [
+      {
+        "file": "taurus-largecap-2006-2009.csv",
+        "bytes": 24850,
+        "sha256": "98c1db75d8ebb6217c01af3cf6da003f23d880e0cbc8d017d9bbdb088b518071",
+        "rows": 1461
+      },
+      {
+        "file": "taurus-largecap-2010-2014.csv",
+        "bytes": 31055,
+        "sha256": "7d5b48f1713190fa76a1100b4bb7824c0158af090df86a7493f3c6bc05247329",
+        "rows": 1826
+      },
+      {
+        "file": "taurus-largecap-2015-2019.csv",
+        "bytes": 29223,
+        "sha256": "91eb88904ee0dcdb1352494f969c6c1832ff9de504a8fbce2c5408f523d02b3d",
+        "rows": 1720
+      },
+      {
+        "file": "taurus-largecap-2020-2024.csv",
+        "bytes": 21720,
+        "sha256": "3bfebdc6a0698aa9f5d983d21df8db907adb9d692d04ae84725d808e3d42bb07",
+        "rows": 1236
+      },
+      {
+        "file": "taurus-largecap-2025-2026.csv",
+        "bytes": 4387,
+        "sha256": "65886bd7f1f727dd00ec8291451ed88e60a16032213252f5d30a7de706c706e0",
+        "rows": 243
+      }
+    ],
+    "issuerHtmlCaptures": [
+      {
+        "captureName": "taurus-largecap-2006-window.html",
+        "role": "Issuer HTML table for the three November 2006 candidate restorations",
+        "bytes": 94946,
+        "sha256": "1cbb0dc0ee32e093141850109a8b57a916e9c47f723a8002d939f235c3232c6d"
+      },
+      {
+        "captureName": "taurus-largecap-2019-duplicate.html",
+        "role": "Independent issuer HTML confirmation of both 28 May 2019 NAV values",
+        "bytes": 89486,
+        "sha256": "2bafd82e24e91d7e60ed38fa9910657d35877f9906361c10b6322a62201395f1"
+      }
+    ],
+    "disposition": "Three exact issuer-supported restoration values are research evidence only. No production repair or new quality pass is added because the independent 28 May 2019 issuer conflict remains unresolved. Do not choose one duplicate silently, relabel its date, or describe the full history as reconciled."
+  },
+  "existingReviewsAwaitingSourceProvenance": [
+    {
+      "schemeCode": 119566,
+      "name": "Sundaram Large and Midcap Direct Growth",
+      "reason": "The existing exact review requires rejectedZeroNavDates, which the checkpoint-255 record lacks. A count of three and a leading date gap cannot establish the excluded dates. A guarded complete source capture must record them independently."
+    },
+    {
+      "schemeCode": 119635,
+      "name": "Sundaram Conservative Hybrid Direct Growth",
+      "reason": "The existing exact review requires rejectedZeroNavDates, which the checkpoint-255 record lacks. A count of three and a leading date gap cannot establish the excluded dates. A guarded complete source capture must record them independently."
+    }
+  ],
+  "remainingUnitEventGroups": [
+    {
+      "schemeCodes": [
+        147600,
+        147606
+      ],
+      "group": "PGIM Overnight, September 2019",
+      "blocker": "Original dated conversion terms remain absent. The known annual-report URL returned HTTP 503 during one legitimate escalated read."
+    },
+    {
+      "schemeCodes": [
+        147836,
+        147837
+      ],
+      "group": "JM Overnight, December 2019",
+      "blocker": "Exact identities are supported, but the issuer annual-report effective date of 14 December 2019 is not reconciled with the first saved new-basis NAV on 13 December 2019."
+    },
+    {
+      "schemeCodes": [
+        101619,
+        101802,
+        103340,
+        103633
+      ],
+      "group": "ICICI debt schemes, November 2009",
+      "blocker": "A primary dated conversion notice and complete historical-to-current plan identity links remain absent. A secondary notice alone is insufficient."
+    }
+  ],
+  "economicReturnCandidates": [
+    {
+      "schemeCodes": [
+        138343,
+        138358
+      ],
+      "group": "PGIM Ultra Short Term",
+      "eventDate": "2019-09-27",
+      "blocker": "Secondary recovery reporting is not the original issuer statement or exact primary NAV evidence. No unit factor is justified; a verified economic return would need to be preserved."
+    }
+  ],
+  "etfFollowup": {
+    "fullRetainedHistoriesRead": 4,
+    "retainedObservations": 10058,
+    "newFullyVerifiedRepairs": 0,
+    "primarySources": [
+      {
+        "id": "icici-gold-2016-notice",
+        "url": "https://arch.icicipruamc.com/Download/News/ICICI%20-%20Change%20in%20Face%20Value%20of%20Gold%20ETF_012_12%20May%202016_W.pdf",
+        "noticeDate": "2016-05-12",
+        "documentedOldNavMultiplier": 0.1,
+        "effectiveCloseDate": "2016-06-10",
+        "facts": "The issuer documents face value INR 100 to INR 10 at close of business on 10 June 2016, with proportional NAV and unit-balance changes.",
+        "retrieval": "Original primary content was retrieved in the 30 October 2026 research pass; no local document digest was recorded in that research ledger."
+      },
+      {
+        "id": "icici-gold-2018-notice",
+        "url": "https://arch.icicipruamc.com/Download/News/ICICI_Addendum%20for%20Change%20in%20face%20value%20-%20Gold%20ETF_021_26%20October%202018.pdf",
+        "noticeDate": "2018-10-26",
+        "documentedOldNavMultiplier": 0.1,
+        "effectiveCloseDate": "2018-11-16",
+        "facts": "The issuer documents face value INR 10 to INR 1 at close of business on 16 November 2018, with proportional NAV and unit-balance changes.",
+        "retrieval": "Original primary content was retrieved in the 30 October 2026 research pass; no local document digest was recorded in that research ledger."
+      },
+      {
+        "id": "icici-gold-exchange-identity-actions",
+        "url": "https://www.msei.in/markets/equity/get-quotes/etf?series=EQ&symbol=GOLDIETF",
+        "facts": "The exchange identifies ICICI Prudential Gold ETF / GOLDIETF / INF109KC1NT3 and lists the 2016 and 2018 subdivisions. It supplies no missing historical NAV observations.",
+        "retrieval": "Original primary content was retrieved in the 30 October 2026 research pass; no local document digest was recorded in that research ledger."
+      },
+      {
+        "id": "icici-nifty100-2024-split",
+        "url": "https://nsearchives.nseindia.com/content/circulars/CML61766.pdf",
+        "noticeDate": "2024-04-26",
+        "documentedOldNavMultiplier": 0.1,
+        "facts": "NSE/CML/61766 lists ICICI Prudential Nifty 100 ETF / NIF100IETF, old face value INR 10 and new INR 1, effective 10 May 2024.",
+        "retrieval": "Original primary content was retrieved in the 30 October 2026 research pass; no local document digest was recorded in that research ledger."
+      },
+      {
+        "id": "icici-nifty100-2024-isin",
+        "url": "https://nsearchives.nseindia.com/content/circulars/CML61914.pdf",
+        "noticeDate": "2024-05-07",
+        "facts": "NSE/CML/61914 binds NIF100IETF / ICICI Prudential Nifty 100 ETF to new ISIN INF109KC16V9 and the INR 10 to INR 1 subdivision, effective for trades from 10 May 2024.",
+        "retrieval": "Original primary content was retrieved in the 30 October 2026 research pass; no local document digest was recorded in that research ledger."
+      },
+      {
+        "id": "icici-nifty100-issuer-nav-timing",
+        "url": "https://digitalfactsheet.icicipruamc.com/passive/pdf/icici-prudential-nifty-100-etf.pdf",
+        "effectiveCloseDate": "2024-05-10",
+        "facts": "The retrieved October 2025 issuer factsheet identifies NIF100IETF / INF109KC16V9. Note 9 places the face-value change at close of business on 10 May 2024. It supplies no 2014–2018 daily history.",
+        "retrieval": "Original primary content was retrieved in the 30 October 2026 research pass; no local document digest was recorded in that research ledger."
+      },
+      {
+        "id": "axis-gold-issuer-face-value-date",
+        "url": "https://www.axismf.com/efactsheet/Aug-2026/Innerpage/GOLD-ETF.html",
+        "facts": "The August 2026 issuer factsheet lists Axis Gold ETF, face value INR 1 and a footnote effective 24 July 2020. This does not independently establish the former face value of INR 100 or close-of-business NAV timing.",
+        "retrieval": "Original primary content was retrieved in the 30 October 2026 research pass; no local document digest was recorded in that research ledger."
+      },
+      {
+        "id": "icici-nifty50-issuer-identity",
+        "url": "https://digitalfactsheet.icicipruamc.com/passive/pdf/icici-prudential-nifty-50-etf.pdf",
+        "facts": "The retrieved October 2025 issuer factsheet identifies ICICI Prudential Nifty 50 ETF / NIFTYIETF / INF109K012R6. Its performance methodology adjusts for declared IDCW, if any. It supplies no 2014–2018 daily history and does not prove absence of distributions.",
+        "retrieval": "Original primary content was retrieved in the 30 October 2026 research pass; no local document digest was recorded in that research ledger."
+      }
+    ],
+    "funds": [
+      {
+        "code": 113076,
+        "name": "ICICI Prudential Gold ETF",
+        "isin": "INF109KC1NT3",
+        "fullSavedHistoryRead": true,
+        "observations": 2025,
+        "coverageStart": "2010-08-26",
+        "coverageEnd": "2026-10-29",
+        "invalidRowsPresentInRetainedPayload": 0,
+        "rawWarningCount": 1,
+        "rawDiscontinuityCount": 3,
+        "allWarningsResolved": false,
+        "sourceIds": [
+          "icici-gold-2016-notice",
+          "icici-gold-2018-notice",
+          "icici-gold-exchange-identity-actions"
+        ],
+        "gapsOver30Days": [
+          {
+            "before": "2010-08-27",
+            "after": "2012-08-10",
+            "calendarDays": 714
+          },
+          {
+            "before": "2012-08-13",
+            "after": "2014-06-12",
+            "calendarDays": 668
+          },
+          {
+            "before": "2014-06-12",
+            "after": "2018-07-03",
+            "calendarDays": 1482
+          }
+        ],
+        "remainingBlockers": [
+          "Independent daily observations are still missing across all three long intervals. The 2012–2014 interval is a coverage gap even though it does not itself exceed the 40% adjacent-move threshold.",
+          "The June 2016 event lies inside the missing 2014–2018 interval; exact surrounding issuer NAV observations have not been retrieved.",
+          "The November 2018 notice supports the saved 16-to-19 November boundary but does not resolve the remaining history issues."
+        ],
+        "newProductionRepairAdded": false,
+        "consumerEligibilityChanged": false
+      },
+      {
+        "code": 113434,
+        "name": "Axis Gold ETF",
+        "isin": "INF846K01W80",
+        "fullSavedHistoryRead": true,
+        "observations": 3932,
+        "coverageStart": "2010-11-16",
+        "coverageEnd": "2026-10-23",
+        "invalidRowsPresentInRetainedPayload": 0,
+        "rawWarningCount": 3,
+        "rawDiscontinuityCount": 1,
+        "excludedInvalidObservationCountInMetadata": 1,
+        "rejectedZeroNavDatesFieldPresent": false,
+        "allWarningsResolved": false,
+        "sourceIds": [
+          "axis-gold-issuer-face-value-date"
+        ],
+        "gapsOver30Days": [],
+        "remainingBlockers": [
+          "The checkpoint-255 record retains an excluded-invalid-observation count of one but no rejected date or cause. Its 3,932 retained valid points do not resolve that independent warning.",
+          "The exact original INR 100 to INR 1 notice and independent NAV denomination timing around 24–27 July 2020 remain unverified.",
+          "The warning that existing observations and fetch time were retained remains valid."
+        ],
+        "newProductionRepairAdded": false,
+        "consumerEligibilityChanged": false
+      },
+      {
+        "code": 121366,
+        "name": "ICICI Prudential Nifty 50 ETF",
+        "isin": "INF109K012R6",
+        "fullSavedHistoryRead": true,
+        "observations": 2050,
+        "coverageStart": "2014-06-12",
+        "coverageEnd": "2026-10-23",
+        "invalidRowsPresentInRetainedPayload": 0,
+        "rawWarningCount": 1,
+        "rawDiscontinuityCount": 1,
+        "allWarningsResolved": false,
+        "sourceIds": [
+          "icici-nifty50-issuer-identity"
+        ],
+        "gapsOver30Days": [
+          {
+            "before": "2014-06-12",
+            "after": "2018-07-03",
+            "calendarDays": 1482
+          }
+        ],
+        "remainingBlockers": [
+          "Independent daily observations are still missing from 12 June 2014 through 3 July 2018. The accumulated market move across that interval does not establish a unit action.",
+          "The issuer methodology adjusts for declared IDCW, if any. A complete exact distribution record would be required to reconsider consumer eligibility."
+        ],
+        "newProductionRepairAdded": false,
+        "consumerEligibilityChanged": false
+      },
+      {
+        "code": 123004,
+        "name": "ICICI Prudential Nifty 100 ETF",
+        "isin": "INF109KC16V9",
+        "fullSavedHistoryRead": true,
+        "observations": 2051,
+        "coverageStart": "2014-06-12",
+        "coverageEnd": "2026-10-26",
+        "invalidRowsPresentInRetainedPayload": 0,
+        "rawWarningCount": 1,
+        "rawDiscontinuityCount": 2,
+        "allWarningsResolved": false,
+        "sourceIds": [
+          "icici-nifty100-2024-split",
+          "icici-nifty100-2024-isin",
+          "icici-nifty100-issuer-nav-timing"
+        ],
+        "documentedEvent": {
+          "factor": 0.1,
+          "oldNavThrough": "2024-05-10",
+          "firstNewSavedNavDate": "2024-05-13"
+        },
+        "gapsOver30Days": [
+          {
+            "before": "2014-06-12",
+            "after": "2018-07-03",
+            "calendarDays": 1482
+          }
+        ],
+        "remainingBlockers": [
+          "The May 2024 terms, exact ISIN and close-of-business timing are supported, but the independent 2014–2018 gap remains.",
+          "Independent daily observations are still missing from 12 June 2014 through 3 July 2018."
+        ],
+        "newProductionRepairAdded": false,
+        "consumerEligibilityChanged": false
+      }
+    ],
+    "retrievalLimitations": [
+      "The issuer historical NAV page returned a JavaScript-only shell and no target history: https://www.icicipruamc.com/mutual-fund/nav-%26-dividend.",
+      "The existing NSE July 2020 corporate-actions API lead was inaccessible.",
+      "The MSEI GOLDAXIS page had the target ISIN but no action records and a face-value header inconsistent with the issuer factsheet; it was not used to prove the former face value.",
+      "Axis latest-NAV search and opened-page snapshots differed. Neither identified the historical excluded observation, and no new NAV was adopted.",
+      "No interpolation, fitted factor, sibling substitution, warning waiver or consumer eligibility change was implemented."
+    ]
+  }
+}
