@@ -1,5 +1,15 @@
 # FundScope data integrity baseline and remediation
 
+## Latest verified review — 30 October 2026
+
+[Checkpoint 255 bulk review and publication recovery](NON_GROWTH_REVIEW_2026-10-30.md) records the current evidence: all **8,544** eligible active schemes have saved histories; **603** retain unresolved flags; **3,648** need refresh or reconciliation. These counts overlap, and saved history is not proof of complete coverage.
+
+The complete **420-history non-Growth batch** has been reviewed. Existing adjustments resolve the numerical discontinuities for 48 ETFs; the remaining 372 histories retain calculation-quality blockers. No new NAV correction or raw warning clearance was added. The failed continuation job was recovered by verifying exact public checkpoint 255, then stopped under the existing recovery guard without collecting data or dispatching a successor.
+
+Current repair eligibility is the strict **30-day active scope** in `AGENTS.md` and `scripts/active-repair-scope.ts`. It supersedes the older 90-day priority discussion in the historical baseline below. Excluded histories remain retained. The website's seven-day discovery filter remains separate.
+
+## Historical baseline — 24 October 2026
+
 **Audit date:** 24 October 2026, 00:15–00:18 UTC.  
 **Authoritative source:** GitHub Release control checkpoint **103** (`fundscope-mfapi-history-v2`), immutable data releases and source HTTP samples.  
 **Diagnostics:** [Read-only GitHub Actions audit #40044040378](https://github.com/Vasuki8/mutual-fund-dashboard/actions/runs/40044040378), [source sample #40044187403](https://github.com/Vasuki8/mutual-fund-dashboard/actions/runs/40044187403), [detailed discrepancy audit #40044317617](https://github.com/Vasuki8/mutual-fund-dashboard/actions/runs/40044317617).
