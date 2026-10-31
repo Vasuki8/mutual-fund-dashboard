@@ -239,15 +239,25 @@ function reviewedSbiHistory(fund: FundData): {fund: FundData; review: VerifiedNa
 /** The issuer's exact historical NAV corrects one spike; no event exemption. */
 function reviewedAbslBasis(fund: FundData): {fund: FundData; review: VerifiedNavReview} | null {
   const identity=([
-    {code:106873,plan:'Regular',isin:'INF209K01520',before:21.0216,source:68.2847,verified:20.9025,after:20.8571,
+    {code:106873,plan:'Regular',option:'GROWTH',isin:'INF209K01520',before:21.0216,source:68.2847,verified:20.9025,after:20.8571,
       query:'SchemeName=ABSL+International+EquityFund+-Regular-Growth&Type=N&SchemeCode=297G'},
-    {code:119517,plan:'Direct',isin:'INF209K01WS3',before:21.7136,source:70.5334,verified:21.5909,after:21.5441,
+    {code:119517,plan:'Direct',option:'GROWTH',isin:'INF209K01WS3',before:21.7136,source:70.5334,verified:21.5909,after:21.5441,
       query:'SchemeName=ABSL+International+Equity-Fund-Direct-Growth&Type=N&SchemeCode=297GZ'},
+    // Exact IDCW selector IDs and original 9–11 April exports are independent
+    // of the Growth values. Both stored ISINs must match these reviewed rows.
+    // Evidence and export limitations: docs/DISTRIBUTION_NAV_BATCH_2026-10-31.md.
+    {code:106872,plan:'Regular',option:'IDCW',isin:'INF209K01512',reinvestmentIsin:'INF209K01CV9',
+      before:15.5022,source:50.3562,verified:15.4144,after:15.3809,
+      query:'SchemeName=ABSL+International+Equity+Fund+-+Regular+-+IDCW&Type=N&SchemeCode=297D'},
+    {code:119516,plan:'Direct',option:'IDCW',isin:'INF209K01Q89',reinvestmentIsin:'INF209K01WT1',
+      before:21.7294,source:70.5846,verified:21.6065,after:21.5598,
+      query:'SchemeName=ABSL+International+Equity+Fund-Direct-IDCW&Type=N&SchemeCode=297DZ'},
   ] as const).find(item=>item.code===fund.meta.schemeCode);
   if(!identity || fund.source!=='mfapi.in'
-    || fund.meta.schemeName!==`Aditya Birla Sun Life International Equity Fund - ${identity.plan} Plan - GROWTH`
+    || fund.meta.schemeName!==`Aditya Birla Sun Life International Equity Fund - ${identity.plan} Plan - ${identity.option}`
     || fund.meta.fundHouse!=='Aditya Birla Sun Life Mutual Fund' || fund.meta.isinGrowth!==identity.isin
-    || fund.meta.isinDivReinvestment!=null || fund.meta.schemeType!=='Open Ended Schemes'
+    || (identity.option==='IDCW' ? fund.meta.isinDivReinvestment!==identity.reinvestmentIsin : fund.meta.isinDivReinvestment!=null)
+    || fund.meta.schemeType!=='Open Ended Schemes'
     || fund.meta.schemeCategory!=='Equity Scheme - Sectoral/ Thematic' || !reviewableSeries(fund))return null;
   const index=fund.points.findIndex(point=>point.date==='2019-04-10');
   if(index<1 || index+1>=fund.points.length)return null;

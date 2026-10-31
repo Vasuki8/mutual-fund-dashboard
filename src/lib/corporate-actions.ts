@@ -183,6 +183,97 @@ function actionForScheme(fund: FundData): ActionSpec | null {
     factor:0.1,maxFactorDeviation:0.0001,
     evidenceUrl:'https://nsearchives.nseindia.com/content/circulars/NMF74721.zip',
   };
+  // Exact distribution identities independently reviewed against primary option
+  // NAVs, code/ISIN bindings and rename notices. Both stored ISIN fields,
+  // including literal nulls, are mandatory. Full evidence and exclusions:
+  // docs/DISTRIBUTION_NAV_BATCH_2026-10-31.md.
+  const birlaOctoberDistributionIdentity = ([
+    [100046,"aditya birla sun life liquid fund - regular plan - daily idcw","INF209K01KQ2","INF209K01SQ5","2011-10-06",0.05,52],
+    [100051,"aditya birla sun life liquid fund - regular plan - weekly idcw","INF209K01KU4","INF209KA1LJ9","2011-10-06",0.05,52],
+    [101973,"aditya birla sun life money market fund - regular plan - daily idcw",null,"INF209K01SZ6","2011-10-06",0.01,61],
+    [101974,"aditya birla sun life money market fund - regular plan - weekly idcw",null,"INF209K01SY9","2011-10-06",0.01,61],
+    [103193,"aditya birla sun life ultra short to short term fund - regular plan - weekly idcw",null,"INF209KA1LQ4","2011-10-05",0.01,53],
+    [105887,"aditya birla sun life ultra short term fund - regular plan - weekly idcw","INF209K01MA2",null,"2011-10-05",0.01,54],
+    [105888,"aditya birla sun life ultra short term fund - regular plan - daily idcw","INF209K01LY4",null,"2011-10-05",0.01,54],
+    [108272,"aditya birla sun life banking & psu debt fund - regular plan - idcw-re-investment","INF209K01LX6","INF209KA11Z3","2011-10-05",0.01,55],
+    [108274,"aditya birla sun life banking & psu debt fund - regular plan - quarterly idcw payout","INF209K01LN7",null,"2011-10-05",0.01,55],
+    [110282,"aditya birla sun life banking & psu debt fund - regular plan - monthly idcw payout","INF209K01LU2",null,"2011-10-05",0.01,55],
+    [113307,"aditya birla sun life ultra short to short term fund - regular plan - daily idcw",null,"INF209KA1LP6","2011-10-05",0.01,53],
+  ] as const).find(([code]) => code === fund.meta.schemeCode);
+  if (birlaOctoberDistributionIdentity && fund.meta.schemeName.toLowerCase() === birlaOctoberDistributionIdentity[1]
+    && fund.meta.fundHouse === "Aditya Birla Sun Life Mutual Fund" && fund.meta.isinGrowth === birlaOctoberDistributionIdentity[2]
+    && fund.meta.isinDivReinvestment === birlaOctoberDistributionIdentity[3]) return {
+    schemeCode: fund.meta.schemeCode,
+    label: `verified 10-to-1 ${fund.meta.schemeName} unit consolidation effective 7 October 2011`,
+    oldNavThrough: birlaOctoberDistributionIdentity[4], firstNewNavDate: '2011-10-07',
+    factor: 10, maxFactorDeviation: birlaOctoberDistributionIdentity[5],
+    evidenceUrl: `https://mutualfund.adityabirlacapital.com/-/media/bsl/files/resources/factsheets/2014/empower-october-2014.pdf#page=${birlaOctoberDistributionIdentity[6]}`,
+  };
+  // Original Addendum 25/2018 covers all four exact Overnight options.
+  // Each retained history has only one old-basis observation on 2-Nov-2018.
+  const birlaOvernightDistributionIdentity = ([
+    [145483,"aditya birla sun life overnight fund - regular plan - daily idcw",null,"INF209KB1ZD1"],
+    [145485,"aditya birla sun life overnight fund - regular plan - monthly idcw","INF209KB1ZG4",null],
+    [145487,"aditya birla sun life overnight fund - direct plan - daily idcw",null,"INF209KB1ZI0"],
+    [145489,"aditya birla sun life overnight fund - direct plan - weekly idcw",null,"INF209KB1ZJ8"],
+  ] as const).find(([code]) => code === fund.meta.schemeCode);
+  if (birlaOvernightDistributionIdentity && fund.meta.schemeName.toLowerCase() === birlaOvernightDistributionIdentity[1]
+    && fund.meta.fundHouse === "Aditya Birla Sun Life Mutual Fund" && fund.meta.isinGrowth === birlaOvernightDistributionIdentity[2]
+    && fund.meta.isinDivReinvestment === birlaOvernightDistributionIdentity[3]) return {
+    schemeCode: fund.meta.schemeCode,
+    label: `verified 100-to-1 ${fund.meta.schemeName} unit consolidation effective 4 November 2018`,
+    oldNavThrough: '2018-11-02', firstNewNavDate: '2018-11-04',
+    factor: 100, maxFactorDeviation: 0.1,
+    evidenceUrl: 'https://bsmedia.business-standard.com/_media/bs/data/announcements/bse/02112018/6f0ab561-caf1-483a-9772-ec88472f67ba.pdf#page=3',
+  };
+  // The original issuer addendum covers Regular/Direct Liquid and Cash
+  // Management Savings/Call options. Two out-of-tolerance histories stay out.
+  // Code 119088 is explicitly bound to Direct Weekly in the issuer SSD;
+  // its two retained null ISINs remain exact values, not wildcards.
+  const hdfcAugustDistributionIdentity = ([
+    [100874,"hdfc liquid fund - regular plan - idcw plan weekly","INF179KB1ID3",null],
+    [100875,"hdfc liquid fund - regular plan - idcw daily",null,"INF179KB1IC5"],
+    [100876,"hdfc liquid fund - regular plan - idcw monthly","INF179KB1HM6","INF179KB1HL8"],
+    [101994,"hdfc money market fund - regular plan - daily idcw option",null,"INF179KB1IG6"],
+    [101997,"hdfc overnight fund - regular plan - idcw option (daily)",null,"INF179KB1IF8"],
+    [119088,"hdfc liquid fund - direct plan - idcw weekly",null,null],
+    [119089,"hdfc liquid fund - direct plan - idcw daily",null,"INF179KB1HV7"],
+    [119090,"hdfc liquid fund - direct plan - idcw monthly","INF179KB1HO2","INF179KB1HQ7"],
+    [119093,"hdfc money market fund - direct plan - daily idcw option",null,"INF179KB1HZ8"],
+    [119109,"hdfc overnight fund - direct plan - idcw option",null,"INF179KB1HY1"],
+  ] as const).find(([code]) => code === fund.meta.schemeCode);
+  if (hdfcAugustDistributionIdentity && fund.meta.schemeName.toLowerCase() === hdfcAugustDistributionIdentity[1]
+    && fund.meta.fundHouse === "HDFC Mutual Fund" && fund.meta.isinGrowth === hdfcAugustDistributionIdentity[2]
+    && fund.meta.isinDivReinvestment === hdfcAugustDistributionIdentity[3]) return {
+    schemeCode: fund.meta.schemeCode,
+    label: `verified 100-to-1 ${fund.meta.schemeName} unit consolidation effective 30 August 2015`,
+    oldNavThrough: '2015-08-28', firstNewNavDate: '2015-08-30',
+    factor: 100, maxFactorDeviation: 0.1,
+    evidenceUrl: 'https://files.hdfcfund.com/s3fs-public/addenda-reports/636%20-%20Addendum%20-%20Change%20in%20Face%20Value%20of%20Liquid%20Schemes%20-%20August%2014,%202015.pdf#page=1',
+  };
+  // The March-2012 issuer report establishes the factor/date. Exact earlier
+  // and later option NAV anchors plus code/ISIN bindings establish identity;
+  // the report's 31-Mar Short Horizon NAVs are not matched to 30-Mar history.
+  const sbiJanuaryDistributionIdentity = ([
+    [103884,"sbi ultra short term fund - regular plan - idcw","INF200K01LM8","INF200K01LL0",13],
+    [105080,"sbi ultra short term fund - regular plan - idcw",null,"INF200K01LK2",13],
+    [105275,"sbi liquid fund - regular plan - idcw",null,"INF200K01LR7",18],
+    [105281,"sbi liquid fund - regular plan - idcw",null,"INF200K01LX5",18],
+    [106213,"sbi ultra short to short term fund - regular plan - idcw",null,"INF200K01ML8",23],
+    [106214,"sbi ultra short to short term fund - regular plan - idcw","INF200K01MR5","INF200K01MS3",23],
+    [106216,"sbi ultra short to short term fund - regular plan - idcw","INF200K01MP9","INF200K01MQ7",23],
+    [106221,"sbi ultra short to short term fund - regular plan - idcw",null,"INF200K01MD5",23],
+    [114297,"sbi overnight fund - regular plan - idcw",null,"INF200K01LN6",14],
+  ] as const).find(([code]) => code === fund.meta.schemeCode);
+  if (sbiJanuaryDistributionIdentity && fund.meta.schemeName.toLowerCase() === sbiJanuaryDistributionIdentity[1]
+    && fund.meta.fundHouse === "SBI Mutual Fund" && fund.meta.isinGrowth === sbiJanuaryDistributionIdentity[2]
+    && fund.meta.isinDivReinvestment === sbiJanuaryDistributionIdentity[3]) return {
+    schemeCode: fund.meta.schemeCode,
+    label: `verified 100-to-1 ${fund.meta.schemeName} unit consolidation effective 13 January 2012`,
+    oldNavThrough: '2012-01-12', firstNewNavDate: '2012-01-13',
+    factor: 100, maxFactorDeviation: 0.1,
+    evidenceUrl: `https://www.sbimf.com/docs/default-source/scheme-portfolios/default-library/unaudited-half-yearly-results-(as-on-march-31-2012).pdf?sfvrsn=24795812_0#page=${sbiJanuaryDistributionIdentity[4]}`,
+  };
   // Exact distribution options: issuer SSD page 114 binds each numeric code;
   // CDSL 2026/416 binds both current ISIN fields. NSE 74721 / issuer Addendum
   // 14/2026-27 document Rs1000 -> Rs100. Raw NAVs and Growth-only consumer
