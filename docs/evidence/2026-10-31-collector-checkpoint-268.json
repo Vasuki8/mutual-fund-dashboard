@@ -1,0 +1,391 @@
+{
+  "runId": 41157410336,
+  "jobs": [
+    {
+      "id": 124407150317,
+      "name": "archive",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-10-31T01:52:50Z",
+      "completedAt": "2026-10-31T02:05:43Z"
+    },
+    {
+      "id": 124410205419,
+      "name": "publish / build",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-10-31T02:05:45Z",
+      "completedAt": "2026-10-31T02:08:13Z"
+    },
+    {
+      "id": 124410816824,
+      "name": "publish / deploy",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-10-31T02:08:22Z",
+      "completedAt": "2026-10-31T02:08:33Z"
+    },
+    {
+      "id": 124410899082,
+      "name": "continue",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-10-31T02:08:35Z",
+      "completedAt": "2026-10-31T02:08:42Z"
+    }
+  ],
+  "events": [
+    {
+      "time": "2026-10-31T01:52:53.6931589Z",
+      "job": "archive",
+      "phase": "backfill_ancestor_observed",
+      "runId": "41157410336",
+      "ancestorId": "41145945778",
+      "role": "root",
+      "expectedTitle": "FundScope archive · 41145945778 · 1/12",
+      "observedTitle": "FundScope archive · 41145945778 · 1/12",
+      "runAttempt": 1,
+      "event": "schedule",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "time": "2026-10-31T01:52:53.7986623Z",
+      "job": "archive",
+      "phase": "backfill_ancestor_observed",
+      "runId": "41157410336",
+      "ancestorId": "41156160351",
+      "role": "parent",
+      "expectedTitle": "FundScope archive · 41145945778 · 8/12",
+      "observedTitle": "FundScope archive · 41145945778 · 8/12",
+      "runAttempt": 1,
+      "event": "workflow_dispatch",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "time": "2026-10-31T01:52:54.8341079Z",
+      "job": "archive",
+      "phase": "backfill_wait",
+      "rootRunId": "41145945778",
+      "parentRunId": "41156160351",
+      "position": 9,
+      "deadline": "2026-10-31T03:41:24.000Z",
+      "runId": "41157410336",
+      "runAttempt": 1,
+      "startingSequence": 267,
+      "wakeAt": "2026-10-31T02:04:37.391Z"
+    },
+    {
+      "time": "2026-10-31T02:04:38.4795894Z",
+      "job": "archive",
+      "phase": "backfill_prepare",
+      "rootRunId": "41145945778",
+      "parentRunId": "41156160351",
+      "position": 9,
+      "deadline": "2026-10-31T03:41:24.000Z",
+      "runId": "41157410336",
+      "runAttempt": 1,
+      "startingSequence": 267,
+      "collect": true,
+      "reason": "ready"
+    },
+    {
+      "time": "2026-10-31T02:04:39.7792534Z",
+      "job": "archive",
+      "phase": "repair_scope",
+      "navRecencyDays": 30,
+      "asOfDate": "2026-10-31",
+      "manualRosterDate": "2026-10-26",
+      "eligibleSchemes": 8524,
+      "excludedSchemes": 29502,
+      "selectedSchemes": 74
+    },
+    {
+      "time": "2026-10-31T02:05:07.8052300Z",
+      "job": "archive",
+      "phase": "scheme",
+      "code": 135977,
+      "outcome": "failed",
+      "error": "source_transport"
+    },
+    {
+      "time": "2026-10-31T02:05:41.6340911Z",
+      "job": "archive",
+      "phase": "verified",
+      "changed": true,
+      "sequence": 268,
+      "attempted": 74,
+      "firstAttempted": 0,
+      "historiesAdded": 0,
+      "reconciliationAdvanced": true,
+      "activeRepairProgress": {
+        "asOf": "2026-10-31T02:05:36.558Z",
+        "before": {
+          "total": 8524,
+          "attempted": 8524,
+          "saved": 8524,
+          "clean": 7921,
+          "qualityIssues": 603,
+          "sourceGaps": 86,
+          "pending": 0,
+          "refreshPending": 2600,
+          "bulkPassComplete": true,
+          "coverageComplete": false
+        },
+        "after": {
+          "total": 8524,
+          "attempted": 8524,
+          "saved": 8524,
+          "clean": 7921,
+          "qualityIssues": 603,
+          "sourceGaps": 87,
+          "pending": 0,
+          "refreshPending": 2527,
+          "bulkPassComplete": true,
+          "coverageComplete": false
+        }
+      },
+      "deferred": 0,
+      "counts": {
+        "total": 38026,
+        "attempted": 38018,
+        "saved": 37400,
+        "clean": 33878,
+        "qualityIssues": 3522,
+        "sourceGaps": 707,
+        "pending": 8,
+        "refreshPending": 31403,
+        "bulkPassComplete": false,
+        "coverageComplete": false
+      },
+      "lastCatalogueError": null,
+      "sourceRetryAt": null
+    },
+    {
+      "time": "2026-10-31T02:08:39.0574199Z",
+      "job": "continue",
+      "phase": "backfill_publication_verified",
+      "rootRunId": "41145945778",
+      "parentRunId": "41156160351",
+      "position": 9,
+      "deadline": "2026-10-31T03:41:24.000Z",
+      "runId": "41157410336",
+      "runAttempt": 1,
+      "startingSequence": 267,
+      "sequence": 268,
+      "checkpointAt": "2026-10-31T02:05:36.558Z",
+      "counts": {
+        "total": 38026,
+        "attempted": 38018,
+        "saved": 37400,
+        "clean": 33878,
+        "qualityIssues": 3522,
+        "sourceGaps": 707,
+        "pending": 8,
+        "refreshPending": 31403,
+        "bulkPassComplete": false,
+        "coverageComplete": false
+      }
+    },
+    {
+      "time": "2026-10-31T02:08:40.2820026Z",
+      "job": "continue",
+      "phase": "backfill_continue",
+      "rootRunId": "41145945778",
+      "parentRunId": "41156160351",
+      "position": 9,
+      "deadline": "2026-10-31T03:41:24.000Z",
+      "runId": "41157410336",
+      "runAttempt": 1,
+      "startingSequence": 267,
+      "reason": "dispatched",
+      "dispatched": true,
+      "sequence": 268,
+      "counts": {
+        "total": 38026,
+        "attempted": 38018,
+        "saved": 37400,
+        "clean": 33878,
+        "qualityIssues": 3522,
+        "sourceGaps": 707,
+        "pending": 8,
+        "refreshPending": 31403,
+        "bulkPassComplete": false,
+        "coverageComplete": false
+      },
+      "firstAttempted": 0,
+      "historiesAdded": 0,
+      "reconciliationAdvanced": true,
+      "activeRepairCounts": {
+        "total": 8524,
+        "attempted": 8524,
+        "saved": 8524,
+        "clean": 7921,
+        "qualityIssues": 603,
+        "sourceGaps": 87,
+        "pending": 0,
+        "refreshPending": 2527,
+        "bulkPassComplete": true,
+        "coverageComplete": false
+      },
+      "childRunId": 41158630893
+    }
+  ],
+  "outcomes": {
+    "saved": 73,
+    "failed": 1
+  },
+  "version": 1,
+  "sourceRunUrl": "https://github.com/Vasuki8/mutual-fund-dashboard/actions/runs/41157410336",
+  "publicManifestSha256": "d91fddfc92fb514d1e7b5050ccc9b5aca9a4b05fac0af7b9652e9ecd68da1190",
+  "publicCheckpoint": 268,
+  "unitNormalizationIndependent": true,
+  "scopeDateRollover": {
+    "checkpoint": 268,
+    "catalogueFetchedAt": "2026-10-30T19:58:19.963Z",
+    "comparison": "Same catalogue, only UTC evaluation date changes",
+    "previousUtcDate": "2026-10-30",
+    "actualUtcDate": "2026-10-31",
+    "previousDateEligible": 8542,
+    "actualDateEligible": 8524,
+    "agedOut": [
+      {
+        "schemeCode": 149198,
+        "name": "Aditya Birla Sun Life Nifty SDL Plus PSU Bond SEP 2026 60:40 Index Fund - Regular Plan - GROWTH",
+        "latestDate": "2026-09-30",
+        "nav": "13.25630"
+      },
+      {
+        "schemeCode": 149199,
+        "name": "Aditya Birla Sun Life Nifty SDL Plus PSU Bond SEP 2026 60:40 Index Fund - Direct Plan - GROWTH",
+        "latestDate": "2026-09-30",
+        "nav": "13.35940"
+      },
+      {
+        "schemeCode": 149200,
+        "name": "Aditya Birla Sun Life Nifty SDL Plus PSU Bond SEP 2026 60:40 Index Fund - Direct Plan - IDCW Payout",
+        "latestDate": "2026-09-30",
+        "nav": "13.35960"
+      },
+      {
+        "schemeCode": 149201,
+        "name": "Aditya Birla Sun Life Nifty SDL Plus PSU Bond SEP 2026 60:40 Index Fund - Regular Plan - IDCW Payout",
+        "latestDate": "2026-09-30",
+        "nav": "13.25720"
+      },
+      {
+        "schemeCode": 149472,
+        "name": "SBI CPSE Bond Plus SDL Sep 2026 50:50 Index Fund - Regular Plan - Growth",
+        "latestDate": "2026-09-30",
+        "nav": "13.16270"
+      },
+      {
+        "schemeCode": 149473,
+        "name": "SBI CPSE Bond Plus SDL Sep 2026 50:50 Index Fund - Regular Plan - IDCW",
+        "latestDate": "2026-09-30",
+        "nav": "13.16300"
+      },
+      {
+        "schemeCode": 149474,
+        "name": "SBI CPSE Bond Plus SDL Sep 2026 50:50 Index Fund - Direct Plan - Growth",
+        "latestDate": "2026-09-30",
+        "nav": "13.26290"
+      },
+      {
+        "schemeCode": 149475,
+        "name": "SBI CPSE Bond Plus SDL Sep 2026 50:50 Index Fund - Direct Plan - IDCW",
+        "latestDate": "2026-09-30",
+        "nav": "13.32020"
+      },
+      {
+        "schemeCode": 150851,
+        "name": "Axis Nifty SDL September 2026 Debt Index Fund - Regular Plan - Growth Option",
+        "latestDate": "2026-09-30",
+        "nav": "13.00890"
+      },
+      {
+        "schemeCode": 150852,
+        "name": "Axis Nifty SDL September 2026 Debt Index Fund - Direct Plan - IDCW Option",
+        "latestDate": "2026-09-30",
+        "nav": "13.06840"
+      },
+      {
+        "schemeCode": 150853,
+        "name": "Axis Nifty SDL September 2026 Debt Index Fund - Regular Plan - IDCW Option",
+        "latestDate": "2026-09-30",
+        "nav": "13.00750"
+      },
+      {
+        "schemeCode": 150854,
+        "name": "Axis Nifty SDL September 2026 Debt Index Fund - Direct Plan - Growth Option",
+        "latestDate": "2026-09-30",
+        "nav": "13.06840"
+      },
+      {
+        "schemeCode": 151208,
+        "name": "ICICI Prudential Nifty SDL Sep 2026 Index Fund - Regular Plan - Growth",
+        "latestDate": "2026-09-30",
+        "nav": "12.85900"
+      },
+      {
+        "schemeCode": 151209,
+        "name": "ICICI Prudential Nifty SDL Sep 2026 Index Fund - Regular Plan - Annual IDCW",
+        "latestDate": "2026-09-30",
+        "nav": "12.85880"
+      },
+      {
+        "schemeCode": 151210,
+        "name": "ICICI Prudential Nifty SDL Sep 2026 Index Fund - Direct Plan - Annual IDCW",
+        "latestDate": "2026-09-30",
+        "nav": "12.95660"
+      },
+      {
+        "schemeCode": 151211,
+        "name": "ICICI Prudential Nifty SDL Sep 2026 Index Fund - Direct Plan - Growth",
+        "latestDate": "2026-09-30",
+        "nav": "12.95660"
+      },
+      {
+        "schemeCode": 152945,
+        "name": "Aditya Birla Sun Life Crisil-IBX AAA NBFC-HFC INDEX-Sep 2026 Fund - Regular Plan - Growth",
+        "latestDate": "2026-09-30",
+        "nav": "11.48940"
+      },
+      {
+        "schemeCode": 152946,
+        "name": "Aditya Birla Sun Life Crisil-IBX AAA NBFC-HFC INDEX-Sep 2026 Fund - Regular Plan - IDCW Payout",
+        "latestDate": "2026-09-30",
+        "nav": "11.48950"
+      },
+      {
+        "schemeCode": 152947,
+        "name": "Aditya Birla Sun Life Crisil-IBX AAA NBFC-HFC INDEX-Sep 2026 Fund - Direct Plan - GROWTH",
+        "latestDate": "2026-09-30",
+        "nav": "11.55410"
+      },
+      {
+        "schemeCode": 152948,
+        "name": "Aditya Birla Sun Life Crisil-IBX AAA NBFC-HFC INDEX-Sep 2026 Fund - Direct Plan - IDCW Payout",
+        "latestDate": "2026-09-30",
+        "nav": "11.55410"
+      }
+    ],
+    "newlyEligible": [
+      {
+        "schemeCode": 154736,
+        "name": "LAKSHYA OVERNIGHT FUND - Direct Plan - GROWTH",
+        "latestDate": "2026-10-31",
+        "nav": "1006.07880"
+      },
+      {
+        "schemeCode": 154737,
+        "name": "LAKSHYA OVERNIGHT FUND - Regular Plan - GROWTH",
+        "latestDate": "2026-10-31",
+        "nav": "1005.95520"
+      }
+    ],
+    "agedOutCount": 20,
+    "newlyEligibleCount": 2
+  }
+}

@@ -1,6 +1,14 @@
 # FundScope data integrity baseline and remediation
 
-## Latest verified repair batch — 30 October 2026
+## Latest verified repair batch — 31 October 2026 UTC
+
+[Verified Birla, HDFC, SBI and ICICI distribution NAV review](DISTRIBUTION_NAV_BATCH_2026-10-31.md) adds **34 exact unit registrations and two exact issuer-NAV source corrections**, covering **36 histories and 175,714 retained observations** at checkpoint **268**. The unit registrations cover 15 Birla, ten HDFC and nine SBI options. The two separate Birla International Equity IDCW corrections replace only their 10 April 2019 calculation NAVs. Original source values remain retained.
+
+The full screened cohort contains **56 histories and 260,007 observations**. **Twenty histories with 84,293 observations remain excluded**: two HDFC tolerance failures, two SBI evidence/history blockers and all 16 ICICI targets. The report records the exact identity contradictions and missing primary evidence. All 56 qualify under the actual 31 October UTC repair scope. Full production replay passes, as do **2,416 tests**, typecheck and both builds. **Zero raw flags are cleared and zero options gain consumer return eligibility.** Two supported histories retain gaps longer than 30 days, and all shorter calendar intervals are preserved.
+
+The separately verified checkpoint-268 collector tranche saved 73 refreshed histories and reduced pending work **2,600 → 2,527** within the same **8,524-scheme** active cohort. Raw quality flags remain **603**; active source gaps rose **86 → 87**. Re-evaluating the same catalogue across the UTC date rollover explains the earlier **8,542 → 8,524** membership change: 20 histories age out of the 30-day rule and two nonfuture NAVs enter. This scope change removes no stored history. Later operational observations and deployment results are reported separately.
+
+## Previous verified repair batch — 30 October 2026
 
 [Verified Invesco and Nippon distribution unit registrations](DISTRIBUTION_UNIT_BATCH_2026-10-30.md) adds **41 exact identities**: 33 Invesco and eight Nippon options. Primary issuer/exchange evidence and independent full-series review cover **176,110 retained observations** at checkpoint **257**. Only calculation-copy NAVs before each documented unit event are rescaled. **Zero raw flags are cleared and zero options gain consumer return eligibility.** Six approved histories retain material coverage gaps; no missing observations or distribution cashflows are reconstructed.
 
