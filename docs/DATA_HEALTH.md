@@ -1,6 +1,14 @@
 # FundScope data integrity baseline and remediation
 
-## Latest verified repair batch — 31 October 2026 UTC
+## Latest verified repair batch — 31 October 2026 UTC, checkpoint 274
+
+[Remaining distribution NAV review](REMAINING_DISTRIBUTION_REVIEW_2026-10-31.md) adds **20 exact unit registrations** across Edelweiss, Kotak, Canara Robeco, Tata, LIC and Union, covering **88,646 retained observations**. The full screened cohort contains **59 histories and 226,022 observations**. The other **39 histories, with 137,376 observations**, remain blocked; their specific identity, event-date, missing-boundary and source-evidence limitations are recorded. Four JM distributions are explained in evidence without replacing a NAV or adding a warning waiver.
+
+The complete production replay scales **11,817 earlier calculation values**, preserves every other NAV and all **39,312 calendar gap tuples**, and reduces calculation discontinuities **71 → 51**. All 59 qualify at the actual 31 October UTC scope checks. **2,638 tests**, typecheck and both production builds pass; independent implementation and ledger reviews pass. **Zero raw flags are cleared and zero options gain consumer return eligibility.** Unit normalization does not establish distribution-reinvested total return or complete history. Union's issuer factsheet terms/anchors are explicitly marked as primary indexed text without original PDF byte capture; the exact identity PDF is an original NSE ZIP member.
+
+The separately verified checkpoint-274 collector tranche saved **105 refreshed histories**. Within the same **8,524-scheme active cohort**, refresh/reconciliation pending fell **2,070 → 1,965**, active source gaps fell **87 → 85**, and raw quality flags stayed **602**. All archive/publication/continuation jobs succeeded. These are collector improvements, separate from calculation-only registrations; later operational and deployment results are recorded separately.
+
+## Earlier verified repair batch — 31 October 2026 UTC, checkpoint 268
 
 [Verified Birla, HDFC, SBI and ICICI distribution NAV review](DISTRIBUTION_NAV_BATCH_2026-10-31.md) adds **34 exact unit registrations and two exact issuer-NAV source corrections**, covering **36 histories and 175,714 retained observations** at checkpoint **268**. The unit registrations cover 15 Birla, ten HDFC and nine SBI options. The two separate Birla International Equity IDCW corrections replace only their 10 April 2019 calculation NAVs. Original source values remain retained.
 
