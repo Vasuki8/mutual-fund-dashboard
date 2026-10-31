@@ -183,6 +183,125 @@ function actionForScheme(fund: FundData): ActionSpec | null {
     factor:0.1,maxFactorDeviation:0.0001,
     evidenceUrl:'https://nsearchives.nseindia.com/content/circulars/NMF74721.zip',
   };
+  // Remaining distribution identities independently verified at checkpoint 274.
+  // Exact names, house and both ISIN fields (including nulls) are required.
+  // Source terms, option NAV anchors, limits and exclusions are recorded in
+  // docs/REMAINING_DISTRIBUTION_REVIEW_2026-10-31.md.
+  // The original 14-Jan-2013 notice covers Liquid and Floater Short Term
+  // (now Money Market), effective close of business 18-Jan. Literal dated
+  // option NAVs and exact code/ISIN records bind only these four identities.
+  const kotakJanuaryDistributionIdentity = ([
+    [100833, "kotak liquid fund - regular plan - daily reinvestment of income distribution cum capital withdrawal option", null, "INF174K01NL3"],
+    [101892, "kotak money market fund - regular plan - (monthly payout of income distribution cum capital withdrawal option)", "INF174K018O0", "INF174K01NB4"],
+    [119747, "kotak money market fund - direct plan - (monthly payout of income distribution cum capital withdrawal option)", "INF174K019O8", "INF174K01MX0"],
+    [119764, "kotak liquid fund - direct plan - daily reinvestment of income distribution cum capital withdrawal option", null, "INF174K01NH1"],
+  ] as const).find(([code]) => code === fund.meta.schemeCode);
+  if (kotakJanuaryDistributionIdentity && fund.meta.schemeName.toLowerCase() === kotakJanuaryDistributionIdentity[1]
+    && fund.meta.fundHouse === "Kotak Mahindra Mutual Fund" && fund.meta.isinGrowth === kotakJanuaryDistributionIdentity[2]
+    && fund.meta.isinDivReinvestment === kotakJanuaryDistributionIdentity[3]) return {
+    schemeCode: fund.meta.schemeCode,
+    label: `verified 100-to-1 ${fund.meta.schemeName} unit consolidation (effective date 2013-01-18)`,
+    oldNavThrough: '2013-01-18', firstNewNavDate: '2013-01-20',
+    factor: 100, maxFactorDeviation: 0.1,
+    evidenceUrl: "https://vatseelabs-s3.kotakmf.com/FormsDownloads_BKP_05_April_2024/Addendums/KLiquid,-KFST---14-January-2013/14-01-13.pdf#page=1",
+  };
+  // The 2014 issuer financial report documents the old Money Market
+  // consolidation. The 2019 report confirms that old Money Market became
+  // current Liquid; the reciprocal rename is not interchangeable.
+  const tataFebruaryDistributionIdentity = ([
+    [101714, "tata liquid fund - regular plan - daily reinvestment of idcw option", null, "INF277K011D4"],
+    [119862, "tata liquid fund - direct plan - daily reinvestment of idcw option", null, "INF277K012D2"],
+  ] as const).find(([code]) => code === fund.meta.schemeCode);
+  if (tataFebruaryDistributionIdentity && fund.meta.schemeName.toLowerCase() === tataFebruaryDistributionIdentity[1]
+    && fund.meta.fundHouse === "Tata Mutual Fund" && fund.meta.isinGrowth === tataFebruaryDistributionIdentity[2]
+    && fund.meta.isinDivReinvestment === tataFebruaryDistributionIdentity[3]) return {
+    schemeCode: fund.meta.schemeCode,
+    label: `verified 100-to-1 ${fund.meta.schemeName} unit consolidation (effective date 2014-02-01)`,
+    oldNavThrough: '2014-01-31', firstNewNavDate: '2014-02-02',
+    factor: 100, maxFactorDeviation: 0.1,
+    evidenceUrl: "https://www.tatamutualfund.com/system/files/2023-08/half_yearly_portfolios_march_2014.pdf#page=4",
+  };
+  // The issuer financial report maps former Super Institutional to
+  // current Regular. Liquid retains an old-basis NAV on the legal date.
+  const canaraAugustLiquidDistributionIdentity = ([
+    [109349, "canara robeco liquid fund - regular plan - daily idcw (reinvestment)", null, "INF760K01CU3"],
+    [109350, "canara robeco liquid fund - regular plan - weekly idcw (payout/reinvestment)", "INF760K01BZ4", "INF760K01CZ2"],
+  ] as const).find(([code]) => code === fund.meta.schemeCode);
+  if (canaraAugustLiquidDistributionIdentity && fund.meta.schemeName.toLowerCase() === canaraAugustLiquidDistributionIdentity[1]
+    && fund.meta.fundHouse === "Canara Robeco Mutual Fund" && fund.meta.isinGrowth === canaraAugustLiquidDistributionIdentity[2]
+    && fund.meta.isinDivReinvestment === canaraAugustLiquidDistributionIdentity[3]) return {
+    schemeCode: fund.meta.schemeCode,
+    label: `verified 100-to-1 ${fund.meta.schemeName} unit consolidation (effective date 2011-08-20)`,
+    oldNavThrough: '2011-08-20', firstNewNavDate: '2011-08-21',
+    factor: 100, maxFactorDeviation: 0.1,
+    evidenceUrl: "https://www.canararobeco.com/wp-content/uploads/2025/02/canara-robeco-liquid-fund-f-y-2012-13.pdf#page=21",
+  };
+  // Former Treasury Advantage became Ultra Short Term. Its observed
+  // boundary differs from Liquid even though the legal date is the same.
+  const canaraAugustUltraShortDistributionIdentity = ([
+    [109366, "canara robeco ultra short term fund - regular plan - weekly idcw (payout/reinvestment)", "INF760K01DE5", "INF760K01DF2"],
+    [109372, "canara robeco ultra short term fund - regular plan - daily idcw (reinvestment)", null, "INF760K01DA3"],
+  ] as const).find(([code]) => code === fund.meta.schemeCode);
+  if (canaraAugustUltraShortDistributionIdentity && fund.meta.schemeName.toLowerCase() === canaraAugustUltraShortDistributionIdentity[1]
+    && fund.meta.fundHouse === "Canara Robeco Mutual Fund" && fund.meta.isinGrowth === canaraAugustUltraShortDistributionIdentity[2]
+    && fund.meta.isinDivReinvestment === canaraAugustUltraShortDistributionIdentity[3]) return {
+    schemeCode: fund.meta.schemeCode,
+    label: `verified 100-to-1 ${fund.meta.schemeName} unit consolidation (effective date 2011-08-20)`,
+    oldNavThrough: '2011-08-19', firstNewNavDate: '2011-08-22',
+    factor: 100, maxFactorDeviation: 0.1,
+    evidenceUrl: "https://www.canararobeco.com/wp-content/uploads/2025/02/canara-robeco-treasury-advantage-f-y-2012-13.pdf#page=22",
+  };
+  // Original issuer factsheet text gives the 2-Oct-2011 terms and
+  // exact option NAV anchors; the original NSE ZIP member binds code/ISINs.
+  // Code 115399 stays excluded because its event falls inside a 99-day gap.
+  const unionOctoberDistributionIdentity = ([
+    [115400, "union liquid fund - regular plan - monthly idcw option", "INF582M01070", "INF582M01054"],
+    [115401, "union liquid fund - regular plan - daily idcw option", null, "INF582M01021"],
+    [115402, "union liquid fund - regular plan - weekly idcw option", null, "INF582M01039"],
+  ] as const).find(([code]) => code === fund.meta.schemeCode);
+  if (unionOctoberDistributionIdentity && fund.meta.schemeName.toLowerCase() === unionOctoberDistributionIdentity[1]
+    && fund.meta.fundHouse === "Union Mutual Fund" && fund.meta.isinGrowth === unionOctoberDistributionIdentity[2]
+    && fund.meta.isinDivReinvestment === unionOctoberDistributionIdentity[3]) return {
+    schemeCode: fund.meta.schemeCode,
+    label: `verified 100-to-1 ${fund.meta.schemeName} unit consolidation effective 2 October 2011`,
+    oldNavThrough: '2011-09-29', firstNewNavDate: '2011-10-02',
+    factor: 100, maxFactorDeviation: 0.1,
+    evidenceUrl: "https://www.unionmf.com/docs/default-source/downloads/scheme-disclosures/factsheets/october-2012.pdf?sfvrsn=f69eb488_3#page=5",
+  };
+  // The issuer financials give the 21-Jan-2013 event and explicitly
+  // date their Direct Dividend NAV anchor to 28-Mar, not 31-Mar.
+  const licJanuaryDistributionIdentity = ([
+    [120248, "lic mf liquid fund - direct plan - daily idcw", "INF767K01DL5", "INF767K01DM3"],
+  ] as const).find(([code]) => code === fund.meta.schemeCode);
+  if (licJanuaryDistributionIdentity && fund.meta.schemeName.toLowerCase() === licJanuaryDistributionIdentity[1]
+    && fund.meta.fundHouse === "LIC Mutual Fund" && fund.meta.isinGrowth === licJanuaryDistributionIdentity[2]
+    && fund.meta.isinDivReinvestment === licJanuaryDistributionIdentity[3]) return {
+    schemeCode: fund.meta.schemeCode,
+    label: `verified 100-to-1 ${fund.meta.schemeName} unit consolidation (effective date 2013-01-21)`,
+    oldNavThrough: '2013-01-20', firstNewNavDate: '2013-01-21',
+    factor: 100, maxFactorDeviation: 0.1,
+    evidenceUrl: "https://www.licmf.com/assets/pdf/statuary_disclosure/LIC%20-%20Balance%20Sheet%20-%2010%20May%202013.pdf#page=4",
+  };
+  // The original 2017 notice covers all Liquid options. Exact current
+  // code 140181 binds the generic stored label to Daily; sibling 140190
+  // and the later nonunit anomalies in 140184 remain excluded.
+  const edelweissJulyDistributionIdentity = ([
+    [140181, "edelweiss liquid fund - regular plan - idcw", null, "INF754K01HA7"],
+    [140183, "edelweiss liquid fund - regular plan - monthly idcw", "INF754K01HL4", "INF754K01HD1"],
+    [140185, "edelweiss liquid fund - regular plan - weekly idcw", "INF754K01HJ8", "INF754K01HB5"],
+    [140188, "edelweiss liquid fund - regular plan - annual idcw", "INF754K01HQ3", "INF754K01HP5"],
+    [140193, "edelweiss liquid fund - direct plan - daily idcw", null, "INF754K01GP7"],
+    [140197, "edelweiss liquid fund - direct plan - monthly idcw", "INF754K01GW3", "INF754K01GS1"],
+  ] as const).find(([code]) => code === fund.meta.schemeCode);
+  if (edelweissJulyDistributionIdentity && fund.meta.schemeName.toLowerCase() === edelweissJulyDistributionIdentity[1]
+    && fund.meta.fundHouse === "Edelweiss Mutual Fund" && fund.meta.isinGrowth === edelweissJulyDistributionIdentity[2]
+    && fund.meta.isinDivReinvestment === edelweissJulyDistributionIdentity[3]) return {
+    schemeCode: fund.meta.schemeCode,
+    label: `verified 100-to-1 ${fund.meta.schemeName} unit consolidation (effective date 1 July 2017)`,
+    oldNavThrough: '2017-06-30', firstNewNavDate: '2017-07-02',
+    factor: 100, maxFactorDeviation: 0.1,
+    evidenceUrl: "https://www.edelweissmf.com/Files/downloads/Notice-Cum-Addendum/2017/Edelweiss-NoticecumAddendum-21-jun17.pdf#page=1",
+  };
   // Exact distribution identities independently reviewed against primary option
   // NAVs, code/ISIN bindings and rename notices. Both stored ISIN fields,
   // including literal nulls, are mandatory. Full evidence and exclusions:

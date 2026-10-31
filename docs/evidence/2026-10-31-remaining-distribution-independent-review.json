@@ -1,0 +1,2206 @@
+{
+  "version": 1,
+  "packagedAt": "2026-10-31T04:30:18.497303+00:00",
+  "repositoryBase": "521ef8bf79885de57082054adc4f37b75b56cb3d",
+  "verdict": "pass",
+  "blockingFindings": [],
+  "implementationReview": {
+    "sourceArtifact": "implementation-review.json",
+    "sourceArtifactSha256": "49b44dc9e16a6411127ba6f2fda404d2dc6aa61058070a1cadb01b4d47d5fe99",
+    "review": {
+      "reviewedAt": "2026-10-31T04:26:41.709867+00:00",
+      "reviewer": "/root/navi_bandhan_union_next",
+      "status": "pass",
+      "repository": "/workspace/scratch/824eb8a21a56/fundscope-next",
+      "baseCommit": "521ef8bf79885de57082054adc4f37b75b56cb3d",
+      "reviewedFileSha256": {
+        "src/lib/corporate-actions.ts": "f4b16d38f2d96c74f5d64bb3c2c6b18c99925da67663659b6f930ffdbbe83035",
+        "tests/remaining-distribution-unit-basis.test.ts": "7d12bfea8a2a92fd6c21c806d12b5c644e4c427c4b5325748a25bc4541167d10",
+        "tests/fixtures/remaining-distribution-units.ts": "6df013961f6afc0ac71ebd94f438e9e65494a4336ba14cd14d6bdd23d812885b",
+        "docs/evidence/2026-10-31-remaining-distribution-sources.json": "03d51d2f4e02e65e6475b98ed4c43c6d356c0ae285cdb1a1b6cbe0bb7396d789",
+        "docs/evidence/2026-10-31-remaining-distribution-replay.mjs": "276e1070cef7d33e0fe557b22bb42b6fc916b9614420189b74e80d8bc3f8bb5d",
+        "docs/evidence/2026-10-31-remaining-distribution-replay.json": "e3f23ad165e9ef01e5b27173c131ce033dd76738e9edba91c473106c6246fb6e"
+      },
+      "blockingFindings": [],
+      "suggestions": [],
+      "productionChangeScope": "Only the seven new exact registration groups differ from the base corporate-actions.ts; the complete preexisting remainder matches byte-for-text.",
+      "registrationGroups": [
+        {
+          "group": "kotakJanuaryDistributionIdentity",
+          "codes": [
+            100833,
+            101892,
+            119747,
+            119764
+          ],
+          "fundHouse": "Kotak Mahindra Mutual Fund",
+          "oldNavThrough": "2013-01-18",
+          "firstNewNavDate": "2013-01-20",
+          "factor": 100,
+          "maxFactorDeviation": 0.1,
+          "evidenceUrl": "https://vatseelabs-s3.kotakmf.com/FormsDownloads_BKP_05_April_2024/Addendums/KLiquid,-KFST---14-January-2013/14-01-13.pdf#page=1"
+        },
+        {
+          "group": "tataFebruaryDistributionIdentity",
+          "codes": [
+            101714,
+            119862
+          ],
+          "fundHouse": "Tata Mutual Fund",
+          "oldNavThrough": "2014-01-31",
+          "firstNewNavDate": "2014-02-02",
+          "factor": 100,
+          "maxFactorDeviation": 0.1,
+          "evidenceUrl": "https://www.tatamutualfund.com/system/files/2023-08/half_yearly_portfolios_march_2014.pdf#page=4"
+        },
+        {
+          "group": "canaraAugustLiquidDistributionIdentity",
+          "codes": [
+            109349,
+            109350
+          ],
+          "fundHouse": "Canara Robeco Mutual Fund",
+          "oldNavThrough": "2011-08-20",
+          "firstNewNavDate": "2011-08-21",
+          "factor": 100,
+          "maxFactorDeviation": 0.1,
+          "evidenceUrl": "https://www.canararobeco.com/wp-content/uploads/2025/02/canara-robeco-liquid-fund-f-y-2012-13.pdf#page=21"
+        },
+        {
+          "group": "canaraAugustUltraShortDistributionIdentity",
+          "codes": [
+            109366,
+            109372
+          ],
+          "fundHouse": "Canara Robeco Mutual Fund",
+          "oldNavThrough": "2011-08-19",
+          "firstNewNavDate": "2011-08-22",
+          "factor": 100,
+          "maxFactorDeviation": 0.1,
+          "evidenceUrl": "https://www.canararobeco.com/wp-content/uploads/2025/02/canara-robeco-treasury-advantage-f-y-2012-13.pdf#page=22"
+        },
+        {
+          "group": "unionOctoberDistributionIdentity",
+          "codes": [
+            115400,
+            115401,
+            115402
+          ],
+          "fundHouse": "Union Mutual Fund",
+          "oldNavThrough": "2011-09-29",
+          "firstNewNavDate": "2011-10-02",
+          "factor": 100,
+          "maxFactorDeviation": 0.1,
+          "evidenceUrl": "https://www.unionmf.com/docs/default-source/downloads/scheme-disclosures/factsheets/october-2012.pdf?sfvrsn=f69eb488_3#page=5"
+        },
+        {
+          "group": "licJanuaryDistributionIdentity",
+          "codes": [
+            120248
+          ],
+          "fundHouse": "LIC Mutual Fund",
+          "oldNavThrough": "2013-01-20",
+          "firstNewNavDate": "2013-01-21",
+          "factor": 100,
+          "maxFactorDeviation": 0.1,
+          "evidenceUrl": "https://www.licmf.com/assets/pdf/statuary_disclosure/LIC%20-%20Balance%20Sheet%20-%2010%20May%202013.pdf#page=4"
+        },
+        {
+          "group": "edelweissJulyDistributionIdentity",
+          "codes": [
+            140181,
+            140183,
+            140185,
+            140188,
+            140193,
+            140197
+          ],
+          "fundHouse": "Edelweiss Mutual Fund",
+          "oldNavThrough": "2017-06-30",
+          "firstNewNavDate": "2017-07-02",
+          "factor": 100,
+          "maxFactorDeviation": 0.1,
+          "evidenceUrl": "https://www.edelweissmf.com/Files/downloads/Notice-Cum-Addendum/2017/Edelweiss-NoticecumAddendum-21-jun17.pdf#page=1"
+        }
+      ],
+      "independentDecimalPrecision": 70,
+      "independentFullSeriesCounts": {
+        "histories": 59,
+        "observations": 226022,
+        "unitHistories": 20,
+        "unitObservations": 88646,
+        "unitScaledObservations": 11817,
+        "unchangedCalculationObservations": 214205,
+        "rawLargeMoves": 71,
+        "remainingLargeMoves": 51,
+        "retainedCalendarGaps": 39312
+      },
+      "fixtures": [
+        {
+          "schemeCode": 100833,
+          "approved": true,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "1c9974934a07b8c64cccce6ce15b108277c0c8dde035707d2ba39a21b2a774af",
+          "expectedBoundaryReturnDecimal70": "0",
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 101714,
+          "approved": true,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "c0db8c08b89bdfb7a85d1bf79b15cb5fab24d0499f99ab60f82a145621765c9c",
+          "expectedBoundaryReturnDecimal70": "-0.0000042934739196421439412093617701094336608355299944084990813962776580",
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 101892,
+          "approved": true,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "9b82d70cdd0d14aba49c52e8033b75a8ed7e9a43faebba3c91715cdb1e5eb515",
+          "expectedBoundaryReturnDecimal70": "0.000456658817895198946402202977211956738635910124915193359141158159397",
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 109349,
+          "approved": true,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "4cb048d760deeca3e1abc50dad57be3f1dd36c6c1178d5b685c1d55a68467899",
+          "expectedBoundaryReturnDecimal70": "0",
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 109350,
+          "approved": true,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "e30a7566f8491601d0dc7b1761add8d50b480900bf496168ab2126065b245ec1",
+          "expectedBoundaryReturnDecimal70": "0",
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 109366,
+          "approved": true,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "243200e50c20119aba0dbe0b6c9260f02a7ca328f25bf07371a97d7f054547d6",
+          "expectedBoundaryReturnDecimal70": "0.000729396600338354950455167969064690244098928542656891968097961814227",
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 109372,
+          "approved": true,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "8767cac51eb639934c5bf90b8df8ef15dd72fe6292a5653012fa2c7f3d9ce440",
+          "expectedBoundaryReturnDecimal70": "0",
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 115400,
+          "approved": true,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "e7f61ccf570776a7485b1a8caff0468c67b5c61b70677fff898981a66264fbbe",
+          "expectedBoundaryReturnDecimal70": "0.000743901585937421927308703168876852508819091208890043670740603795457",
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 115401,
+          "approved": true,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "6e04acc7957aa095da971a8687b66dad148f8de5e89e77832523d5cf155c0c68",
+          "expectedBoundaryReturnDecimal70": "0",
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 115402,
+          "approved": true,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "24c589643dc20180ab385f9023bb8f98ab1e7f9b9ea535775d33425266deb9d5",
+          "expectedBoundaryReturnDecimal70": "0.000743901585937421927308703168876852508819091208890043670740603795457",
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 119747,
+          "approved": true,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "23e74678dcc626825afd7c22e57e551239c3ab620f2256efaf07d983a6692911",
+          "expectedBoundaryReturnDecimal70": "0.000460933387627002492873955922810293285131149006326536692919642059054",
+          "gapProbeVerified": true
+        },
+        {
+          "schemeCode": 119764,
+          "approved": true,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "69ea3b209016cb714c8249d4560ac7e81fc94e858ea1cd812fc983c76b944258",
+          "expectedBoundaryReturnDecimal70": "0",
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 119862,
+          "approved": true,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "e137524baaa23261d705e2432cf978feed94c8115e1092bae8efefdb7a9d4348",
+          "expectedBoundaryReturnDecimal70": "-0.0000012980269989615784008307372793354101765316718587746625129802699896",
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 120248,
+          "approved": true,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "c23a0b57c579b654be0a6682b1f67c147849e64b4b53d96b86c1486947b571a7",
+          "expectedBoundaryReturnDecimal70": "0",
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 140181,
+          "approved": true,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "15f98c452c7e57d392928701e2bba8feb0ed5b2843987b9d731518cc8906c1f9",
+          "expectedBoundaryReturnDecimal70": "0",
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 140183,
+          "approved": true,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "c71112530b1a075db16881c95ee67c0c829997967f4859bd9584236c1cdd6e12",
+          "expectedBoundaryReturnDecimal70": "0.000354257364588210681517050379063349903864354097968698632184022554518",
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 140185,
+          "approved": true,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "0509f431c103ef09c2c3bcf5441351e3173a7f8d284a61498251c40e8fa82230",
+          "expectedBoundaryReturnDecimal70": "0.000357735552609613590612264938380713899936171257426228703294545097462",
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 140188,
+          "approved": true,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "4e3b98dcc982059c700e2b79fbc49488b72c280e5942e6147c51da63d8a9cea9",
+          "expectedBoundaryReturnDecimal70": "0.000352413571511584186167340046623871148574280303807160387484020044163",
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 140193,
+          "approved": true,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "f388c183ae1a74749b07502e04df55c5ecedb87a9296dee56ebcc98896fce048",
+          "expectedBoundaryReturnDecimal70": "0",
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 140197,
+          "approved": true,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "72e0102b04d33d56f1b198804861f760b6d841aff22e925b9ea882a41c404eff",
+          "expectedBoundaryReturnDecimal70": "0.000358537557282327156804144251842996612871089858537557282327156804144",
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 100176,
+          "approved": false,
+          "literalFixturePoints": 7,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "85667e17178f730379f9279d20f31afb77317f281b8167d9a693e5ee2dde5001",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 100220,
+          "approved": false,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "a2761bbf7d22887f48e7c2141c4e36a965645f4e7607711a6ff0e27667307d4f",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 100549,
+          "approved": false,
+          "literalFixturePoints": 7,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "32ac3fdd300b81424a8234588398a95fedada84ff7ecc95574085e73938b7eba",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 101407,
+          "approved": false,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "c4b64feb2aac344b95afce2af830410f3ebd254df52dae2668eacd49a5c5713e",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 108692,
+          "approved": false,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "e0c4cec0d6c74a1164f4339c6e0dd1a05696ce6331d5a6a01b5a88df2907a26a",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 108766,
+          "approved": false,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "ac891ed67ba7f09c52e69513fcf9ca69bf88465ce0944c3b3e9168808405aaa2",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 111707,
+          "approved": false,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "681d87284e8517dd12de1a6d835c2a802c982e5cc083e37235d0892771a0a4d6",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 112645,
+          "approved": false,
+          "literalFixturePoints": 12,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "e9a2631b0185265cd420843650d9f8394a6715de6301daa50ed0d74f57aa9928",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 112646,
+          "approved": false,
+          "literalFixturePoints": 12,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "7c4c7198d44f35d31b24a0099614bee80c8c083da2edd57e32704304ce8c59fe",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 112647,
+          "approved": false,
+          "literalFixturePoints": 12,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "4ee9dde37d39ea81047648f75500e184ba0248c3d5b39ba5031ceee9573f1542",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 115399,
+          "approved": false,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "0a0162be46a7d603f76d25d4ae970f49f1f1db0015808d9f6386d9604d40bde8",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 115489,
+          "approved": false,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "82bd7771431fae236774fc1c5689379d68996783b37be738ac6c7a4721f5cc6e",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 119161,
+          "approved": false,
+          "literalFixturePoints": 12,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "1d5e00e0bd59b423b2856535e04c76db2fd93f895e15afe511f4660507bfeaa2",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 119162,
+          "approved": false,
+          "literalFixturePoints": 12,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "59d8107ec2b5d206bd2ffd44442f585d7a28166bec33570330434ef688fc2264",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 119163,
+          "approved": false,
+          "literalFixturePoints": 12,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "cbcd9dcdfe84523e7efbf5919321504dfcedce9b3d2c907424103519f7175a45",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 120825,
+          "approved": false,
+          "literalFixturePoints": 7,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "8d3f251b6eecb730db06e5272eb7a59a2cff68f1afa875dc9825d54643f1dabf",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 120827,
+          "approved": false,
+          "literalFixturePoints": 7,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "c7330fc9d58f15bc50212175e7c5ac94a6609d1add172a85db34afa838b6ed2f",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 131388,
+          "approved": false,
+          "literalFixturePoints": 7,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "0bfceb0c4f42c6bb8a92bc298a6df361bd0bc5bab9b51297a6e968497bc11faf",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 131396,
+          "approved": false,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "6b22dff441db9608a3153407b2ef2fe90e5cb4c388c6821a40ad5077bcb1d3e3",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 131476,
+          "approved": false,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "7bd8f8a02edf3dfd050511dde7e63a14c9e838983d56a3230d977456231750a9",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 134959,
+          "approved": false,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "5471244045e0d4eecd13a61c1d0d6bbf599897647e8222c9647032fbe7bc8861",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 134961,
+          "approved": false,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "6bdc8f8bbe0719162abb20dc981ea466aba82ea2841a7a6aade6cfc94bd01e52",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 138341,
+          "approved": false,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "d01d65a4b1c80abefe789258af5a01d7c39abe96727cc14a7b34c01108b8b22b",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 138342,
+          "approved": false,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "f97a2bec16883ad33176fea4a9fd91d84ce94c8baa59f9e39e9ad6b8fec7956d",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 138344,
+          "approved": false,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "dc32c56389bdf503663cffaa6b8b8477ff6774df2cbfa82c3015680e243aeaad",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 138359,
+          "approved": false,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "f9c81ee4d44a69514edccbcc8eabcef961329cbb545d1c5073cd3f87758c66be",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 138361,
+          "approved": false,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "1b727da0f1e523ef1bc051470bfe046a4a8bf1be27b158e63b0252d9d6330603",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 138362,
+          "approved": false,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "985e2f39f2ea1774b3611707d0bd993f8e55de133e9a1c277be1aa3fc902f9ae",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 139386,
+          "approved": false,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "f30479fc7982d2b785e54fa47af2bb6eeb953b0ebf56710c0767d6234cceb52f",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 140184,
+          "approved": false,
+          "literalFixturePoints": 7,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "6f541eb69c148bc646be1b44c16ce9cc62097ed1ac00bb792f69cc351a4d2b18",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 140437,
+          "approved": false,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "783b71ffe1b16a0c15ad6eabddf3c61a7a111d9bf8f8dd6efbb215863f9630fe",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 147605,
+          "approved": false,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "1f45b4b41660ded26ade108d4cd28f867a97cd5ce2311b902be9c6e09e052fee",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 147607,
+          "approved": false,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "d8098c9a6c5d44046cf5d5cd103611267f4db14229b5c48d5ef2fe19d77702b9",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 147608,
+          "approved": false,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "924dd92057d24932351ecc306e362b86a6cf62ea007cf608475139e02f757aa3",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 147609,
+          "approved": false,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "9c105fa0c3b0668d4dedaa9f5afaf79eea2da66c6a8a0c6e0d83c8cf72132e31",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 147834,
+          "approved": false,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "daebee8dcbc47cb95e3da29effa3b6a06b8c422605d7834e7019b90349b6bd42",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 147835,
+          "approved": false,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "47399bc5ed773335408d30e5589f7add37a450e2518a788630933ec87464641c",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 147838,
+          "approved": false,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "efd001ef91dad39fb91a1bd9a4080eba9a7079ba993e280406b4f79a5e7f5ea9",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        },
+        {
+          "schemeCode": 147839,
+          "approved": false,
+          "literalFixturePoints": 6,
+          "metadataAndBothIsinsIncludingNullsMatch": true,
+          "sourceDocumentSha256": "5065c52dcacba9111019e02f874e1b64fc8839c6dca21429b100cf29bba4d7db",
+          "expectedBoundaryReturnDecimal70": null,
+          "gapProbeVerified": false
+        }
+      ],
+      "fullSeriesChecks": [
+        {
+          "schemeCode": 100833,
+          "observations": 6274,
+          "rawMoves": 1,
+          "remainingMoves": 0,
+          "unitScaledRows": 2071,
+          "unchangedRows": 4203,
+          "calendarGaps": 1072,
+          "allGapsSha256": "fa1ec8a245a9b67fb752755450fac199f75c1f3dd44efa03e1e41e08bd57d645"
+        },
+        {
+          "schemeCode": 101714,
+          "observations": 6428,
+          "rawMoves": 1,
+          "remainingMoves": 0,
+          "unitScaledRows": 2304,
+          "unchangedRows": 4124,
+          "calendarGaps": 892,
+          "allGapsSha256": "d2c763083fcd5cf06ee5a406a35bf2b3668fbba35d183cf0f7c5461351213142"
+        },
+        {
+          "schemeCode": 101892,
+          "observations": 5720,
+          "rawMoves": 1,
+          "remainingMoves": 0,
+          "unitScaledRows": 2071,
+          "unchangedRows": 3649,
+          "calendarGaps": 1168,
+          "allGapsSha256": "9614a6d42989faa55ba706eabe1f74209fed0aefada5929ff1c8193ea7222080"
+        },
+        {
+          "schemeCode": 109349,
+          "observations": 5878,
+          "rawMoves": 1,
+          "remainingMoves": 0,
+          "unitScaledRows": 1133,
+          "unchangedRows": 4745,
+          "calendarGaps": 469,
+          "allGapsSha256": "d9d001391b23f603d16b1c680b525656862a7aaa1ffda9036148273d8e632e6a"
+        },
+        {
+          "schemeCode": 109350,
+          "observations": 5782,
+          "rawMoves": 1,
+          "remainingMoves": 0,
+          "unitScaledRows": 1037,
+          "unchangedRows": 4745,
+          "calendarGaps": 469,
+          "allGapsSha256": "d9d001391b23f603d16b1c680b525656862a7aaa1ffda9036148273d8e632e6a"
+        },
+        {
+          "schemeCode": 109366,
+          "observations": 4375,
+          "rawMoves": 1,
+          "remainingMoves": 0,
+          "unitScaledRows": 708,
+          "unchangedRows": 3667,
+          "calendarGaps": 1109,
+          "allGapsSha256": "65dda4c2b1f87329bc7e1dc469c4b88346a95704131ea99e731e849f0e1dccde"
+        },
+        {
+          "schemeCode": 109372,
+          "observations": 4431,
+          "rawMoves": 1,
+          "remainingMoves": 0,
+          "unitScaledRows": 764,
+          "unchangedRows": 3667,
+          "calendarGaps": 1122,
+          "allGapsSha256": "b3f80d63ef19aa9b5de0162b5cd76afbca6959bfee685199a9c5fbefe0d520dd"
+        },
+        {
+          "schemeCode": 115400,
+          "observations": 4786,
+          "rawMoves": 1,
+          "remainingMoves": 0,
+          "unitScaledRows": 88,
+          "unchangedRows": 4698,
+          "calendarGaps": 571,
+          "allGapsSha256": "98d726b6d5d13fa82e11ac135b60d1853137ac68081b0fea11a2cb4e68bcdb18"
+        },
+        {
+          "schemeCode": 115401,
+          "observations": 4786,
+          "rawMoves": 1,
+          "remainingMoves": 0,
+          "unitScaledRows": 88,
+          "unchangedRows": 4698,
+          "calendarGaps": 571,
+          "allGapsSha256": "98d726b6d5d13fa82e11ac135b60d1853137ac68081b0fea11a2cb4e68bcdb18"
+        },
+        {
+          "schemeCode": 115402,
+          "observations": 4786,
+          "rawMoves": 1,
+          "remainingMoves": 0,
+          "unitScaledRows": 88,
+          "unchangedRows": 4698,
+          "calendarGaps": 571,
+          "allGapsSha256": "98d726b6d5d13fa82e11ac135b60d1853137ac68081b0fea11a2cb4e68bcdb18"
+        },
+        {
+          "schemeCode": 119747,
+          "observations": 3594,
+          "rawMoves": 1,
+          "remainingMoves": 0,
+          "unitScaledRows": 16,
+          "unchangedRows": 3578,
+          "calendarGaps": 798,
+          "allGapsSha256": "b64ad5e21b7052c65668f79d315c8caec1897068a5ff3656d5bd3d5766676a20"
+        },
+        {
+          "schemeCode": 119764,
+          "observations": 4219,
+          "rawMoves": 1,
+          "remainingMoves": 0,
+          "unitScaledRows": 16,
+          "unchangedRows": 4203,
+          "calendarGaps": 714,
+          "allGapsSha256": "05c351ab53ff257fdf8a35aa3ed6ac35b2de86b952427c4423cdbfb0b7e236fb"
+        },
+        {
+          "schemeCode": 119862,
+          "observations": 4457,
+          "rawMoves": 1,
+          "remainingMoves": 0,
+          "unitScaledRows": 333,
+          "unchangedRows": 4124,
+          "calendarGaps": 518,
+          "allGapsSha256": "06d32f1cde5e64daba22849bcb35ab5ea321c7d4d9dbc66911830c2dbba74906"
+        },
+        {
+          "schemeCode": 120248,
+          "observations": 4352,
+          "rawMoves": 1,
+          "remainingMoves": 0,
+          "unitScaledRows": 20,
+          "unchangedRows": 4332,
+          "calendarGaps": 601,
+          "allGapsSha256": "f8bd6d303b7b39947ae074e45990e241e6fc2706bdb330d106a0b21d30027253"
+        },
+        {
+          "schemeCode": 140181,
+          "observations": 3130,
+          "rawMoves": 1,
+          "remainingMoves": 0,
+          "unitScaledRows": 180,
+          "unchangedRows": 2950,
+          "calendarGaps": 433,
+          "allGapsSha256": "12cff1c18c0a43ce0671e7c157fa012b6af2bc1b363c8613c2ca05e64d044d00"
+        },
+        {
+          "schemeCode": 140183,
+          "observations": 3130,
+          "rawMoves": 1,
+          "remainingMoves": 0,
+          "unitScaledRows": 180,
+          "unchangedRows": 2950,
+          "calendarGaps": 433,
+          "allGapsSha256": "12cff1c18c0a43ce0671e7c157fa012b6af2bc1b363c8613c2ca05e64d044d00"
+        },
+        {
+          "schemeCode": 140185,
+          "observations": 3130,
+          "rawMoves": 1,
+          "remainingMoves": 0,
+          "unitScaledRows": 180,
+          "unchangedRows": 2950,
+          "calendarGaps": 433,
+          "allGapsSha256": "12cff1c18c0a43ce0671e7c157fa012b6af2bc1b363c8613c2ca05e64d044d00"
+        },
+        {
+          "schemeCode": 140188,
+          "observations": 3130,
+          "rawMoves": 1,
+          "remainingMoves": 0,
+          "unitScaledRows": 180,
+          "unchangedRows": 2950,
+          "calendarGaps": 433,
+          "allGapsSha256": "12cff1c18c0a43ce0671e7c157fa012b6af2bc1b363c8613c2ca05e64d044d00"
+        },
+        {
+          "schemeCode": 140193,
+          "observations": 3129,
+          "rawMoves": 1,
+          "remainingMoves": 0,
+          "unitScaledRows": 180,
+          "unchangedRows": 2949,
+          "calendarGaps": 433,
+          "allGapsSha256": "12cff1c18c0a43ce0671e7c157fa012b6af2bc1b363c8613c2ca05e64d044d00"
+        },
+        {
+          "schemeCode": 140197,
+          "observations": 3129,
+          "rawMoves": 1,
+          "remainingMoves": 0,
+          "unitScaledRows": 180,
+          "unchangedRows": 2949,
+          "calendarGaps": 433,
+          "allGapsSha256": "12cff1c18c0a43ce0671e7c157fa012b6af2bc1b363c8613c2ca05e64d044d00"
+        },
+        {
+          "schemeCode": 100176,
+          "observations": 5067,
+          "rawMoves": 2,
+          "remainingMoves": 2,
+          "unitScaledRows": 0,
+          "unchangedRows": 5067,
+          "calendarGaps": 1223,
+          "allGapsSha256": "89c2137b32d61fea9fcdde3de47bf21165dfb51c345122a14ee2e5f5042bc6b4"
+        },
+        {
+          "schemeCode": 100220,
+          "observations": 5071,
+          "rawMoves": 1,
+          "remainingMoves": 1,
+          "unitScaledRows": 0,
+          "unchangedRows": 5071,
+          "calendarGaps": 1223,
+          "allGapsSha256": "1c07bfb668e415a67c9d1e1fc4fcc4fca802cffd395a8889bdaa84232f12f21f"
+        },
+        {
+          "schemeCode": 100549,
+          "observations": 5058,
+          "rawMoves": 2,
+          "remainingMoves": 2,
+          "unitScaledRows": 0,
+          "unchangedRows": 5058,
+          "calendarGaps": 1225,
+          "allGapsSha256": "2ab5980ea7f7b3411d49a671781e027745993cd03958b46458c7029ed3ce33fa"
+        },
+        {
+          "schemeCode": 101407,
+          "observations": 6320,
+          "rawMoves": 1,
+          "remainingMoves": 1,
+          "unitScaledRows": 0,
+          "unchangedRows": 6320,
+          "calendarGaps": 963,
+          "allGapsSha256": "34311a6a65b70137f46c9fc0510531dfd1ac3d6eec36cd5967b21e14acb51f28"
+        },
+        {
+          "schemeCode": 108692,
+          "observations": 6024,
+          "rawMoves": 1,
+          "remainingMoves": 1,
+          "unitScaledRows": 0,
+          "unchangedRows": 6024,
+          "calendarGaps": 615,
+          "allGapsSha256": "385f09219f40c20244550393fc948d7362e6402dc360aaab35bcd10ec83e612f"
+        },
+        {
+          "schemeCode": 108766,
+          "observations": 4449,
+          "rawMoves": 1,
+          "remainingMoves": 1,
+          "unitScaledRows": 0,
+          "unchangedRows": 4449,
+          "calendarGaps": 1141,
+          "allGapsSha256": "0e3565f2d70f7271f4d4310b9ebcefba569b9eb115bcc511b172cee1739977ff"
+        },
+        {
+          "schemeCode": 111707,
+          "observations": 5284,
+          "rawMoves": 1,
+          "remainingMoves": 1,
+          "unitScaledRows": 0,
+          "unchangedRows": 5284,
+          "calendarGaps": 951,
+          "allGapsSha256": "db293a91446bb9970fdad2f8671bbf726b28194eeb6510e0323e238fa8f83109"
+        },
+        {
+          "schemeCode": 112645,
+          "observations": 5057,
+          "rawMoves": 2,
+          "remainingMoves": 2,
+          "unitScaledRows": 0,
+          "unchangedRows": 5057,
+          "calendarGaps": 874,
+          "allGapsSha256": "9d497c6ade2c55eee02d52e95cad1efea537767345478469c48c0eb10e275562"
+        },
+        {
+          "schemeCode": 112646,
+          "observations": 4985,
+          "rawMoves": 2,
+          "remainingMoves": 2,
+          "unitScaledRows": 0,
+          "unchangedRows": 4985,
+          "calendarGaps": 864,
+          "allGapsSha256": "465b011512e53bc2b08559bd1673311d3faf2d1e27ab5a85d43b63190f5e433a"
+        },
+        {
+          "schemeCode": 112647,
+          "observations": 4587,
+          "rawMoves": 2,
+          "remainingMoves": 2,
+          "unitScaledRows": 0,
+          "unchangedRows": 4587,
+          "calendarGaps": 795,
+          "allGapsSha256": "1def1ba055fbaa5ab213db918e12be57c7346dac726f1f831f044de02f8ec983"
+        },
+        {
+          "schemeCode": 115399,
+          "observations": 4652,
+          "rawMoves": 1,
+          "remainingMoves": 1,
+          "unitScaledRows": 0,
+          "unchangedRows": 4652,
+          "calendarGaps": 549,
+          "allGapsSha256": "9beed3d0fe039f945e473d07889e24c93d5b24e9346d56a7b57e02bb8ebcf54f"
+        },
+        {
+          "schemeCode": 115489,
+          "observations": 4836,
+          "rawMoves": 1,
+          "remainingMoves": 1,
+          "unitScaledRows": 0,
+          "unchangedRows": 4836,
+          "calendarGaps": 617,
+          "allGapsSha256": "f4a981e8c558bb02883b51a203ca3cfae1cd8707dbbc6f82a9648ab3ff4e6801"
+        },
+        {
+          "schemeCode": 119161,
+          "observations": 4158,
+          "rawMoves": 2,
+          "remainingMoves": 2,
+          "unitScaledRows": 0,
+          "unchangedRows": 4158,
+          "calendarGaps": 717,
+          "allGapsSha256": "124dbd5b4440d4852469ca1d80291f5148312c6265a2ae34cc351914f6caab5d"
+        },
+        {
+          "schemeCode": 119162,
+          "observations": 4158,
+          "rawMoves": 2,
+          "remainingMoves": 2,
+          "unitScaledRows": 0,
+          "unchangedRows": 4158,
+          "calendarGaps": 717,
+          "allGapsSha256": "124dbd5b4440d4852469ca1d80291f5148312c6265a2ae34cc351914f6caab5d"
+        },
+        {
+          "schemeCode": 119163,
+          "observations": 4186,
+          "rawMoves": 2,
+          "remainingMoves": 2,
+          "unitScaledRows": 0,
+          "unchangedRows": 4186,
+          "calendarGaps": 722,
+          "allGapsSha256": "ad7ec3143e6b28fd6792a06e589c0040036f493e6b3fa269d3e56aefdccd4d9b"
+        },
+        {
+          "schemeCode": 120825,
+          "observations": 3406,
+          "rawMoves": 2,
+          "remainingMoves": 2,
+          "unitScaledRows": 0,
+          "unchangedRows": 3406,
+          "calendarGaps": 820,
+          "allGapsSha256": "17fa759d202c3e70bd71296951c87e03b369d7dd8691722a85aa4d48052ae7a2"
+        },
+        {
+          "schemeCode": 120827,
+          "observations": 3402,
+          "rawMoves": 2,
+          "remainingMoves": 2,
+          "unitScaledRows": 0,
+          "unchangedRows": 3402,
+          "calendarGaps": 819,
+          "allGapsSha256": "1cd4bb38f6a9af32285f58b12fb9742641469c8f42e5016db852c345c3abf896"
+        },
+        {
+          "schemeCode": 131388,
+          "observations": 2779,
+          "rawMoves": 2,
+          "remainingMoves": 2,
+          "unitScaledRows": 0,
+          "unchangedRows": 2779,
+          "calendarGaps": 706,
+          "allGapsSha256": "c42fa1f3733f51210c863592a56880da744c7a6432e7d5e952eed128433fc99c"
+        },
+        {
+          "schemeCode": 131396,
+          "observations": 2938,
+          "rawMoves": 1,
+          "remainingMoves": 1,
+          "unitScaledRows": 0,
+          "unchangedRows": 2938,
+          "calendarGaps": 744,
+          "allGapsSha256": "be9712c8b2d5d7f59b2e3a2963d48ec2ccdb9b932f799d489da16a3696498ee4"
+        },
+        {
+          "schemeCode": 131476,
+          "observations": 2983,
+          "rawMoves": 1,
+          "remainingMoves": 1,
+          "unitScaledRows": 0,
+          "unchangedRows": 2983,
+          "calendarGaps": 720,
+          "allGapsSha256": "7ae2b4a534db40a1c34bee96b3cc8c77a24f1ff6a0952e72a85472065962e042"
+        },
+        {
+          "schemeCode": 134959,
+          "observations": 2797,
+          "rawMoves": 1,
+          "remainingMoves": 1,
+          "unitScaledRows": 0,
+          "unchangedRows": 2797,
+          "calendarGaps": 673,
+          "allGapsSha256": "922f8670a6dc1eeccf84da2758ba2eab796658c7881aa49b2ce30d3c559d7909"
+        },
+        {
+          "schemeCode": 134961,
+          "observations": 2797,
+          "rawMoves": 1,
+          "remainingMoves": 1,
+          "unitScaledRows": 0,
+          "unchangedRows": 2797,
+          "calendarGaps": 673,
+          "allGapsSha256": "922f8670a6dc1eeccf84da2758ba2eab796658c7881aa49b2ce30d3c559d7909"
+        },
+        {
+          "schemeCode": 138341,
+          "observations": 2573,
+          "rawMoves": 1,
+          "remainingMoves": 1,
+          "unitScaledRows": 0,
+          "unchangedRows": 2573,
+          "calendarGaps": 653,
+          "allGapsSha256": "a66ab9695f1f57dda4cca8d6a23709a273e18826db98d3f99a27c51ab08e0f74"
+        },
+        {
+          "schemeCode": 138342,
+          "observations": 2573,
+          "rawMoves": 1,
+          "remainingMoves": 1,
+          "unitScaledRows": 0,
+          "unchangedRows": 2573,
+          "calendarGaps": 653,
+          "allGapsSha256": "a66ab9695f1f57dda4cca8d6a23709a273e18826db98d3f99a27c51ab08e0f74"
+        },
+        {
+          "schemeCode": 138344,
+          "observations": 2573,
+          "rawMoves": 1,
+          "remainingMoves": 1,
+          "unitScaledRows": 0,
+          "unchangedRows": 2573,
+          "calendarGaps": 653,
+          "allGapsSha256": "a66ab9695f1f57dda4cca8d6a23709a273e18826db98d3f99a27c51ab08e0f74"
+        },
+        {
+          "schemeCode": 138359,
+          "observations": 2573,
+          "rawMoves": 1,
+          "remainingMoves": 1,
+          "unitScaledRows": 0,
+          "unchangedRows": 2573,
+          "calendarGaps": 653,
+          "allGapsSha256": "a66ab9695f1f57dda4cca8d6a23709a273e18826db98d3f99a27c51ab08e0f74"
+        },
+        {
+          "schemeCode": 138361,
+          "observations": 2573,
+          "rawMoves": 1,
+          "remainingMoves": 1,
+          "unitScaledRows": 0,
+          "unchangedRows": 2573,
+          "calendarGaps": 653,
+          "allGapsSha256": "a66ab9695f1f57dda4cca8d6a23709a273e18826db98d3f99a27c51ab08e0f74"
+        },
+        {
+          "schemeCode": 138362,
+          "observations": 2573,
+          "rawMoves": 1,
+          "remainingMoves": 1,
+          "unitScaledRows": 0,
+          "unchangedRows": 2573,
+          "calendarGaps": 653,
+          "allGapsSha256": "a66ab9695f1f57dda4cca8d6a23709a273e18826db98d3f99a27c51ab08e0f74"
+        },
+        {
+          "schemeCode": 139386,
+          "observations": 3167,
+          "rawMoves": 1,
+          "remainingMoves": 1,
+          "unitScaledRows": 0,
+          "unchangedRows": 3167,
+          "calendarGaps": 544,
+          "allGapsSha256": "94aa4c9aff9500105c3757f481a0ed5e255caeb9a7943b7d097e48c4355f66eb"
+        },
+        {
+          "schemeCode": 140184,
+          "observations": 2869,
+          "rawMoves": 2,
+          "remainingMoves": 2,
+          "unitScaledRows": 0,
+          "unchangedRows": 2869,
+          "calendarGaps": 390,
+          "allGapsSha256": "a376254cfea44aa0850eea25be558e62a4712e86a6bd383c8764045bac5a21ed"
+        },
+        {
+          "schemeCode": 140437,
+          "observations": 2996,
+          "rawMoves": 1,
+          "remainingMoves": 1,
+          "unitScaledRows": 0,
+          "unchangedRows": 2996,
+          "calendarGaps": 514,
+          "allGapsSha256": "2feda6f1b8ff02029b90e2432bb82bce55d67d1654f6dcd3eb8c6e907eb16a35"
+        },
+        {
+          "schemeCode": 147605,
+          "observations": 2342,
+          "rawMoves": 1,
+          "remainingMoves": 1,
+          "unitScaledRows": 0,
+          "unchangedRows": 2342,
+          "calendarGaps": 257,
+          "allGapsSha256": "588c56d2352c1966f782e35273aca5428de8c827c7d93512e5e73aa17fc413ea"
+        },
+        {
+          "schemeCode": 147607,
+          "observations": 2342,
+          "rawMoves": 1,
+          "remainingMoves": 1,
+          "unitScaledRows": 0,
+          "unchangedRows": 2342,
+          "calendarGaps": 257,
+          "allGapsSha256": "588c56d2352c1966f782e35273aca5428de8c827c7d93512e5e73aa17fc413ea"
+        },
+        {
+          "schemeCode": 147608,
+          "observations": 2342,
+          "rawMoves": 1,
+          "remainingMoves": 1,
+          "unitScaledRows": 0,
+          "unchangedRows": 2342,
+          "calendarGaps": 257,
+          "allGapsSha256": "588c56d2352c1966f782e35273aca5428de8c827c7d93512e5e73aa17fc413ea"
+        },
+        {
+          "schemeCode": 147609,
+          "observations": 2342,
+          "rawMoves": 1,
+          "remainingMoves": 1,
+          "unitScaledRows": 0,
+          "unchangedRows": 2342,
+          "calendarGaps": 257,
+          "allGapsSha256": "588c56d2352c1966f782e35273aca5428de8c827c7d93512e5e73aa17fc413ea"
+        },
+        {
+          "schemeCode": 147834,
+          "observations": 2136,
+          "rawMoves": 1,
+          "remainingMoves": 1,
+          "unitScaledRows": 0,
+          "unchangedRows": 2136,
+          "calendarGaps": 331,
+          "allGapsSha256": "dc89270004c473e96951d5819e0555c24c65cc5c7fd729bfe91c253233b1763a"
+        },
+        {
+          "schemeCode": 147835,
+          "observations": 2136,
+          "rawMoves": 1,
+          "remainingMoves": 1,
+          "unitScaledRows": 0,
+          "unchangedRows": 2136,
+          "calendarGaps": 331,
+          "allGapsSha256": "dc89270004c473e96951d5819e0555c24c65cc5c7fd729bfe91c253233b1763a"
+        },
+        {
+          "schemeCode": 147838,
+          "observations": 2136,
+          "rawMoves": 1,
+          "remainingMoves": 1,
+          "unitScaledRows": 0,
+          "unchangedRows": 2136,
+          "calendarGaps": 331,
+          "allGapsSha256": "dc89270004c473e96951d5819e0555c24c65cc5c7fd729bfe91c253233b1763a"
+        },
+        {
+          "schemeCode": 147839,
+          "observations": 2136,
+          "rawMoves": 1,
+          "remainingMoves": 1,
+          "unitScaledRows": 0,
+          "unchangedRows": 2136,
+          "calendarGaps": 331,
+          "allGapsSha256": "dc89270004c473e96951d5819e0555c24c65cc5c7fd729bfe91c253233b1763a"
+        }
+      ],
+      "originalSourceHashChecks": [
+        {
+          "group": "navi-bandhan-union",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/navi-bandhan-union-2026-10-31/sources/navi-factsheet-november2021.pdf",
+          "sha256": "2990f5d21c2af5cb990c090afe9d464848dc0e8ba2dd73fe88cd74b5cfa3e1ed",
+          "matched": true
+        },
+        {
+          "group": "navi-bandhan-union",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/navi-bandhan-union-2026-10-31/sources/navi-postponement-november2022.pdf",
+          "sha256": "1763b6141de3123ce93cf18eb7151f4a6dd2e361197ec471df40d003f86aeef0",
+          "matched": true
+        },
+        {
+          "group": "navi-bandhan-union",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/navi-bandhan-union-2026-10-31/sources/navi-ssd-may2026.pdf",
+          "sha256": "9264d667b425b65eaac71ec6d1f2691a06348cb5ce2ee0bac32de395947e2217",
+          "matched": true
+        },
+        {
+          "group": "navi-bandhan-union",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/navi-bandhan-union-2026-10-31/sources/union-ssd-april2022.zip",
+          "sha256": "0079f95ffab9c90fb3c5dccaeb5df25ec5ec5e3e004cbb5868d3ab82ea2501f4",
+          "matched": true
+        },
+        {
+          "group": "navi-bandhan-union",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/navi-bandhan-union-2026-10-31/sources/navi-addendums.html",
+          "sha256": "513b5a800c37af5b71d4eb65e65c9b4caf1bd61b0ff34e2f6e333d97ac8f8de8",
+          "matched": true
+        },
+        {
+          "group": "navi-bandhan-union",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/navi-bandhan-union-2026-10-31/sources/navi-statutory.html",
+          "sha256": "839e416cddb9532c93e29a57767d91ff231ba35f163dee16c62801de9c52ed79",
+          "matched": true
+        },
+        {
+          "group": "navi-bandhan-union",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/navi-bandhan-union-2026-10-31/sources/bandhan-ssd-march2026.pdf",
+          "sha256": "dad8bf1a699fd1a8ceb31aa0937b6e962d6619ba589300ce746b1830ddb703a0",
+          "matched": true
+        },
+        {
+          "group": "navi-bandhan-union",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/navi-bandhan-union-2026-10-31/sources/navi-website-app.js",
+          "sha256": "19ee2674db70f98712ec85b6a1ea44938365946aa58a0504745055cf7e4127b3",
+          "matched": true
+        },
+        {
+          "group": "navi-bandhan-union",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/navi-bandhan-union-2026-10-31/sources/navi-original-split-notice-november2022.pdf",
+          "sha256": "8b16b3cae2580b064dcd17069bca9ab9c277ea894d69ba8a98cfc70689b34a9c",
+          "matched": true
+        },
+        {
+          "group": "navi-bandhan-union",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/navi-bandhan-union-2026-10-31/sources/navi-split-issuer2022.pdf",
+          "sha256": "22efbcf6fa152e0588aa36b6c93b85ffc335fe03437cba32c5b93e8f4d7ea639",
+          "matched": true
+        },
+        {
+          "group": "navi-bandhan-union",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/navi-bandhan-union-2026-10-31/sources/navi-split-revised-issuer2022.pdf",
+          "sha256": "6dd95a71ae2102e288bfe27dfdd2f0382dc1130dc38efbf791a87681ad008957",
+          "matched": true
+        },
+        {
+          "group": "navi-bandhan-union",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/navi-bandhan-union-2026-10-31/sources/navi-consolidation-issuer2014.pdf",
+          "sha256": "d2ef1537674c160675e9f0047e125f2219a422a4cb98129066c47def6895c141",
+          "matched": true
+        },
+        {
+          "group": "navi-bandhan-union",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/navi-bandhan-union-2026-10-31/sources/navi-ssd-september2026.pdf",
+          "sha256": "06d28ccbab69b66dcaa057ffad13bcdfa1d39f2b4476c368d8b1601465fead13",
+          "matched": true
+        },
+        {
+          "group": "navi-bandhan-union",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/navi-bandhan-union-2026-10-31/sources/navi-ssd-september2026.xml",
+          "sha256": "131f3fc4cb6749a9513cdbbbd038d63202f6a42884f1b406f8081b1690ad683b",
+          "matched": true
+        },
+        {
+          "group": "navi-bandhan-union",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/navi-bandhan-union-2026-10-31/sources/navi-nav-2026-10-29.bin",
+          "sha256": "26c53e5f31fb578d3fb5562c847f578ee0d356ecea2f2a0be592f11a207ce1b4",
+          "matched": true
+        },
+        {
+          "group": "navi-bandhan-union",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/navi-bandhan-union-2026-10-31/sources/navi-peerless-essel-rename2017.pdf",
+          "sha256": "1cb462f494f030d34c13e49381ab8ca628ed5d40dfbb11fb8f92116f2a6412b9",
+          "matched": true
+        },
+        {
+          "group": "navi-bandhan-union",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/navi-bandhan-union-2026-10-31/sources/navi-addendums-2022-2023.json",
+          "sha256": "9473dbbc57daf8becb7ac02d286a8a33271c08662ae722dece033b40423350ec",
+          "matched": true
+        },
+        {
+          "group": "navi-bandhan-union",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/navi-bandhan-union-2026-10-31/sources/navi-addendums-2014-2015.json",
+          "sha256": "00d0f0fcd56271bcdc4fcab9365b5f12568567c1be3bf3af7887164695ad2187",
+          "matched": true
+        },
+        {
+          "group": "navi-bandhan-union",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/navi-bandhan-union-2026-10-31/sources/navi-ssd-september2026-index.json",
+          "sha256": "98c4264560868b5c9246a269c34b678820a61a4d56728ae6d5e5358aac443672",
+          "matched": true
+        },
+        {
+          "group": "navi-bandhan-union",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/navi-bandhan-union-2026-10-31/sources/navi-addendums-2017-2018.json",
+          "sha256": "b3bd3f27fbcba21c345512866af39e115872b36de6cd63a19592b5c7c900ca63",
+          "matched": true
+        },
+        {
+          "group": "navi-bandhan-union",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/navi-bandhan-union-2026-10-31/sources/navi-addendums-2020-2021.json",
+          "sha256": "de694b0568c542a3f162f73ce6d39b525f37e2decccce8738ca77f7c5bcde17a",
+          "matched": true
+        },
+        {
+          "group": "navi-bandhan-union",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/navi-bandhan-union-2026-10-31/sources/navi-nav-index-2026-10-29-corrected.json",
+          "sha256": "de9496e0521b97d809a387415341ea0f1265f5b8945104962d9fc243b39231f1",
+          "matched": true
+        },
+        {
+          "group": "navi-bandhan-union",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/navi-bandhan-union-2026-10-31/sources/nccl-collateral-december-2025.pdf",
+          "sha256": "c3d535a9eabcba7770cc949ac20b048174af75e4590f5637669b1c03b9480cf5",
+          "matched": true
+        },
+        {
+          "group": "navi-bandhan-union",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/navi-bandhan-union-2026-10-31/sources/union-ssd-april2022-15_Scheme_Summary_Document_-_Union_Liquid_Fund.pdf",
+          "sha256": "6d2c547970081bb3195e27eff9102ea48e17be67d5d426110d7de6a652ff7528",
+          "matched": true
+        },
+        {
+          "group": "navi-bandhan-union",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/navi-bandhan-union-2026-10-31/sources/union-ssd-april2022-15_Scheme_Summary_Document_-_Union_Liquid_Fund.xlsx",
+          "sha256": "8628c3c7d3b27e9ff4d1c65f1149dbc7121dfa92a262f9067872327142ff0c02",
+          "matched": true
+        },
+        {
+          "group": "navi-bandhan-union",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/navi-bandhan-union-2026-10-31/sources/union-ssd-april2022-15_Scheme_Summary_Document_-_Union_Liquid_Fund.xml",
+          "sha256": "b584c9cc47f6486ee3eb4b0c543d183449bb22beaa9529add3000b74c8ab0460",
+          "matched": true
+        },
+        {
+          "group": "multi-amc-liquid",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/multi-amc-liquid-2026-10-31/sources/canara-factsheet-may2011.pdf",
+          "sha256": "052c50153e35f39645e0d4df8df67d6ab70cf5a68e59aba4e87b2d2c221ac404",
+          "matched": true
+        },
+        {
+          "group": "multi-amc-liquid",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/multi-amc-liquid-2026-10-31/sources/kotak-recategorization-2018.pdf",
+          "sha256": "5b925d48afbd06f00d891897224b011beb6efa678b22e418a2608768487e1ed8",
+          "matched": true
+        },
+        {
+          "group": "multi-amc-liquid",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/multi-amc-liquid-2026-10-31/sources/tata-annual-debt-2019.pdf",
+          "sha256": "f83849e5776933e624b932bd89eb59dfc7f605b34102bd98c7dbcf865be34bc6",
+          "matched": true
+        },
+        {
+          "group": "multi-amc-liquid",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/multi-amc-liquid-2026-10-31/sources/edelweiss-factsheet-june2020.pdf",
+          "sha256": "a561dcbeb06dd85d4009144c98ceaaa0b8192760b8c7bd966fe5a8fff657602e",
+          "matched": true
+        },
+        {
+          "group": "multi-amc-liquid",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/multi-amc-liquid-2026-10-31/sources/edelweiss-kim-2021.pdf",
+          "sha256": "4fc9cc945e936b4bb50f9d1beb6eceaa7c29ebe61dbbf409f607286f04a1f0cc",
+          "matched": true
+        },
+        {
+          "group": "multi-amc-liquid",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/multi-amc-liquid-2026-10-31/sources/canara-factsheet-oct2018.pdf",
+          "sha256": "570c1572af7c171c20955d85273f9f3970a17db6adb13fb133a488afe491cf3a",
+          "matched": true
+        },
+        {
+          "group": "multi-amc-liquid",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/multi-amc-liquid-2026-10-31/sources/canara-liquid-fy2012-13.pdf",
+          "sha256": "0ba235c178e6de670bfc75b4b3325c02f1d89f51252d69cc0dfe3fed4f74ed38",
+          "matched": true
+        },
+        {
+          "group": "multi-amc-liquid",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/multi-amc-liquid-2026-10-31/sources/canara-treasury-fy2012-13.pdf",
+          "sha256": "632f13b97c6346e2347f7376d28a6150d3f635abdaf4a740559da3017ce74db1",
+          "matched": true
+        },
+        {
+          "group": "multi-amc-liquid",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/multi-amc-liquid-2026-10-31/sources/kotak-unit-2013.pdf",
+          "sha256": "24fa0b38ea3604ffb14ef5b5a45f33f6bce7aa9fecd22d6610064879e8137dba",
+          "matched": true
+        },
+        {
+          "group": "multi-amc-liquid",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/multi-amc-liquid-2026-10-31/sources/tata-hy-march2014.pdf",
+          "sha256": "b8e26c6e00b16e572dd5c51c365d69b1e3d266baab87388557be69c20ea69d19",
+          "matched": true
+        },
+        {
+          "group": "multi-amc-liquid",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/multi-amc-liquid-2026-10-31/sources/lic-balance-may2013.pdf",
+          "sha256": "4a367a598f6d8c591ddb063fbf3679f549f926b434d3e1a86824490302d9ed47",
+          "matched": true
+        },
+        {
+          "group": "multi-amc-liquid",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/multi-amc-liquid-2026-10-31/sources/edelweiss-unit-2017.pdf",
+          "sha256": "2ca42c91630b07985381f4f7f3b793fffcc9912444a2ad1d55ef4bd50216f55a",
+          "matched": true
+        },
+        {
+          "group": "multi-amc-liquid",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/multi-amc-liquid-2026-10-31/sources/edelweiss-liquid-ssd-2026.pdf",
+          "sha256": "a89b923cf6210384ba3bf77db56205d8f3505b725d2b9b09138e4f8cacc6e488",
+          "matched": true
+        },
+        {
+          "group": "multi-amc-liquid",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/multi-amc-liquid-2026-10-31/sources/canara-ultrashort-ssd-2026.pdf",
+          "sha256": "1b73c5477c20f3285425c2082cf116c9c6dd8f7c92392eb54abe0b071cfe10f1",
+          "matched": true
+        },
+        {
+          "group": "multi-amc-liquid",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/multi-amc-liquid-2026-10-31/sources/canara-treasury-annual2018.pdf",
+          "sha256": "1047751b6388bab9e3819ab9323a13d9918983dcffe1b82e7f0c61612ccef280",
+          "matched": true
+        },
+        {
+          "group": "multi-amc-liquid",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/multi-amc-liquid-2026-10-31/sources/canara-ultrashort-annual2020.pdf",
+          "sha256": "c7184c98f76089e7bd6563d0f06418aa5245188e52f26302ba69f46d992dd661",
+          "matched": true
+        },
+        {
+          "group": "multi-amc-liquid",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/multi-amc-liquid-2026-10-31/sources/edelweiss-factsheets-index.html",
+          "sha256": "6bcc75ec55f29de298cf161a0b396d19d561804544c825c82b2e42549abb3151",
+          "matched": true
+        },
+        {
+          "group": "multi-amc-liquid",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/multi-amc-liquid-2026-10-31/sources/kotak-annual-2013-index.json",
+          "sha256": "f9c574ef9025270c738503f7b81d452219a195b21aeaf698c86b00703a95a70a",
+          "matched": true
+        },
+        {
+          "group": "multi-amc-liquid",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/multi-amc-liquid-2026-10-31/sources/kotak-annual-2013.pdf",
+          "sha256": "de82cbc5685c4fa306321ed7d06a0f54dd8ba535f23dd12547cc590181673988",
+          "matched": true
+        },
+        {
+          "group": "multi-amc-liquid",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/multi-amc-liquid-2026-10-31/sources/kotak-factsheet-nov2024.pdf",
+          "sha256": "6f8f38a10c070e3753c04c7da23c61f17394cbf09c5cd2965516740cbfbeaa40",
+          "matched": true
+        },
+        {
+          "group": "multi-amc-liquid",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/multi-amc-liquid-2026-10-31/sources/kotak-factsheets-2024-index.json",
+          "sha256": "6beb837138a98adbaeb2d12de28c0bfa39ea590925d9fa2a0dd8957180129af1",
+          "matched": true
+        },
+        {
+          "group": "multi-amc-liquid",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/multi-amc-liquid-2026-10-31/sources/kotak-liquid-direct-page.html",
+          "sha256": "e0a9dacc5f55b31573378472a0fffb14265ac01fdda93cc427ab586e9f108bb3",
+          "matched": true
+        },
+        {
+          "group": "multi-amc-liquid",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/multi-amc-liquid-2026-10-31/sources/kotak-main-client.js",
+          "sha256": "9e03370425f8eac4fce910320015346e130dc722c974fb7a64884fd682418230",
+          "matched": true
+        },
+        {
+          "group": "multi-amc-liquid",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/multi-amc-liquid-2026-10-31/sources/kotak-factsheets-jan2024-index.json",
+          "sha256": "8562d53ba1b48bbe7a4426246092ec3a687e9b7202e6f5ec9b49d24446401782",
+          "matched": true
+        },
+        {
+          "group": "multi-amc-liquid",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/multi-amc-liquid-2026-10-31/sources/kotak-factsheet-jan2024-original.pdf",
+          "sha256": "a056d2e5d6d91b123d0f85e0588eae970b7bc5f8f3a627990fe6abf04d134b3c",
+          "matched": true
+        },
+        {
+          "group": "multi-amc-liquid",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/multi-amc-liquid-2026-10-31/sources/kotak-liquid-reg-page.html",
+          "sha256": "a3b9e6d4d2ca17968aa05f6f9b9ca74dd1d812597a38f5d51e4293595838556c",
+          "matched": true
+        },
+        {
+          "group": "multi-amc-liquid",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/multi-amc-liquid-2026-10-31/sources/kotak-downloads-index.html",
+          "sha256": "b08b9dad91d595cd1e49b64e52b5a46d5eb6748af10df20d348fb372894c0184",
+          "matched": true
+        },
+        {
+          "group": "multi-amc-liquid",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/multi-amc-liquid-2026-10-31/sources/canara-performance-oct2024.html",
+          "sha256": "f1ae34820095a7bd9dfa6273ca28c87b0858c4c09d16b45f491cfb33d0cc7a8a",
+          "matched": true
+        },
+        {
+          "group": "multi-amc-liquid",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/multi-amc-liquid-2026-10-31/sources/lic-rename-2016.pdf",
+          "sha256": "9d70352e4f634780351bb292037125e946cc7415cd4d56941aa90fc3e1b4731c",
+          "matched": true
+        },
+        {
+          "group": "multi-amc-liquid",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/multi-amc-liquid-2026-10-31/sources/nccl-collateral-december-2025.pdf",
+          "sha256": "c3d535a9eabcba7770cc949ac20b048174af75e4590f5637669b1c03b9480cf5",
+          "matched": true
+        },
+        {
+          "group": "pgim-jm-quant-franklin",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/pgim-jm-quant-franklin-2026-10-31/sources/nccl-collateral-december-2025.pdf",
+          "sha256": "c3d535a9eabcba7770cc949ac20b048174af75e4590f5637669b1c03b9480cf5",
+          "matched": true
+        },
+        {
+          "group": "pgim-jm-quant-franklin",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/pgim-jm-quant-franklin-2026-10-31/sources/jm-ssd-20260318.pdf",
+          "sha256": "4b04b1a50cd68b1b7e9548d9cd8bbd1f403a21ad4a3b65f9d7cec2784205d2f0",
+          "matched": true
+        },
+        {
+          "group": "pgim-jm-quant-franklin",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/pgim-jm-quant-franklin-2026-10-31/sources/pgim-ssd-20260313.pdf",
+          "sha256": "a7b887451c3787c74affaa0b4752d56b79add4f6d9dc57845f4c52d94359fad6",
+          "matched": true
+        },
+        {
+          "group": "pgim-jm-quant-franklin",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/pgim-jm-quant-franklin-2026-10-31/sources/quant-annual-2020-21.pdf",
+          "sha256": "8026c6de713e877114b096f7f843c0a60f872c76942d5e880d1f40d8f73fe90d",
+          "matched": true
+        },
+        {
+          "group": "pgim-jm-quant-franklin",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/pgim-jm-quant-franklin-2026-10-31/sources/quant-100176-20150526-28.html",
+          "sha256": "7547cd5aa53cf9c3864a28f29bf8b98d316606eb563879f78eb57615d2b51625",
+          "matched": true
+        },
+        {
+          "group": "pgim-jm-quant-franklin",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/pgim-jm-quant-franklin-2026-10-31/sources/quant-120825-20150526-28.html",
+          "sha256": "f9c84f1dc1d74254cb001d94703d9586816034945bfe1efdb0c7c6250f31e27d",
+          "matched": true
+        },
+        {
+          "group": "pgim-jm-quant-franklin",
+          "file": "/workspace/scratch/824eb8a21a56/audit-work/pgim-jm-quant-franklin-2026-10-31/sources/quant-120827-20150526-28.html",
+          "sha256": "b13c3bf129015d5271b98618c00f8203618f86fc7c0cc6e0ccbf342d8e7ea70e",
+          "matched": true
+        }
+      ],
+      "independentNativeReplay": {
+        "file": "/workspace/scratch/824eb8a21a56/audit-work/navi-bandhan-union-2026-10-31/implementation-independent-replay.json",
+        "sha256": "7540b96a078acfd7e889df6145d57de24de954643560ecda3a17c006cdfed229",
+        "actualScopeEvaluatedAt": "2026-10-31T04:24:20.324Z",
+        "actualEligibleHistories": 59,
+        "counts": {
+          "screenedHistories": 59,
+          "screenedObservations": 226022,
+          "frozenEligibleHistories": 59,
+          "actualEligibleHistories": 59,
+          "unitHistories": 20,
+          "unitObservations": 88646,
+          "sourceCorrectionHistories": 0,
+          "sourceCorrectionObservations": 0,
+          "approvedHistories": 20,
+          "approvedObservations": 88646,
+          "excludedHistories": 39,
+          "excludedObservations": 137376,
+          "unitScaledObservations": 11817,
+          "sourceCorrectedObservations": 0,
+          "unchangedCalculationObservations": 214205,
+          "rawLargeMoves": 71,
+          "remainingLargeMoves": 51,
+          "newlyContinuousCalculationCopies": 20,
+          "excludedQualityBlockedHistories": 39,
+          "retainedCalendarGaps": 39312,
+          "historiesWithRetainedGapsOver30Days": 6,
+          "retainedGapsOver30Days": 8,
+          "rawArchiveUnresolvedFlagsPreserved": 59,
+          "repeatUnitAdjustmentsRefused": 20,
+          "repeatSourceCorrectionsRefused": 0,
+          "rawArchiveFlagsCleared": 0,
+          "consumerReturnEligibilityAdded": 0
+        },
+        "maxIndependentNavError": 2.2737367544323206e-13,
+        "publishedRowsAndCountsMatch": true,
+        "productionPinsVerified": 15,
+        "archiveAssetsVerified": 31
+      },
+      "reviewScopeLimits": [
+        "The owner reports the complete 2,638-test suite and typecheck passing. This reviewer inspected the tests and independently reran the pinned full-history production replay; the complete suite was not redundantly rerun.",
+        "Primary historical Union factsheets remain web-text evidence without original byte hashes or successful PDF visual checks, as explicitly retained in the final source ledger.",
+        "This review writes only working review artifacts outside the repository and authorizes no source, warning, archive or consumer-eligibility mutation beyond the twenty documented calculation-only registrations."
+      ],
+      "documentationReview": {
+        "reviewedAt": "2026-10-31T04:29:27.202831+00:00",
+        "files": {
+          "docs/REMAINING_DISTRIBUTION_REVIEW_2026-10-31.md": "bacc35a5cd3dddf8872ddcf91dc5371ae8210c457e4d8d7b1430a26cd392a471",
+          "docs/DATA_HEALTH.md": "fbe88e8d21a6f69d8548f5ce99f3ff95f431accef173dad2fe6ff5438044eb31",
+          "docs/evidence/2026-10-31-collector-checkpoint-274.json": "2e7b000e1cdef99c510b31ded73cf7d8f74e80a5530169ebaa3c120343fcb7e0"
+        },
+        "countsMatchOriginalInputsAndReplay": true,
+        "literalFixturePoints": 396,
+        "gapProbePoints": 14,
+        "longGapCounts": {
+          "historiesOverSevenDays": 7,
+          "gapsOverSevenDays": 13,
+          "historiesOverThirtyDays": 6,
+          "gapsOverThirtyDays": 8
+        },
+        "collectorClaimsMatchSavedEvidence": true,
+        "freshRemoteCollectorStatusQueried": false,
+        "resolvedNonblockingFinding": {
+          "item": "Edelweiss notice printed date",
+          "initialReport": "21 June 2017 based on filename",
+          "correctedReport": "20 June 2017 based on original printed date",
+          "productionOrReplayChanged": false
+        },
+        "pendingDeliveryStatusKeptSeparate": true
+      },
+      "narrativeReport": "implementation-review.md"
+    }
+  },
+  "consolidatedSourceLedgerReview": {
+    "sourceArtifact": "consolidated-ledger-review.json",
+    "sourceArtifactSha256": "94bb6fa17c8ccffc720674752b4c767f75317df43e760a295ab54a0b185f69d2",
+    "review": {
+      "reviewedAt": "2026-10-31T04:26:48.997679+00:00",
+      "reviewer": "pgim_jm_quant_franklin_next",
+      "verdict": "PASS",
+      "blockers": [],
+      "scope": "Independent packaging review only. Consolidated ledger compared with all three final research packages, independent baseline and immutable capture; no primary-source research repeated and no implementation/code approval implied.",
+      "consolidatedLedger": {
+        "path": "/workspace/scratch/824eb8a21a56/fundscope-next/docs/evidence/2026-10-31-remaining-distribution-sources.json",
+        "sha256": "03d51d2f4e02e65e6475b98ed4c43c6d356c0ae285cdb1a1b6cbe0bb7396d789",
+        "bytes": 605612
+      },
+      "baseline": {
+        "path": "/workspace/scratch/824eb8a21a56/audit-work/remaining-distribution-2026-10-31/independent-baseline.json",
+        "sha256": "af6a4db29e4cd9d019207e4781502dc5305dfdd7ec90911e1b5ff3a1adb7fec8",
+        "all59RowsFieldForFieldEqual": true
+      },
+      "packages": [
+        {
+          "group": "navi-bandhan-union",
+          "directory": "/workspace/scratch/824eb8a21a56/audit-work/navi-bandhan-union-2026-10-31",
+          "bundleFileHashesAllMatch": true,
+          "embeddedSourceCatalogueEqualsFinalSourceLedger": true,
+          "findingsSha256": "d5248b04618bdd6f479155aaabec262a41472e59bb76cb1ccd53741eb852e23d",
+          "sourceLedgerSha256": "363e8a64282cf7f8462e2d4ebf0669ee48b9499f035218df59c5fa5c7b463e2e"
+        },
+        {
+          "group": "multi-amc-liquid",
+          "directory": "/workspace/scratch/824eb8a21a56/audit-work/multi-amc-liquid-2026-10-31",
+          "bundleFileHashesAllMatch": true,
+          "embeddedSourceCatalogueEqualsFinalSourceLedger": true,
+          "findingsSha256": "00922eca2a0f7a533fa13249b746537a84e91d7264c1d75038bfcd32d447b7ba",
+          "sourceLedgerSha256": "5c6943ede5049b73e36ed3ca39523066637053428e611f4c698e0862d5039de9"
+        },
+        {
+          "group": "pgim-jm-quant-franklin",
+          "directory": "/workspace/scratch/824eb8a21a56/audit-work/pgim-jm-quant-franklin-2026-10-31",
+          "bundleFileHashesAllMatch": true,
+          "embeddedSourceCatalogueEqualsFinalSourceLedger": true,
+          "findingsSha256": "ac860b4ce06728490468bc552153b206a093fc19a05569fa71dabc339e124304",
+          "sourceLedgerSha256": "761760ae151dde257bebaf1d0b74e09be1bcce35a7cb1542d3f86670e326970a"
+        }
+      ],
+      "groupAccounting": [
+        {
+          "group": "navi-bandhan-union",
+          "histories": 17,
+          "observations": 73330,
+          "unitCandidates": 3,
+          "excluded": 14
+        },
+        {
+          "group": "multi-amc-liquid",
+          "histories": 20,
+          "observations": 88761,
+          "unitCandidates": 17,
+          "excluded": 3
+        },
+        {
+          "group": "pgim-jm-quant-franklin",
+          "histories": 22,
+          "observations": 63931,
+          "unitCandidates": 0,
+          "excluded": 22
+        }
+      ],
+      "independentDecimal70Recount": {
+        "histories": 59,
+        "observations": 226022,
+        "adjacentPairs": 225963,
+        "unitHistories": 20,
+        "unitObservations": 88646,
+        "excludedHistories": 39,
+        "excludedObservations": 137376,
+        "unitScaledObservations": 11817,
+        "unchangedCalculationObservations": 214205,
+        "rawLargeMoves": 71,
+        "remainingLargeMoves": 51,
+        "retainedCalendarGaps": 39312,
+        "historiesWithRetainedGapsOver30Days": 6,
+        "retainedGapsOver30Days": 8,
+        "allGapTupleHashesMatch": true,
+        "sourceCorrections": 0,
+        "allNumericalAccountingCountsMatchConsolidatedLedger": true,
+        "runtimeBehaviorCountsRequirePinnedProductionReplay": [
+          "newlyContinuousCalculationCopies",
+          "excludedQualityBlockedHistories",
+          "repeatUnitAdjustmentsRefused",
+          "repeatSourceCorrectionsRefused"
+        ]
+      },
+      "coverageChecks": {
+        "threeGroupCodeSetsDisjointAndUnionEqualsBaselineAndLedger": true,
+        "allPackageObservationCountsAndCoverageDatesMatch": true,
+        "allStoredNamesCodesHousesAndBothIsinFieldsMatch": true,
+        "nullIsinValuesPreservedExactly": true,
+        "naviCategoryFieldMapping": "Package storedIdentity.category maps exactly to baseline schemeCategory; no value changed.",
+        "allRemovedDuplicateMetadataAndSourceHashFieldsReconciledToBaseline": true,
+        "allRetainedPackageEvidenceFieldsExactlyEqual": true,
+        "allMachineReadableSourceReferencesResolve": true,
+        "all20UnitActionDatesFactorsTolerancesAndEvidenceUrlsMatchFinalPackages": true,
+        "unionActionLabelOnlyDifference": "Consolidated label includes the complete stored fund name; substantive action fields are unchanged.",
+        "all39ExclusionsMatchFinalPackageDecisions": true,
+        "allSourceCorrectionFieldsNull": true,
+        "allCompletenessTotalReturnAndGrowthEligibilityBooleansRemainFalse": true
+      },
+      "captureLimitChecks": {
+        "sourceCatalogueDeepEqualityPreservesAllFailuresAndQualifications": true,
+        "union2012And2017FactsheetsRemainIndexedPrimaryTextWithoutOriginalByteHashOrVisualClaim": true,
+        "unionIdentityPdfRemainsVerifiedUnchangedOriginalZipMember": true,
+        "jmDistributionFactsheet406AndFailedScreenshotRemainExplicit": true,
+        "jmAnnualCleanPrinted50NoteAndGarbledPrinted89RepeatRemainSeparated": true,
+        "quantOmittedDatesAndRepeatedAnomalousValueDoNotBecomeCorrections": true,
+        "pgimMissingOriginalTermsAndJmOvernightDateConflictRemainExcluded": true,
+        "union115399MissingBoundaryAnd99DayGapRemainExcluded": true,
+        "edelweiss140184PostEventAnomaliesRemainExcluded": true,
+        "kotak119747Retained31And61DayGapsRemain": true,
+        "naviIncompleteStoredIsinChainAndOptionConflictExclusionsRemain": true
+      },
+      "originalCapturePackaging": {
+        "manifestHashAndBytesMatch": true,
+        "compressedAssetHashesAndBytesMatch": true,
+        "assets": 31,
+        "compressedBytes": 8186432
+      },
+      "independentReviewArtifacts": {
+        "allFiveDeclaredArtifactsFoundWithExactHashAndBytes": true,
+        "artifactNames": [
+          "independent-baseline.json",
+          "independent-edelweiss-source-review.json",
+          "independent-multi-amc-source-review.json",
+          "independent-union-review.json",
+          "independent-group-c-review.json"
+        ]
+      },
+      "filesModified": [],
+      "onlyNewReviewArtifact": "/workspace/scratch/824eb8a21a56/audit-work/pgim-jm-quant-franklin-2026-10-31/consolidated-ledger-review.json"
+    }
+  },
+  "implementationOwnerVerification": {
+    "newRegressionTests": 222,
+    "meaningfulRed": {
+      "passed": 161,
+      "failed": 61,
+      "reason": "All failures are missing exact unit registrations or dependent positive behavior; no syntax/import/environment failure.",
+      "logSha256": "0bef4e7de71c54455a9cf5a0cbb2147e83379d2213f04a74577b11792f9d3ca6"
+    },
+    "focusedGreen": {
+      "passed": 555,
+      "failed": 0,
+      "logSha256": "4edd411fe4459c213fa8c27407d55b5a307eaa676a8f604e626e617520767971"
+    },
+    "completeSuite": {
+      "passed": 2638,
+      "failed": 0,
+      "skipped": 0,
+      "logSha256": "00eee531d00a4523cdbd184a278d3fcb2f47f93397d68a0e3a7d28a230987bc2"
+    },
+    "typecheck": "pass",
+    "workerBuild": {
+      "status": "pass",
+      "logSha256": "3f33a4f36de341c1a78ac129294784b3136e86dc09bbac702cc943c974323802"
+    },
+    "pagesBuild": {
+      "status": "pass",
+      "logSha256": "3c21903c2416ca6fff9cb107cc38c73844d99cf5299942c86b8318d5318dba31",
+      "assets": [
+        {
+          "file": "index-9K_3mv2j.css",
+          "bytes": 54741,
+          "sha256": "97fe87b9f067651213a6989714faa950e5a7e815baf74db091d1f8ddb79da03a"
+        },
+        {
+          "file": "index-Ck3QhojZ.js",
+          "bytes": 1129954,
+          "sha256": "1cb563f4b37f54195fab1833f2a2424324177c43b0c0814cf305fb5b58348fee"
+        }
+      ]
+    },
+    "fixtureGeneratorSourceHashGuard": "Canonical document hash is independently checked before emitting each fixture. Complete metadata is built from the original payload; required fields and literal nulls match the ledger.",
+    "documentationCorrection": "The Edelweiss notice is dated 20 June 2017 on the original page. The report now uses that printed date; the original 21-jun17 URL and 1 July effective date are unchanged.",
+    "prepublicationEligibility": {
+      "asOf": "2026-10-31T04:28:28.576Z",
+      "checkpoint": 274,
+      "manifestSha256": "6060d56e5dfa60a08a8591b99464fcec1e44093480e81ddcb9c9fae0e0e1dd9e",
+      "catalogueVerifiedAt": "2026-10-30T19:58:19.963Z",
+      "officialRosterDate": "2026-10-26",
+      "selected": 59,
+      "eligible": 59,
+      "rows": [
+        {
+          "schemeCode": 100176,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 100220,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 100549,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 100833,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 101407,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 101714,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 101892,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 108692,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 108766,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 109349,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 109350,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 109366,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 109372,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 111707,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 112645,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 112646,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 112647,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 115399,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 115400,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 115401,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 115402,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 115489,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 119161,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 119162,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 119163,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 119747,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 119764,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 119862,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 120248,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 120825,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 120827,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 131388,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 131396,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 131476,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 134959,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 134961,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 138341,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 138342,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 138344,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 138359,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 138361,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 138362,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 139386,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 140181,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 140183,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 140184,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 140185,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 140188,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 140193,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 140197,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 140437,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 147605,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 147607,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 147608,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 147609,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 147834,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 147835,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 147838,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        },
+        {
+          "schemeCode": 147839,
+          "latestDate": "2026-10-29",
+          "activeRepairEligible": true
+        }
+      ]
+    }
+  }
+}
